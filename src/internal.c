@@ -17,20 +17,6 @@
    
 #include "Rmpi.h"
 
-int MPI_is_master(){
-	int check;
-	MPI_Comm master;
-	MPI_Comm_get_parent(&master);
-	check=(master==MPI_COMM_NULL);
-	MPI_Comm_free(&master);
-	return check;
-}
-
-
-void mystrcpy(char *new_str, char *old_str, int size) {
-	int i;
-	for (i=0; i< size; new_str[i]=old_str[i++]);
-}
 
 int mpi_errhandler(int errcode)
 {
@@ -52,6 +38,7 @@ int erreturn(int errcode){
 		return 0;
 }
 
+/*
 MPI_Datatype mpitype(SEXP sexp_type){
 	MPI_Datatype datatype;
 	
@@ -69,4 +56,8 @@ MPI_Datatype mpitype(SEXP sexp_type){
 	return datatype;
 }
 
-
+void mystrcpy(char *new_str, char *old_str, int size) {
+	int i;
+	for (i=0; i< size; new_str[i]=old_str[i++]);
+}*/
+ 

@@ -1,5 +1,4 @@
 #include <mpi.h>
-#include <sprng.h>
 #include <R.h>
 #include <Rdefines.h>
 #include <R_ext/Random.h>
@@ -7,19 +6,16 @@
 #define COMM_MAXSIZE 10
 
 int mpi_errhandler(int errcode);
-int MPI_is_master();
 int erreturn(int errcode);
 
-MPI_Datatype mpitype(SEXP sexp_type);
+//MPI_Datatype mpitype(SEXP sexp_type);
 
-void mystrcpy(char *new_str, char *old_str, int size);
+//void mystrcpy(char *new_str, char *old_str, int size);
 
 SEXP AsInt (int n);
 
 struct Dblint {
-
 	double x;
-
 	int rank;
 
 };

@@ -27,22 +27,16 @@ mpi.bcast(x, type, rank = 0, comm = 1)
   difficult to use in R environment since the receivers may not know what 
   types of data to receive, not mention the length of data. Users should 
   use various extensions of \code{mpi.bcast} in R. They are 
-  \code{\link{mpi.bcast.send}}, \code{\link{mpi.bcast.recv}},  
-  \code{\link{mpi.bcast.send.Robj}}, \code{\link{mpi.bcast.recv.Robj}},
-  \code{\link{mpi.bcast.send.cmd}}, \code{\link{mpi.bcast.recv.cmd}},
-  and \code{\link{mpi.bcast.Robj2slave}}.
+  \code{\link{mpi.bcast.Robj}}, \code{\link{mpi.bcast.cmd}}, and 
+\code{\link{mpi.bcast.Robj2slave}}.
  }
 \references{
   \url{http://www.lam-mpi.org/}, 
   \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
 }
 \seealso{
-  \code{\link{mpi.bcast.send}},
-  \code{\link{mpi.bcast.recv}},
-  \code{\link{mpi.bcast.send.Robj}},
-  \code{\link{mpi.bcast.recv.Robj}}, \newline
-  \code{\link{mpi.bcast.send.cmd}},
-  \code{\link{mpi.bcast.recv.cmd}},
+  \code{\link{mpi.bcast.Robj}},
+  \code{\link{mpi.bcast.cmd}},
   \code{\link{mpi.bcast.Robj2slave}}.
 }
 %\examples{

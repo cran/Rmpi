@@ -12,7 +12,7 @@ fi
 
 if [ $3 == "needlog" ]; then
 	hn=`hostname -s`
-	R --slave --no-save < $1 > $hn.$2.$$.log
+	R --no-init-file --slave --no-save < $1 > $hn.$2.$$.log
 else
-	R --slave --no-save < $1 > /dev/null
+	R --no-init-file --slave --no-save < $1 > /dev/null
 fi

@@ -27,7 +27,7 @@ master2PI <- function (n,maxjoblen,comm=1)
     mpi.bcast.Robj2slave(slave2, comm=comm)
 
     #let slave run the function slave2
-    mpi.bcast.send.cmd(slave2(), comm=comm)
+    mpi.bcast.cmd(slave2(), comm=comm)
 
     #send n to all slaves	
     mpi.bcast(as.integer(n),type=1,comm=comm)

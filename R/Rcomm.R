@@ -24,6 +24,10 @@ mpi.comm.size <- function(comm=1){
 		.Call("mpi_comm_size",as.integer(comm))
 }
 
+mpi.comm.dup <- function(comm, newcomm){
+        .Call("mpi_comm_dup", as.integer(comm), as.integer(newcomm))
+}
+
 mpi.comm.remote.size <- function(comm=2){
 	.Call("mpi_comm_remote_size", as.integer(comm))
 }

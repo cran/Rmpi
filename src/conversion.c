@@ -32,19 +32,15 @@ SEXP pid(){
 	return AsInt(getpid());
 }
 
-SEXP mkstr(SEXP sexp_len){
-	int i, len = INTEGER(sexp_len)[0], slen= INTEGER(sexp_len)[1];
+SEXP mkstr(SEXP sexp_charlen){
+	int i, charlen = INTEGER(sexp_charlen)[0];
 	char *tmp, spchar[1]=" ";
 	SEXP new_strvec;
-
-	PROTECT (new_strvec = allocVector (STRSXP, len));
-	tmp = (char *) R_alloc (slen, sizeof(char));
-	for (i=0; i < slen; tmp[i++]=spchar[0]);	
-	for (i=0; i < len; i++){
-		SET_STRING_ELT(new_strvec, i, COPY_TO_USER_STRING(tmp));
-	}
+	PROTECT (new_strvec = allocVector (STRSXP, 1));
+	tmp = (char *) R_alloc (charlen, sizeof(char));
+	for (i=0; i < charlen; tmp[i++]=spchar[0]);	
+	SET_STRING_ELT(new_strvec, 0, COPY_TO_USER_STRING(tmp));
+	
 	UNPROTECT(1);
 	return new_strvec;
 }
-
-

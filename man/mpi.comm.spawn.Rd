@@ -3,7 +3,7 @@
 \title{MPI\_Comm\_spawn API }
 \description{
 \code{mpi.comm.spawn} tries to start \code{nslaves} identical copies of 
-\code{slave}, establishing communication with them and returning an 
+\code{slaves}, establishing communication with them and returning an 
 intercommunicator. The spawned slaves are referred to as children, and the 
 process that spawned them is called the parent (master). The children have 
 their own MPI\_COMM\_WORLD represented by comm 0. To make communication 

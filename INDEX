@@ -8,6 +8,7 @@ mpi.allreduce		Reduce all process's vectors into one vector
 mpi.barrier		Block the caller until all group have called it
 mpi.bcast		Broadcast a vector (int,double,char) to every process. 
 mpi.comm.disconnect	Disconeect and free a comm
+mpi.comm.dup		Duplicate a comm to a new comm
 mpi.comm.free		Free a comm
 mpi.comm.get.parent	Get the parent intercomm
 mpi.comm.rank		Find the rank (process id) of master and slaves
@@ -39,16 +40,15 @@ MPI Extensions in R Environment:
 lamhosts		Hosts id and machine host name mapping 
 mpi.any.source		A constant for receiving a message from any source
 mpi.any.tag		A constant for receiving a message from any tag
-mpi.bcast.recv		Receive a vector broadcasted by mpi.bcast.send
-mpi.bcast.recv.Robj	Receive an R object broadcasted by mpi.bcast.send.Robj
-mpi.bcast.send		Broadcast a vector to every process
-mpi.bcast.send.Robj	Broadcast an R object to every process
+mpi.bcast.Robj		Broadcast an R object to every process
 mpi.comm.is.null	Test if a comm is null (no members)
 mpi.exit		Call MPI_Finalize and detach Rmpi library
 mpi.get.sourcetag	Get the source and tag for a given status
 mpi.hostinfo		Get the host information that the process is running
+mpi.init.sprng		MPI wrapper to initialize SPRNG
 mpi.is.master		TRUE if it is a master otherwise FALSE (slave)
 mpi.proc.null		Dummy source and destination
+mpi.quit		Call MPI_Finalize and quit R
 mpi.recv.Robj		Receive an R object from a process (by mpi.send.Robj)	
 mpi.realloc.comm	Increase array of comm to a new size
 mpi.send.Robj		Send an R object to a specific process
@@ -57,26 +57,20 @@ mpi.spawn.Rslaves	Spawn R slaves. The default R script is slavedaemon.R
 MPI Extensions specifically to slavedaemon.R Script (interactive R slaves). 
 
 getpid			Master process id, used for setting slave log files.
-mpi.bcast.recv.cmd	Receive a command sent by mpi.bcast.send.cmd 
 mpi.bcast.Robj2slave	Master sends an Robj to all slaves
-mpi.bcast.send.cmd	Broadcast a commond to every process
+mpi.bcast.cmd		Broadcast a commond to every process
 mpi.close.Rslaves	Close all slaves launched by mpi.spawn.Rslaves()
 mpi.remote.exec		Run a command remotely on slaves and return 
 			results back to the master 
 mpi.remote.slave	Counter part of mpi.remote.exec (used by slaves)
 slave.hostinfo		Show all slave rank, comm, host information
 tail.slave.log		Tail (view) last lines of slave log files
-******************************************************************************
-SPRNG Commands:
+*****************************************************************************
+Deprecated Functions
+mpi.bcast.recv.cmd	Replaced by mpi.bcast.cmd 
+mpi.bcast.send.cmd	Replaced by mpi.bcast.cmd
+mpi.bcast.recv.Robj	Replaced by mpi.bcast.Robj
+mpi.bcast.send.Robj	Replaced by mpi.bcast.Robj
+mpi.bcast.recv		Not needed
+mpi.bcast.send		Not needed
 
-free.sprng		Free SPRNG and reset RGNkind to default
-get.sprng.seed		Get the .Sprng.seed used by SPRNG
-init.sprng		Initilize SPRNG. Run once. No need to run it again 
-			unless changing RNG algorithm
-make.sprng.seed		Make a new SPRNG seed and used by init.sprng  
-pack.sprng		Save present stream to internal memory
-print.sprng		Print SPRNG's seed, type, and stream number
-spawn.sprng		Generate new streams into internal memory
-start.new.stream	Start a new stream from an existing one
-unpack.sprng		Restore internal saved stream
-unpack.spawned.sprng	Restore the first spawned stream

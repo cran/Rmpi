@@ -6,9 +6,11 @@ slave1PI.R 		R functions to compute PI using slavedaemon.R (load
 slave2PI.R 		R functions to compute PI using slavedaemon.R (load 
 			balancing with workers only). Use master2PI to run the 
 			program.
-simPI.R			Use Monto Carlo simulation to compute PI (with plot). 
-			Use simPI to run the program.
 cslavePI.R		R function to use external C program cslavePI.
 			Copy cslavePI.c in Rmpi library directory to your 
 			working directory and compile as "mpicc -o 
 			cslavePI cslavePI.c"
+simPI.R                 Use Monto Carlo simulation to compute PI (with plot). 
+                        Use simPI to run the program. Use mpi.init.sprng 
+			to initialize SPRNG first.
+

@@ -8,7 +8,8 @@ mpi.comm.set.errhandler(comm = 1)
   \item{comm}{a communicator number}
 }
 \description{
-  \code{mpi.comm.set.errhandler} sets a comm to MPI\_ERRORS\_RETURN instead of  
+  \code{mpi.comm.set.errhandler} sets a communicator to MPI\_ERRORS\_RETURN 
+instead of  
 MPI\_ERRORS\_ARE\_FATAL (default) which crashes R on any type of MPI errors.  
 Almost all MPI API calls return errcodes which can map to specific MPI error 
 messages. All MPI related error messages come from predefined 

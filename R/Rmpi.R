@@ -12,9 +12,21 @@ mpi.exit <- function(){
     detach(package:Rmpi)
 }
 
+mpi.quit <- function(save="no"){
+    .Call("mpi_finalize")
+    q(save=save,runLast=FALSE)
+}
+
 mpi.is.master <- function () 
 {
-    as.logical(.Call("mpi_is_master"))
+    if (is.loaded("mpi_comm_get_parent"))
+	as.logical(.Call("mpi_is_master"))
+    else {
+	if (mpi.comm.size(1)>0)
+	    as.logical(mpi.comm.rank(1)==0)
+	else
+	    as.logical(mpi.comm.rank(0)==0)
+    }
 }
 
 mpi.any.source <- function(){
@@ -40,7 +52,7 @@ mpi.info.set <- function(info=0, key, value){
 
 mpi.info.get <- function(info=0, key, valuelen){
     .Call("mpi_info_get",as.integer(info), as.character(key), 
-	as.integer(valulen), paste(rep(" ", valuelen), collapse=""))
+	as.integer(valulen), .Call("mkstr",as.integer(valuelen)))
 }
 
 mpi.info.free <- function(info=0){
@@ -178,37 +190,35 @@ mpi.spawn.Rslaves <-
 #    }
 }	
 
-mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE,
-	#	retobj=c("auto","list"),
-		width.cutoff=200){
+mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
+	#	retobj=c("auto","list")
     tag <- floor(runif(1,1,1000))
     scmd <- substitute(cmd)
     arg <-list(...)
   #  retobj <- match.arg(retobj)
     if (length(arg)>0){
-	scmd <- mpi.remote.fun(scmd, ..., needsub=FALSE, 
-			width.cutoff=width.cutoff)
+	scmd <- mpi.remote.fun(scmd, ..., needsub=FALSE, width.cutoff=500)
         scmd1 <- paste("mpi.remote.slave(cmd=",scmd,",",sep="")
         scmd2 <- deparse(substitute(ekaf(tag=tag,ret=ret)),   
-                width.cutoff=width.cutoff)
+                width.cutoff=500)
         scmd2 <-unlist(strsplit(scmd2,"ekaf\\("))[-1]
         scmd <- paste(scmd1,scmd2)
     }
     else {
         scmd <- deparse(substitute(mpi.remote.slave(cmd=scmd, tag=tag, 
-		ret=ret)), width.cutoff = width.cutoff)
+		ret=ret)), width.cutoff = 500)
     }
-    type <- typeindex(scmd) #must be characters.
-    mpi.bcast(x=type,type=1,rank=0,comm=comm)
-    invisible(mpi.bcast(x=scmd, type=type[1], rank=0, comm=comm))
+    scmd <- paste(scmd, collapse="\"\"/")
+    mpi.bcast(x=nchar(scmd), type=1, rank=0, comm=comm)
+    mpi.bcast(x=scmd, type=3, rank=0, comm=comm)
     if (ret){
     	size <- mpi.comm.size(comm) 
     	allcode <- mpi.allgather(integer(3), 1, integer(3*size), comm)
     	errsum <- sum(allcode[seq(1,3*size,3)])
     	if (errsum == size-1){
-	tmp <-paste("All slaves could not evaluate `", 
+	    tmp <-paste("All slaves could not evaluate `", 
 			deparse(substitute(cmd)), "'.", sep="")
-	stop(tmp)
+	    stop(tmp)
     	}  
     	else if ( errsum > 0){
 	    tmp <- paste("There are ",errsum,
@@ -256,60 +266,73 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE,
 	else {
     	    out <- as.list(integer(size-1))
     	    names(out) <- paste("slave",1:(size-1), sep="")
-    	    for (i in 1:(size-1))
-		out[[i]]<- mpi.recv.Robj(i,tag,comm) 
+    	    for (i in 1:(size-1)){
+		tmp<- mpi.recv.Robj(mpi.any.source(),tag,comm)
+		src <- mpi.get.sourcetag()[1] 
+		out[[src]]<- tmp 
+	    }
 	}
     	out
     }
 }
 
+typeindex <- function (x) {
+    if(is.null(class(x))){ 
+        if (is.integer(x))
+            as.integer(c(1,length(x)))
+        else if (is.double(x))
+            as.integer(c(2,length(x)))
+        else
+            as.integer(-1)
+    }
+    else
+	as.integer(-1)
+}
+
 mpi.remote.slave <- function(cmd,tag,ret){
     assign(".mpi.err", FALSE,  env = .GlobalEnv)
     if (ret){
-	comm <- 1
-	size <- mpi.comm.size(comm)
+	size <- mpi.comm.size(.comm)
    	myerrcode <- as.integer(0)
     	out <- try(eval(expression(cmd)))
     	if (.mpi.err){
+	    print(.Last.value)        #Leave real error messages in log file
 	    myerrcode <-as.integer(1)
     	    type <- integer(2)
 	}
     	else {
 	    type <- typeindex(out)
-	    type <- type[1:2]
 	    if (is.na(type[2]))
-	    type[2] <- 0	
+ 	        type[2] <- 0	
     	}
-      	allcode <- mpi.allgather(c(myerrcode,type), 1, integer(3*size), comm)
-        if (sum(allcode[seq(1,3*size,3)]) > 0)
-	    stop("Error in command")
+      	allcode <- mpi.allgather(c(myerrcode,type), 1, integer(3*size), .comm)
+        if (sum(allcode[seq(1,3*size,3)]) > 0) {
+	    stop("See above error message(s)")
+	}
 	type <- allcode[seq(5,3*size,3)]
         len <- allcode[seq(6,3*size,3)]
         eqlen <- all(len==len[1])
         if (all(type==1)) {
             if (eqlen)
-                mpi.gather(out, 1, integer(1), 0, comm)
+                mpi.gather(out, 1, integer(1), 0, .comm)
 	    else
-		mpi.gatherv(out, 1, integer(1), integer(1), 0 ,comm)
+		mpi.gatherv(out, 1, integer(1), integer(1), 0 ,.comm)
 	}
 	else if (all(type==2)) {
             if (eqlen)
-                mpi.gather(out, 2, double(1), 0, comm)
+                mpi.gather(out, 2, double(1), 0, .comm)
 	    else
-                mpi.gatherv(out, 2, double(1), integer(1), 0, comm)
+                mpi.gatherv(out, 2, double(1), integer(1), 0, .comm)
         }
 	else {
-	    if (is.null(out)) 
-	    	mpi.send.Robj("NULL",0,tag,comm)
-	    else
-	    	mpi.send.Robj(out,0,tag,comm)
+	    mpi.send.Robj(out,0,tag,.comm)
 	}		
     }
     else
 	try(eval(expression(cmd)))
 }
 
-mpi.remote.fun <- function (cmd, ..., needsub=TRUE, width.cutoff=200) {
+mpi.remote.fun <- function (cmd, ..., needsub=TRUE, width.cutoff=500) {
     if (needsub)
     	cmd <- substitute(cmd)
     cmd <- paste(cmd, "(", sep="")
@@ -345,11 +368,11 @@ mpi.remote.fun <- function (cmd, ..., needsub=TRUE, width.cutoff=200) {
 
 
 mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
-    if (mpi.comm.size(comm)==0){
+    if (mpi.comm.size(comm) < 2){
 	err <-paste("It seems no slaves running on comm", comm)
 	stop(err)
     }
-    mpi.bcast.send.cmd(break, rank=0, comm=comm)
+    mpi.bcast.cmd(break, rank=0, comm=comm)
     if (dellog){
 	tmp <- paste(getpid(),"+",comm,sep="")	
   	logfile <- paste("*.",tmp,".*.log", sep="")
@@ -357,8 +380,9 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
 	    system(paste("rm", logfile))
 	}
      mpi.barrier(comm)
-     mpi.comm.disconnect(comm)
-#     mpi.comm.set.errhandler(0)
+    if (comm >0)
+	 mpi.comm.disconnect(comm)
+#   mpi.comm.set.errhandler(0)
 }
 
 tail.slave.log <- function(nlines=3,comm=1){

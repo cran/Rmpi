@@ -19,7 +19,8 @@ when creating the new communicator}
   intracommunicator must be created. \code{mpi.intercomm.merge} is used for 
   that purpose. This is a collective call so all master and slaves call 
   together. R slaves spawned by \code{\link{mpi.spawn.Rslaves}} should use
-\code{\link{mpi.comm.get.parent}} to get an intercomm first before merging. One 
+\code{\link{mpi.comm.get.parent}} to get (set) an intercomm to a number followed 
+by merging antercomm to an intracomm. One 
 can use \code{\link{mpi.comm.test.inter}} to test if a 
   communicator is an intercommunicator or not.
 }

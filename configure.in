@@ -18,22 +18,25 @@ AC_CHECK_HEADER(mpi.h, [ MPI_INCLUDE="" ],
     	if test -f ${MPI_ROOT}/include/mpi.h; then
             echo "Found in ${MPI_ROOT}/include"
             MPI_INCLUDE="-I${MPI_ROOT}/include"
-    	elif test -f /usr/local/include/mpi.h; then
+    	elif test -f /usr/include/lam/mpi.h; then
+            echo "Found in /usr/include/lam"
+	    MPI_INCLUDE="-I/usr/include/lam"
+     	elif test -f /usr/local/include/mpi.h; then
             echo "Found in /usr/local/include"
 	    MPI_INCLUDE="-I/usr/local/include"
-    	else 
+   	else 
 	    echo "Cannot find mpi head file"
 	    echo "Please check if --with-mpi=${MPI_ROOT} is right"
 	    exit 1
     	fi
     else
 	echo "Try to find mpi.h ..."
-    	if test -f /usr/local/include/mpi.h; then
-            echo "Found in /usr/local/include"
-            MPI_INCLUDE="-I/usr/local/include"
-    	elif test -f /usr/include/lam/mpi.h; then
+    	if test -f /usr/include/lam/mpi.h; then
             echo "Found in /usr/include/lam"
             MPI_INCLUDE="-I/usr/include/lam"
+    	elif test -f /usr/local/include/mpi.h; then
+            echo "Found in /usr/local/include"
+            MPI_INCLUDE="-I/usr/local/include"
     	else 
 	    echo "Cannot find mpi header file."
 	    echo "Please use --with-mpi=/path/to/mpi"
@@ -67,66 +70,8 @@ else
     )
 fi    
 
-AC_ARG_WITH(sprng,
-[   --with-sprng=/usr/local/sprng2          Location of SPRNG library.],
-[   if test "${withval}" = no; then
-        supply_sprng=no
-    else
-        supply_sprng=yes
-        SPRNG_ROOT=${withval}
-    fi  ]
-)
-
-if test "${supply_sprng}" = yes; then
-    echo "Try to find sprng.h ..."
-    if test -f ${SPRNG_ROOT}/include/sprng.h; then
-        echo "Found in ${SPRNG_ROOT}/include"
-        SPRNG_INCLUDE="-I${SPRNG_ROOT}/include"
-    else 
-        AC_CHECK_HEADER(sprng.h, 
-        [   SPRNG_INCLUDE=""    ],
-        [   echo "Cannot find sprng 2.0 header file."
-            exit 1  ]
-        )
-    fi
-else 
-    echo "Try to find sprng.h ..."
-    if test -f /usr/local/sprng2/include/sprng.h; then
-    	SPRNG_ROOT=/usr/local/sprng2
-        echo "Found in ${SPRNG_ROOT}/include"
-        SPRNG_INCLUDE="-I${SPRNG_ROOT}/include"
-    elif test -f /usr/local/sprng/include/sprng.h; then
-	SPRNG_ROOT=/usr/local/sprng
-        echo "Found in ${SPRNG_ROOT}/include"
-        SPRNG_INCLUDE="-I${SPRNG_ROOT}/include"
-    else 
-        AC_CHECK_HEADER(sprng.h, 
-        [   SPRNG_INCLUDE=""    ],
-        [   echo "Cannot find sprng 2.0 header file."
-            exit 1  ]
-        )
-    fi
-fi
-
-    echo "Try to find libsprng.a ..."
-    if test -f ${SPRNG_ROOT}/lib/libsprng.a; then
-        echo "Found in ${SPRNG_ROOT}/lib"
-        SPRNG_LIBS="-L${SPRNG_ROOT}/lib -lsprng"
-    else
-        AC_CHECK_LIB(sprng, main, SPRNG_LIBS="",
-        [   echo "Cannot find libsprng"; 
-            exit 1  ]
-        )
-    fi
-
-    AC_CHECK_LIB(gmp, main,
-    [   SPRNG_LIBS="$SPRNG_LIBS -lgmp"  ],
-    [   echo "libgmp not found. exiting..."
-        exit 1  ]
-    )
-
-PKG_LIBS="${SPRNG_LIBS} ${MPI_LIBS}"
-PKG_CPPFLAGS="${MPI_INCLUDE} ${SPRNG_INCLUDE}"
+PKG_LIBS="${MPI_LIBS}"
+PKG_CPPFLAGS="${MPI_INCLUDE}"
 
 AC_SUBST(PKG_LIBS)
 AC_SUBST(PKG_CPPFLAGS)

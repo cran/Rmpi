@@ -10,10 +10,10 @@
   \code{mpi.reduce} except that all members receive the combined value(s).
 }
 \usage{
-mpi.reduce(x, type = 2, op = c("sum", "prod", "max", "min", "maxloc", "minloc"), 
+mpi.reduce(x, type=2, op=c("sum","prod","max","min","maxloc","minloc"), 
 	dest = 0, comm = 1) 
 
-mpi.allreduce(x, type = 2, op = c("sum", "prod", "max", "min", "maxloc", "minloc"), 
+mpi.allreduce(x, type=2, op=c("sum","prod","max","min","maxloc","minloc"), 
 	comm = 1) 
 }
 \arguments{
@@ -27,7 +27,7 @@ mpi.allreduce(x, type = 2, op = c("sum", "prod", "max", "min", "maxloc", "minloc
 \value{
   \code{mpi.reduce} returns the combined value(s) to the member specified  
   by \code{dest}. \code{mpi.allreduce} returns the combined values(s) to 
-  every member in comm. The combined value(s) may be the summation, 
+  every member in a comm. The combined value(s) may be the summation, 
   production, maximum, or minimum specified by the argument \code{op}. If 
   the \code{op} is either "maxloc" or "minloc", then the maximum (minimum) 
   value(s) along the maximum (minimum) rank(s) will be returned.

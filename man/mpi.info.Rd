@@ -5,7 +5,17 @@
 \alias{mpi.info.set}
 \title{MPI\_Info\_create, MPI\_Info\_free, MPI\_Info\_get, MPI\_Info\_set APIs}
 \description{
-  Terminates MPI execution environment and detach the library Rmpi. 
+Many MPI APIs take an info argument for additional information passing. An info 
+is an object which consists of many (key,value) pairs. Rmpi uses an internal 
+memory to store an info object.
+
+\code{mpi.info.create} creates a new info object.
+
+\code{mpi.info.free} frees an info object and sets it to MPI\_INFO\_NULL.
+
+\code{mpi.info.get}  retrieves the value associated with key in an info.
+
+\code{mpi.info.set} adds the key and value pair to info.
 }
 \usage{
   mpi.info.create(info = 0)

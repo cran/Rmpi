@@ -6,7 +6,7 @@
  and return all executed results back to master. 
 } 
 \usage{
-mpi.remote.exec(cmd, ..., comm = 1, ret = TRUE, width.cutoff = 200)  
+mpi.remote.exec(cmd, ..., comm = 1, ret = TRUE)  
 }
 \arguments{
   \item{cmd}{the command to be executed on R slaves}
@@ -15,19 +15,17 @@ mpi.remote.exec(cmd, ..., comm = 1, ret = TRUE, width.cutoff = 200)
 with `x' as master variable, use mpi.remote.exec(cmd=myfun, x).}
   \item{comm}{a communicator number.}
   \item{ret}{return executed results from R slaves if TRUE.}
-  \item{width.cutoff}{an option used by \code{deparse}.}
 }
 \value{
   return executed results from R slaves if the argument \code{ret} is 
-  set to be TRUE. If executed results are NULL on R slaves, the char "NULL" will 
-  be returned.  
+  set to be TRUE.
 }
 \details{
   Once R slaves are spawned by \code{\link{mpi.spawn.Rslaves}} with the 
   slavedaemon.R script, they are waiting for instructions from master. One can 
-  use \code{\link{mpi.bcast.send.cmd}} to send a command to R slaves. However it 
+  use \code{\link{mpi.bcast.cmd}} to send a command to R slaves. However it 
   will not return executed results. Hence \code{mpi.remote.exec} can be 
-  considered an extension to \code{\link{mpi.bcast.send.cmd}}.    
+  considered an extension to \code{\link{mpi.bcast.cmd}}.    
 }
 
 \section{Warning}{
@@ -39,7 +37,7 @@ with `x' as master variable, use mpi.remote.exec(cmd=myfun, x).}
 } 
 \seealso{
   \code{\link{mpi.spawn.Rslaves}},
-  \code{\link{mpi.bcast.send.cmd}}
+  \code{\link{mpi.bcast.cmd}}
 }
 \author{
 Hao Yu

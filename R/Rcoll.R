@@ -46,85 +46,53 @@ mpi.bcast <- function (x, type, rank = 0, comm = 1) {
         as.integer(comm))
 }
 
-typeindex <- function (x) {
-	if (is.integer(x))
-        	as.integer(c(1,length(x)))
-	else if (is.double(x))
-        	as.integer(c(2,length(x)))
-	else if (is.character(x))
-        	as.integer(c(3,length(x),max(nchar(x))))
-	else
-        	as.integer(-1)
+bin.nchar <- function(x){
+	if (!is.character(x))
+		stop("Must be a (binary) character")
+	.Call("bin_nchar", x[1])
 }
 
-mpi.bcast.send <- function (x, rank=0, comm=1){
-        type <- typeindex(x)
-            if(type[1]==-1)
-                stop("Not implemented yet.")
-        mpi.bcast(x=type, type=1, rank=rank, comm=comm)
-	invisible(mpi.bcast(x=x, type=type[1], rank=rank, comm=comm))
-}
-
-mpi.bcast.send.cmd <- function (cmd, rank=0, comm=1, width.cutoff=500){
-        cmd <- deparse(substitute(cmd), width.cutoff=width.cutoff)
-	#cmd <- paste(cmd, collapse=" ")
-	type <- typeindex(cmd) #must be characters.
-	mpi.bcast(x=type, type=1, rank=rank, comm=comm)
-	invisible(mpi.bcast(x=cmd, type=type[1], rank=rank, comm=comm))
-}
-
-mpi.bcast.recv.cmd <- function (rank=0,comm=1){
-    type <- integer(3)
-    out <- mpi.bcast(x=type, type=1, rank=rank, comm=comm)
-    if (is.character(out))
-	parse(text="break")
+mpi.bcast.cmd <- function (cmd=NULL, rank=0, comm=1){
+    if(mpi.comm.rank(comm) == rank){
+        cmd <- deparse(substitute(cmd), width.cutoff=500)
+	cmd <- paste(cmd, collapse="\"\"/")
+	mpi.bcast(x=nchar(cmd), type=1, rank=rank, comm=comm)
+	invisible(mpi.bcast(x=cmd, type=3, rank=rank, comm=comm))
+    } 
     else {
-	cmd <- type2data(out)
-	parse(text=mpi.bcast(x=cmd, type=out[1], rank=rank, comm=comm))
+    	charlen <- mpi.bcast(x=integer(1), type=1, rank=rank, comm=comm)
+    	if (is.character(charlen))   #error
+            parse(text="break")
+    	else {
+	    out <- mpi.bcast(x=.Call("mkstr", as.integer(charlen)), 
+			type=3, rank=rank, comm=comm)
+	    parse(text=unlist(strsplit(out,"\"\"/"))) 
+    	}
     }
 }
 
-type2data <- function(x){
-	if (x[1]==1)
-		out <-integer(x[2])
-	else if (x[1]==2)
-		out <- double(x[2])
-	else if (x[1]==3)
-	  #   out <- rep(paste(rep(" ", x[3]), collapse=""),x[2])
-	 # out <- c(paste(rep(" ", x[3]), collapse=""),character(x[2]-1))
-		out <- .Call("mkstr", as.integer(x[2:3]))
-	out
-}		
-		
-mpi.bcast.recv <- function (rank=0,comm=1){
-	type <- integer(3)
-	out <- mpi.bcast(x=type,type=1, rank=rank, comm=comm)
-	x <- type2data(out)
-	mpi.bcast(x=x, type=out[1], rank=rank, comm=comm)
+mpi.bcast.Robj <- function(obj=NULL, rank=0, comm=1){
+    if (mpi.comm.rank(comm) == rank){
+	tmp <- serialize(obj, NULL)
+	mpi.bcast(as.integer(bin.nchar(tmp)), 1, rank, comm)
+  	invisible(mpi.bcast(tmp, 3, rank, comm))
+    }
+    else {
+	charlen <- mpi.bcast(integer(1), 1, rank, comm)
+	unserialize(mpi.bcast(.Call("mkstr", as.integer(charlen)), 3, 
+		rank, comm))
+    }
 }
 
-mpi.bcast.send.Robj <- function(obj, rank=0, comm=1, width.cutoff=500){
-	out <- deparse(obj, width.cutoff=width.cutoff)
-	out <- paste(out, collapse="\"\"/")
-	mpi.bcast.send(x=out, rank=rank, comm=comm)
-}
-
-mpi.bcast.recv.Robj <- function(rank=0, comm=1, envir=sys.parent()){
-	out <- mpi.bcast.recv(rank=rank, comm=comm)
-	out <- unlist(strsplit(out,"\"\"/")) 
-	eval(parse(text=out), envir=envir)
-}
-
-mpi.bcast.Robj2slave <- function(obj, comm=1, width.cutoff=500){
-        objname <- deparse(substitute(obj),width.cutoff=width.cutoff)
+mpi.bcast.Robj2slave <- function(obj, comm=1){
+        objname <- deparse(substitute(obj),width.cutoff=500)
         obj <- list(objname=objname,obj=obj)
-	mpi.bcast.send.cmd(cmd=tmpRobj <- mpi.bcast.recv.Robj(),
+	mpi.bcast.cmd(cmd=.tmpRobj <- mpi.bcast.Robj(comm=.comm),
 					rank=0, comm=comm)
-	mpi.bcast.send.Robj(obj, rank=0, comm=comm, 
-					width.cutoff=width.cutoff)
-	mpi.bcast.send.cmd(cmd=assign(tmpRobj$objname,tmpRobj$obj, 
+	mpi.bcast.Robj(obj, rank=0, comm=comm)
+	mpi.bcast.cmd(cmd=assign(.tmpRobj$objname,.tmpRobj$obj, 
 			env = .GlobalEnv), rank=0, comm=comm)
-	mpi.bcast.send.cmd(rm(tmpRobj), rank=0, comm=comm) 
+	mpi.bcast.cmd(rm(.tmpRobj), rank=0, comm=comm) 
 }
 
 mpi.send <- function (x, type,  dest, tag, comm=1){
@@ -137,23 +105,16 @@ mpi.recv <- function (x, type, source, tag, comm=1, status=0){
 	as.integer(tag), as.integer(comm), as.integer(status))
 }
 
-mpi.send.Robj <- function(obj, dest, tag, comm=1, width.cutoff=500){
-	out <- deparse(obj, width.cutoff=width.cutoff)
-	out <- paste(out, collapse="\"\"/")
-        type <- typeindex(out) #must be characters
-	mpi.send(x=type, type=1,  dest=dest, tag=tag, comm=comm)
-	mpi.send(x=out, type=type[1], dest=dest, tag=tag, comm=comm)
+mpi.send.Robj <- function(obj, dest, tag, comm=1){
+    mpi.send(x=serialize(obj,NULL), type=3, dest=dest, tag=tag, comm=comm)
 }
 
-mpi.recv.Robj <- function(source, tag, comm=1, 
-			status=0, envir=sys.parent()){
-	type <- integer(3)
-	out <- mpi.recv(type, type=1, source=source, tag=tag, comm=comm, 
-		status=status)
-	obj <- mpi.recv(type2data(out), type=out[1], source=source, 
-		tag=tag, comm=comm, status=status)
-	obj <- unlist(strsplit(obj,"\"\"/"))
-	eval(parse(text=obj), envir=envir)
+mpi.recv.Robj <- function(source, tag, comm=1, status=0){
+    mpi.probe(source, tag, comm, status)
+    srctag <- mpi.get.sourcetag(status)
+    charlen <- mpi.get.count(type=3, status)
+    unserialize(mpi.recv(x=.Call("mkstr", as.integer(charlen)), type=3,
+	srctag[1],srctag[2], comm, status))
 }
 
 mpi.reduce <- function(x, type=2, 

@@ -18,7 +18,10 @@ mpi.proc.null()
   Each function returns an integer value.
 }
 \details{
-  These constants are mainly used by \code{\link{mpi.send}} and \code{\link{mpi.recv}}. Different implementation of MPI may use different 
+  These constants are mainly used by 
+\code{\link{mpi.send}}, \code{\link{mpi.recv}}, and 
+\code{\link{mpi.probe}}. 
+Different implementation of MPI may use different 
   integers for MPI\_ANY\_SOURCE, MPI\_ANY\_TAG, and MPI\_PROC\_NULL. Hence one 
   should use these functions instead  real integers for MPI communications.
 } 

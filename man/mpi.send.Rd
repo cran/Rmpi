@@ -19,8 +19,8 @@ mpi.recv(x, type, source, tag,  comm = 1, status = 0)
   character. Others are not supported.}
   \item{dest}{the destination rank. Use \code{mpi.proc.null} for a 
   fake destination.}
-  \item{source}{the source rank. Use \code{mpi.any.source} for any source 
-  flag. Use \code{mpi.proc.null} for a fake source. }
+  \item{source}{the source rank. Use \code{mpi.any.source} for any source. 
+   Use \code{mpi.proc.null} for a fake source. }
   \item{tag}{non-negative integer. Use \code{mpi.any.tag} for any tag flag.}
   \item{comm}{a communicator number.}
   \item{status}{a status number.}
@@ -34,7 +34,7 @@ mpi.recv(x, type, source, tag,  comm = 1, status = 0)
   i.e., if there is a sender, then there must be a receiver. Any mismatch 
   will result a deadlock situation, i.e., programs stop responding. The 
   receive buffer must be large enough to contain an incoming message 
-  otherwise programs will be crashed. One can use 
+  otherwise programs will be crashed. One can use \code{\link{mpi.probe}} and
   \code{\link{mpi.get.count}} to find the length of an incoming message 
   before calling \code{mpi.recv}. If \code{\link{mpi.any.source}} or 
   \code{\link{mpi.any.tag}} is used in \code{mpi.recv}, one can use 

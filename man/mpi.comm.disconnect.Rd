@@ -16,8 +16,7 @@ mpi.comm.disconnect(comm=1)
   call \code{mpi.comm.disconnect} to release resource if the communicator was 
   created from an intercommunicator by \code{\link{mpi.intercomm.merge}}. If 
   \code{\link{mpi.comm.free}} is used instead, \code{\link{mpi.finalize}} called 
-  by slaves may caused undefined impacts on master who wishes to stay since 
-  \code{mpi.finalize} is a collective call among all master and slaves.
+  by slaves may cause undefined impacts on master who wishes to stay.
 }
 \value{
   1 if success. Otherwise 0. 

@@ -1,25 +1,22 @@
 \name{mpi.bcast.cmd}
-\title{Various Extensions of MPI\_Bcast API}
-\alias{mpi.bcast.send.cmd}
-\alias{mpi.bcast.recv.cmd}
+\title{Extension of MPI\_Bcast API}
+\alias{mpi.bcast.cmd}
 \description{
-  \code{mpi.bcast.send.cmd} and \code{mpi.bcast.recv.cmd} are two extensions 
-  of \code{\link{mpi.bcast}}. They are mainly used to transmit a command from 
-  master to all R slaves spawned by using slavedaemon.R script.
+  \code{mpi.bcast.cmd} is an extension of \code{\link{mpi.bcast}}. 
+  It is mainly used to transmit a command from master to all R slaves 
+  spawned by using slavedaemon.R script.
 }
 \usage{
-mpi.bcast.send.cmd(cmd, rank = 0, comm = 1, width.cutoff = 500)
-mpi.bcast.recv.cmd(rank = 0, comm = 1)
+mpi.bcast.cmd(cmd=NULL, rank = 0, comm = 1)
 }
 \arguments{
-  \item{cmd}{a command to be sent. No string quotation.}
+  \item{cmd}{a command to be sent for master.}
   \item{rank}{the sender}
   \item{comm}{a communicator number}
-  \item{width.cutoff}{a option used by the function \code{deparse}}
 }
 \value{
-  \code{mpi.bcast.send.cmd} returns no value. \code{mpi.bcast.recv.cmd} 
-returns an expression of the transmitted command. 
+  \code{mpi.bcast.cmd} returns no value for the sender and an expression 
+  of the transmitted command for others.
 } 
 \details{
   \code{\link{deparse}} is used to convert a command into a char vector. 
@@ -27,7 +24,7 @@ returns an expression of the transmitted command.
   \code{deparse}. Then the char vector is broadcasted to all members. After 
   receiving the char vector, the receivers use \code{\link{parse}} to convert 
   the char vector into an expression. Finally slavedaemon.R script will evaluate 
-  this expression. Hence \code{mpi.bcast.recv.cmd} is only used by slavedaemon.R, 
+  this expression. Hence \code{mpi.bcast.cmd} is only used by slavedaemon.R, 
   or by whatever a R script based on slavedaemon.R. Please use  
  \code{\link{mpi.remote.exec}} if you want the executed results returned from R 
   slaves.

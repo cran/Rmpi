@@ -29,8 +29,8 @@ each member. Each member needs to prepare the receive buffer as either
 integer(scounts[i]) or double(scounts[i]). 
 }
 \value{
-  For non-root members, \code{mpi.scatter} or \code{\scatterv} returns the 
-  scattered message and ignores whatever is in x (or scounts). For the root 
+For non-root members, \code{mpi.scatter} or \code{scatterv} returns the
+scattered message and ignores whatever is in x (or scounts). For the root 
   member, it returns the portion belonging to itself.
 } 
 \author{

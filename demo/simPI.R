@@ -1,3 +1,4 @@
+#require rsprng package and use mpi.init.sprng to initialize SPRNG.
  simslave <- function (){
     request <-1
     result <-2
@@ -28,7 +29,7 @@ simPI <- function (n,epsilon=1e-4,comm=1)
     mpi.bcast.Robj2slave(simslave, comm=comm)
 
     #let slaves run the function simslave
-    mpi.bcast.send.cmd(simslave(), comm=comm)
+    mpi.bcast.cmd(simslave(), comm=comm)
 
     chunksize <- 1000
     request <-1
@@ -56,10 +57,10 @@ simPI <- function (n,epsilon=1e-4,comm=1)
 	points(x,y,pch=".",cex=.2,col=src)
 	err <- abs(mypi-pi)    
 	if (err > epsilon && count < n)
-	    mpi.send(integer(1),type=1,dest=src,tag=request,comm=.comm)
+	    mpi.send(integer(1),type=1,dest=src,tag=request,comm=comm)
 	else { 
 	    #tell slaves to stop with tag=0
-	    mpi.send(integer(1),type=1,dest=src,tag=0,comm=.comm)
+	    mpi.send(integer(1),type=1,dest=src,tag=0,comm=comm)
 	    break
         }
     }
@@ -78,7 +79,7 @@ simPI <- function (n,epsilon=1e-4,comm=1)
 	y<- xy[(incir+1):(2*incir)]
 	points(x,y,pch=".",cex=.2,col=src)
 	#tell other slaves to stop
-	mpi.send(integer(1),type=1,dest=src,tag=0,comm=.comm)
+	mpi.send(integer(1),type=1,dest=src,tag=0,comm=comm)
     }
     }
     mypi

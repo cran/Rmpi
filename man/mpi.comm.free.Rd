@@ -14,7 +14,7 @@
 \details{
   When members associated with a communicator finish jobs or exit, they have to 
   call \code{mpi.comm.free} to release resource so \code{\link{mpi.comm.size}} 
-  will return 0. If the communicator was created from an intercommunicator by 
+  will return 0. If the comm  was created from an intercommunicator by 
   \code{\link{mpi.intercomm.merge}}, use \code{\link{mpi.comm.disconnect}} instead.
 }
 

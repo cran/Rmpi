@@ -1,4 +1,7 @@
-library(Rmpi)
+if (!library(Rmpi,logical.return = TRUE)){
+    warning("Rmpi cannot be loaded")
+    q(save = "no")
+}
 options(error=quote(assign(".mpi.err", TRUE, env = .GlobalEnv)))
 .comm <- 1
 .intercomm <- 2
@@ -6,15 +9,13 @@ mpi.comm.get.parent(.intercomm)
 mpi.intercomm.merge(.intercomm,1,.comm)
 mpi.comm.set.errhandler(.comm)
 mpi.comm.disconnect(.intercomm)
-init.sprng(who="slave")
 mpi.hostinfo(.comm)
 while (1) {
-    try(eval(mpi.bcast.recv.cmd(0,.comm),envir=sys.parent()))
+    try(eval(mpi.bcast.cmd(rank=0,comm=.comm),envir=sys.parent()))
 }
 print("Done")
-free.sprng()
 mpi.barrier(.comm)
 mpi.comm.disconnect(.comm)
 mpi.barrier(0)
 mpi.abort(0)
-#mpi.exit()
+#mpi.quit()

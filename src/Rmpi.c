@@ -44,10 +44,6 @@ SEXP mpi_initialize(){
 }
 
 SEXP mpi_finalize(){
-	int i;
-	for (i =0; i < COMM_MAXSIZE; i++)
-		if (comm[i]!=MPI_COMM_NULL)
-			MPI_Comm_free(&comm[i]);
 	MPI_Finalize();
 	Free(comm);
 	Free(status);
@@ -70,6 +66,10 @@ SEXP mpi_get_processor_name (){
 	return sexp_name;
 }
 
+SEXP bin_nchar(SEXP sexp_data){
+	return AsInt(LENGTH(STRING_ELT(sexp_data,0)));
+}
+
 SEXP mpi_universe_size(){
 	int *MPI_Universe_Size, univ_flag;
 	MPI_Comm_get_attr(comm[0], MPI_UNIVERSE_SIZE, &MPI_Universe_Size, &univ_flag);
@@ -86,10 +86,6 @@ SEXP mpi_any_tag(){
 
 SEXP mpi_proc_null(){
 	return AsInt(MPI_PROC_NULL);
-}
-
-SEXP mpi_is_master(){
-	return AsInt(MPI_is_master());
 }
 
 SEXP mpi_info_create(SEXP sexp_info){
@@ -226,7 +222,8 @@ SEXP mpi_gatherv(SEXP sexp_sdata,
 		UNPROTECT(1);
 		break;		*/
 	}
-	Free(displs);
+	if (rank == root)
+		Free(displs);
 	return sexp_rdata;
 }
 
@@ -326,7 +323,8 @@ SEXP mpi_scatterv(SEXP sexp_sdata,
 		UNPROTECT(1);
 		break;		*/
 	}
-	Free(displs);
+	if (rank == root)
+		Free(displs);
 	return sexp_rdata;
 }
 
@@ -441,7 +439,7 @@ SEXP mpi_bcast(SEXP sexp_data,
 		break;
 	case 3:
 		for (i=0; i<len; i++){
-			slen=strlen(CHAR (STRING_ELT ((sexp_data),i))); 
+			slen=LENGTH(STRING_ELT ((sexp_data),i)); 
 			MPI_Bcast(CHAR (STRING_ELT ((sexp_data),i)), slen, MPI_CHAR, rank, comm[commn]);
 		}
 		break;
@@ -479,7 +477,7 @@ SEXP mpi_send(SEXP sexp_data,
 		break;
 	case 3:
 		for (i=0; i<len; i++){
-			slen=strlen(CHAR(STRING_ELT(sexp_data,i)));
+			slen=LENGTH(STRING_ELT(sexp_data,i));
 			MPI_Send(CHAR(STRING_ELT(sexp_data,i)),slen, MPI_CHAR, dest, tag, comm[commn]); 
 		}
 		break;
@@ -512,7 +510,7 @@ SEXP mpi_recv(SEXP sexp_data,
 			&status[statusn]));
 		break;
 	case 3:
-		slen=strlen(CHAR(STRING_ELT(sexp_data,0)));
+		slen=LENGTH(STRING_ELT(sexp_data,0));
 		for (i=0; i < len; i++){
 			MPI_Recv(CHAR(STRING_ELT(sexp_data,i)),
 				slen,MPI_CHAR,source,tag, comm[commn],&status[statusn]);
@@ -745,23 +743,12 @@ SEXP mpi_barrier(SEXP sexp_comm){
 	return AsInt(erreturn(mpi_errhandler(MPI_Barrier(comm[INTEGER(sexp_comm)[0]])))); 
 }
 
-SEXP mpi_comm_set_errhandler(SEXP sexp_comm){
-	return AsInt(erreturn(MPI_Comm_set_errhandler(comm[INTEGER(sexp_comm)[0]], 
-		MPI_ERRORS_RETURN)));
-}
-
 SEXP mpi_comm_is_null(SEXP sexp_comm){
 	return AsInt(comm[INTEGER(sexp_comm)[0]]==MPI_COMM_NULL);
 }
 
 SEXP mpi_comm_maxsize(){
 	return AsInt(COMM_MAXSIZE);
-}
-
-SEXP mpi_comm_test_inter(SEXP sexp_comm){
-	int flag;
-	MPI_Comm_test_inter(comm[INTEGER(sexp_comm)[0]], &flag);
-	return AsInt(flag);
 }
 
 SEXP mpi_comm_size(SEXP sexp_comm){
@@ -774,6 +761,42 @@ SEXP mpi_comm_rank(SEXP sexp_comm){
 	int rank;
 	MPI_Comm_rank(comm[INTEGER(sexp_comm)[0]], &rank);
 	return AsInt(rank);
+}
+
+SEXP mpi_comm_dup(SEXP sexp_comm, SEXP sexp_newcomm){
+    int commn=INTEGER(sexp_comm)[0], newcommn=INTEGER(sexp_newcomm)[0];
+    if (comm==0)
+        return AsInt(erreturn(mpi_errhandler(MPI_Comm_dup(MPI_COMM_WORLD,
+                &comm[newcommn]))));
+    else
+        return AsInt(erreturn(mpi_errhandler(MPI_Comm_dup(comm[commn],
+                &comm[newcommn]))));
+}
+
+SEXP mpi_comm_free(SEXP sexp_comm){
+	return AsInt(erreturn(mpi_errhandler(MPI_Comm_free(&comm[INTEGER(sexp_comm)[0]]))));
+}
+
+SEXP mpi_abort(SEXP sexp_comm){
+	int errcode=0, commn=INTEGER(sexp_comm)[0];
+	if (commn==0)
+		MPI_Abort(MPI_COMM_WORLD, errcode);
+	else
+		MPI_Abort(comm[commn], errcode);
+	Rprintf("The return errcode for mpi.abort() is %d\n", errcode);
+	return AsInt(errcode);
+}
+
+/********************Intercomm********************************************/
+SEXP mpi_comm_set_errhandler(SEXP sexp_comm){
+	return AsInt(erreturn(MPI_Comm_set_errhandler(comm[INTEGER(sexp_comm)[0]], 
+		MPI_ERRORS_RETURN)));
+}
+
+SEXP mpi_comm_test_inter(SEXP sexp_comm){
+	int flag;
+	MPI_Comm_test_inter(comm[INTEGER(sexp_comm)[0]], &flag);
+	return AsInt(flag);
 }
 
 SEXP mpi_comm_spawn (SEXP sexp_slave,
@@ -827,24 +850,17 @@ SEXP mpi_intercomm_merge(SEXP sexp_intercomm, SEXP sexp_high, SEXP sexp_comm){
 		&comm[INTEGER(sexp_comm)[0]]))));
 }
 
-SEXP mpi_comm_free(SEXP sexp_comm){
-	return AsInt(erreturn(mpi_errhandler(MPI_Comm_free(&comm[INTEGER(sexp_comm)[0]]))));
-}
 
 SEXP mpi_comm_disconnect(SEXP sexp_comm){
 	return AsInt(erreturn(mpi_errhandler(MPI_Comm_disconnect(&comm[INTEGER(sexp_comm)[0]]))));
 }
 
-SEXP mpi_abort(SEXP sexp_comm){
-	int errcode=0, commn=INTEGER(sexp_comm)[0];
-	if (commn==0)
-		MPI_Abort(MPI_COMM_WORLD, errcode);
-	else
-		MPI_Abort(comm[commn], errcode);
-	Rprintf("The return errcode for mpi.abort() is %d\n", errcode);
-	return AsInt(errcode);
+SEXP mpi_is_master(){
+	int check;
+	MPI_Comm master;
+	MPI_Comm_get_parent(&master);
+	check=(master==MPI_COMM_NULL);
+	MPI_Comm_free(&master);
+	return AsInt(check);
 }
-
-
-
 

@@ -27,7 +27,8 @@
 	stop("Probably Rmpi has been detached. Please quit R.")
     if(!.Call("mpi_initialize"))
 	stop("Cannot start MPI_Init(). Exit")
-    #mpi.realloc.comm()
+    if (!require(serialize))
+	stop("serialize package cannot be loaded. Exit")	
 }
 
 .Last.lib <- function(libpath){

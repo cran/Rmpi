@@ -19,10 +19,12 @@ this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************
 
-Rmpi requires R version 1.3.0 or higher, LAM-MPI 6.5.6, and SPRNG 2.0. Rmpi 
-works only for Unix (Linux Redhat 7.2 on INTEL PIII Xeon SMP and 
-Linux Redhat 7.1 on Compaq alpha SMP Beowulf clusters are tested) at 
-present. A Beowulf cluster should be set up properly before attemping Rmpi.
+Rmpi requires R version 1.5.0 or higher, serialize 0.2-0 or higher,  and 
+LAM-MPI 6.5.6 (other MPI implementations can be used. See the NOTE in 
+installing LAM-MPI). Rmpi works only for Unix (Linux Redhat 7.2 on INTEL 
+PIII Xeon SMP and Linux Redhat 7.1 on Compaq alpha SMP Beowulf clusters 
+are tested) at present. A Beowulf cluster should be set up properly before 
+attempting Rmpi.
 
 INSTALLATION INSTRUCTIONS:
 
@@ -37,6 +39,9 @@ INSTALLATION INSTRUCTIONS:
    LAM-MPI documents or FAQ to configure the default remote shell program.
    Notice that LAM-MPI must be installed on all hosts within a cluster.
    Make sure LAM executable programs are in the PATH.
+  
+   On Debian system, it is sufficient to install
+	lam3 lam3-dev lam-runtime
 
    Once LAM-MPI has been installed and properly configured, login as a 
    non-root user and boot to LAM by
@@ -45,39 +50,34 @@ INSTALLATION INSTRUCTIONS:
 	lamexec C hostname
    to see all nodes response with their host names.
 
-2. Install SPRNG 2.0 (http://sprng.cs.fsu.edu/sprng.html). Modify the file 
-   make.CHOICES to enable MPI in SPRNG: uncomment out 
-	MPIDEF = -DSPRNG_MPI
-   Uncomment out also
-	PLAT = (your_platform) #only one PLAT. must comment out others
-	PMLCGDEF = -DUSE_PMLCG
-	GMPLIB = -lgmp
-   Modify appropriate make.(PLAT) file in SRC directory. For LAM-MPI, choose
-	MPILIB = -lmpi -llam
-   MPI include and lib paths must be supplied if they are in nonstandard 
-   locations. For example, for Compaq alpha platform, change
-	MPIDEF = -DSPRNG_MPI -I/myMPI/include 
-	MPIDIR =-L/myMPI/lib
+NOTE: If your site has a different MPI such as MPICH installed, you still 
+   can install and use Rmpi. Only two functions lamhosts and 
+   mpi.spawn.Rslaves are LAM-MPI specific. In fact, you still can use  
+   mpi.spawn.Rslaves as long as you leave the argument hosts to its 
+   default (NULL). Unless you remove the part of checking lam-mpi in zzz.R 
+   file in R directory, you need to create a file lamnodes and put the line
+	echo "FAKE lamnodes"
+   Make sure lamnodes is executable and in the path. Try
+	mpirun -np 1 R
+   to start a master R and load Rmpi. 
 
-   Before compiling, find the following line in SRC/pmlcg/pmlcg.c:
-    	#include "gmp.h"
-   and change it to
-    	#include <gmp.h>
-   to use the system header file. 
+   If your cluster does not have MPI_Comm_spawn enabled (UWO sharcnet 
+   www.sharcnet.ca purposely removes it to prevent end users spawning 
+   processes), you have to edit the C file Rmpi.c in src directory and 
+   remove affected parts.  Because you cannot use mpi.spawn.Rslaves, you 
+   have to use the following way to spawn R slaves. Save Rprofile in inst 
+   (will be in the root directory of Rmpi after installation) as .Rprofile 
+   in the working or root directory. Then run, for example,
+	mpirun -np 9 R --save -q
+   This will create one master and 8 slaves.
 
-   During compiling, it may fail compiling programs in EXAMPLES. This will 
-   create no harm as long as the library libsprng.a is built in lib 
-   directory. If there is no error compiling EXAMPLES, go to EXAMPLES, 
-   run some MPI enabled programs such as sprng_mpi and run
-	mpirun C sprng_mpi
-
-3. Install Rmpi. If LAM-MPI is installed in /usr or /usr/local and SPRNG in 
-   /usr/local/sprng or /usr/local/sprng2, run
+2. Install Rmpi. If LAM-MPI is installed in /usr or /usr/local,  run
 	R INSTALL Rmpi_version.tar.gz.
+   On Debian with lam3, lam3-dev lam-runtime installed, above will work 
+   too.
    
-   For LAM-MPI and SPRNG in different locations, use
-	R INSTALL Rmpi_version.tar.gz \
-	--configure-args="--with-sprng=/sprngpath --with-mpi=/mpipath"
+   For LAM-MPI in a different location, use
+	R INSTALL Rmpi_version.tar.gz --configure-args=--with-mpi=/mpipath
 
    Notice that R and Rmpi have to be installed on all hosts in a cluster. The 
    paths (directories) to R and Rmpi must be the same on all hosts in a 
@@ -86,7 +86,14 @@ INSTALLATION INSTRUCTIONS:
    applies to user's home directory: it should be the same across a 
    cluster of computers. 
 
-4. Test. Before running R and Rmpi, make sure LAM-MPI is running properly. Use
+NOTE: In case you have different MPI other than LAM-MPI, you have to edit 
+   the file configure.in and change the part related to liblam to a 
+   library needed by your MPI. Then run autoconf and build a new tar.gz 
+   file. If some MPI functions are not available on your cluster, you need 
+   to edit Rmpi.c in src. Most likely they are related to spawning and 
+   intercommunicator and I put them in the end of the file.
+
+3. Test. Before running R and Rmpi, make sure LAM-MPI is running properly. Use
 	lamboot -v
    to boot to LAM and use
 	lamclean
@@ -95,63 +102,65 @@ INSTALLATION INSTRUCTIONS:
 	lamhalt
    to shut down LAM.
 
-   Make sure R is in the PATH for whole machines. Try
+   Make sure R is in the PATH for whole cluster. Try
 	rsh a_remote_host_machine R --slave
-   run a simple command such as 3+8 to see it work. If R is not in PATH or 
-   remote machines have difficult find it, one solution is to modify the 
-   Rslave.sh file in inst directory and put an absolute path to R.
+   run a simple command such as 3+8 to see it works. If R is not in PATH 
+   or remote machines have difficult find it, one solution is to modify 
+   the Rslave.sh file in inst directory and put an absolute path to R.
  
    Load Rmpi library in R (assuming successful) and spawn Rslaves by
    	>mpi.spawn.Rslaves(nslaves=1)  #spawn only one slave
 	>mpi.close.Rslaves()	#close slaves
 	>mpi.spawn.Rslaves() #spawn slaves to use all CPUs
    Execute some simple commands to R slaves, e.g.,
+	>mpi.remote.exec(mpi.get.processor.name())
+	>mpi.remote.exec(double(10))
+	>mpi.remote.exec(double(n)) #will not work if n does not exit on slaves
+	>n <- 10
+ 	>mpi.remote.exec(double, n) #the arg n is passed to double
+   If rsprng package is installed, try
+	>mpi.bcast.cmd(mpi.init.sprng())
+	>mpi.init.sprng()
 	>mpi.remote.exec(rnorm(10))
-	>mpi.remote.exec(mean(rnorm(10000)))
-	>mpi.remote.exec(rnorm(n)) #will not work if n does not exit on slaves
-	>n <- 20
- 	>mpi.remote.exec(rnorm, n) #the arg n is passed to rnorm
 
    There are a few demo examples from Rmpi. Use
 	demo(package="Rmpi")
    to find them. Try
 	demo("simplePI.R")
-   and run
+   and run (run mpi.spawn.Rslaves() first)
 	simple.pi(1000000)
 
    Try other demos to see if Rmpi works properly:
     
-   slave1PI.R, slave2PI.R and simPI.R have two functions each: master and slave 
+   slave1PI.R and slave2PI.R have two functions each: master and slave 
    functions. User should use mpi.spawn.Rslaves to spawn R slaves first and 
-   then run the master function with proper arguments. simPI.R has a plot 
-   in it so trying it in X-windows.
+   then run the master function with proper arguments. Make sure 
+   n/maxjoblen is at least equal to or bigger than total number of slaves. 
+   Making it twice as big as the total slaves will show load balancing 
+   effect.
+
+   simPI.R has a plot in it so trying it in X-windows.
 
    cslavePI.R and masterslave.R use mpi.comm.spawn to spawn their own slaves. 
    Close R slaves if they are alive.
 
 *******************************************************************************
-Final note: It is extremely important that users should close R slaves and Rmpi 
-properly before quiting R. Basically, use mpi.close.Rslaves to close R slaves  
-and use mpi.exit to exit Rmpi environment.
+Final note: It is extremely important that users should close R slaves 
+   and Rmpi properly before quiting R. Basically, use mpi.close.Rslaves to 
+   close R slaves and use mpi.exit to exit Rmpi environment or use 
+   mpi.quit to quit Rmpi and R together.
 
-To safe guard at site level, administrator can add the .Last function to 
-Rprofile.site as
+   To safe guard at site level, administrator can add the .Last function 
+   to Rprofile.site as
 
 .Last <- function(){
     if (is.loaded("mpi_initialize")){
         if (mpi.comm.size(1) > 0){
-            print("It seems some slaves running or mpi.comm.free() is not used")
-            if (length(system("mpitask",TRUE)) >2){
-                print("Running mpi.close.Rslaves().")
-                mpi.close.Rslaves()
-            }
-            else {
-                print("Running mpi.comm.free().")
-                mpi.comm.free(1)
-            }
+            print("It seems some slaves running.")
+	    print("Please use mpi.close.Rslaves() to close slaves.")
+            mpi.close.Rslaves(comm=1)
         }
-        print("Exiting Rmpi. Please use mpi.exit() before quitting R")
+        print("Please use mpi.quit() to quit R")
         .Call("mpi_finalize")
     }
 }
-*****************************************************************************

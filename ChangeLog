@@ -1,0 +1,33 @@
+2002-05-06, version 0.4-3:
+	Take SPRNG out. Use rsprng package instead. Use mpi.init.sprng to 
+	start SPRNG.
+
+	Require serialize package
+
+   	mpi.send.Robj, mpi.recv.Robj, mpi.bcast.Robj, and 
+	mpi.bcast.Robj2slave use serialize to transfer R objects.
+
+        mpi.bcast.send and mpi.bcast.recv are deprecated.
+
+  	mpi.bcast.send.cmd and mpi.bcast.recv.cmd are replaced by mpi.bcast.cmd
+
+	mpi.bcast.send.Robj and mpi.bcast.recv.Robj are replaced by 
+	mpi.bcast.Robj
+
+	New instructions for installing Rmpi for other MPI 
+	implementations. 
+
+	Thanks to Kurt Hornik <Kurt.Hornik@wu-wien.ac.at> for 
+	Denian instructions.
+
+2002-05-02, version 0.4.2: 
+	Some bugs fix. 
+	Add Rprofile and Rmpi in inst
+	Add a function mpi.comm.dup
+
+2002-04-29, version 0.4.1: 
+	Some bugs fix
+	Add a function mpi.quit
+
+2002-04-26, version 0.4.0: 
+	Initial public release

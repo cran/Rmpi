@@ -13,8 +13,6 @@ ac_default_prefix=/usr/local
 # Any additions from configure.in:
 ac_help="$ac_help
    --with-mpi=/usr/local          Location of MPI library."
-ac_help="$ac_help
-   --with-sprng=/usr/local/sprng2          Location of SPRNG library."
 
 # Initialize some variables set by options.
 # The variables have the same names as the options, with
@@ -540,7 +538,7 @@ fi
 
 
 echo $ac_n "checking how to run the C preprocessor""... $ac_c" 1>&6
-echo "configure:544: checking how to run the C preprocessor" >&5
+echo "configure:542: checking how to run the C preprocessor" >&5
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
@@ -555,13 +553,13 @@ else
   # On the NeXT, cc -E runs the code through the compiler's parser,
   # not just through cpp.
   cat > conftest.$ac_ext <<EOF
-#line 559 "configure"
+#line 557 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:565: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:563: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   :
@@ -572,13 +570,13 @@ else
   rm -rf conftest*
   CPP="${CC-cc} -E -traditional-cpp"
   cat > conftest.$ac_ext <<EOF
-#line 576 "configure"
+#line 574 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:582: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:580: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   :
@@ -589,13 +587,13 @@ else
   rm -rf conftest*
   CPP="${CC-cc} -nologo -E"
   cat > conftest.$ac_ext <<EOF
-#line 593 "configure"
+#line 591 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:599: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:597: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   :
@@ -621,17 +619,17 @@ echo "$ac_t""$CPP" 1>&6
 
 ac_safe=`echo "mpi.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for mpi.h""... $ac_c" 1>&6
-echo "configure:625: checking for mpi.h" >&5
+echo "configure:623: checking for mpi.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 630 "configure"
+#line 628 "configure"
 #include "confdefs.h"
 #include <mpi.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:635: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:633: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -655,22 +653,25 @@ else
     	if test -f ${MPI_ROOT}/include/mpi.h; then
             echo "Found in ${MPI_ROOT}/include"
             MPI_INCLUDE="-I${MPI_ROOT}/include"
-    	elif test -f /usr/local/include/mpi.h; then
+    	elif test -f /usr/include/lam/mpi.h; then
+            echo "Found in /usr/include/lam"
+	    MPI_INCLUDE="-I/usr/include/lam"
+     	elif test -f /usr/local/include/mpi.h; then
             echo "Found in /usr/local/include"
 	    MPI_INCLUDE="-I/usr/local/include"
-    	else 
+   	else 
 	    echo "Cannot find mpi head file"
 	    echo "Please check if --with-mpi=${MPI_ROOT} is right"
 	    exit 1
     	fi
     else
 	echo "Try to find mpi.h ..."
-    	if test -f /usr/local/include/mpi.h; then
-            echo "Found in /usr/local/include"
-            MPI_INCLUDE="-I/usr/local/include"
-    	elif test -f /usr/include/lam/mpi.h; then
+    	if test -f /usr/include/lam/mpi.h; then
             echo "Found in /usr/include/lam"
             MPI_INCLUDE="-I/usr/include/lam"
+    	elif test -f /usr/local/include/mpi.h; then
+            echo "Found in /usr/local/include"
+            MPI_INCLUDE="-I/usr/local/include"
     	else 
 	    echo "Cannot find mpi header file."
 	    echo "Please use --with-mpi=/path/to/mpi"
@@ -688,7 +689,7 @@ if test -f ${MPI_ROOT}/lib/libmpi.a; then
         MPI_LIBS="-L${MPI_ROOT}/lib -lmpi"
 else
     echo $ac_n "checking for main in -lmpi""... $ac_c" 1>&6
-echo "configure:692: checking for main in -lmpi" >&5
+echo "configure:693: checking for main in -lmpi" >&5
 ac_lib_var=`echo mpi'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -696,14 +697,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lmpi  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 700 "configure"
+#line 701 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:707: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:708: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -734,7 +735,7 @@ if test -f ${MPI_ROOT}/lib/liblam.a; then
         MPI_LIBS="${MPI_LIBS} -llam"
 else
     echo $ac_n "checking for main in -llam""... $ac_c" 1>&6
-echo "configure:738: checking for main in -llam" >&5
+echo "configure:739: checking for main in -llam" >&5
 ac_lib_var=`echo lam'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -742,14 +743,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-llam  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 746 "configure"
+#line 747 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:753: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:754: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -774,200 +775,8 @@ fi
 
 fi    
 
-# Check whether --with-sprng or --without-sprng was given.
-if test "${with_sprng+set}" = set; then
-  withval="$with_sprng"
-     if test "${withval}" = no; then
-        supply_sprng=no
-    else
-        supply_sprng=yes
-        SPRNG_ROOT=${withval}
-    fi  
-
-fi
-
-
-if test "${supply_sprng}" = yes; then
-    echo "Try to find sprng.h ..."
-    if test -f ${SPRNG_ROOT}/include/sprng.h; then
-        echo "Found in ${SPRNG_ROOT}/include"
-        SPRNG_INCLUDE="-I${SPRNG_ROOT}/include"
-    else 
-        ac_safe=`echo "sprng.h" | sed 'y%./+-%__p_%'`
-echo $ac_n "checking for sprng.h""... $ac_c" 1>&6
-echo "configure:799: checking for sprng.h" >&5
-if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  cat > conftest.$ac_ext <<EOF
-#line 804 "configure"
-#include "confdefs.h"
-#include <sprng.h>
-EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:809: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  eval "ac_cv_header_$ac_safe=yes"
-else
-  echo "$ac_err" >&5
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_header_$ac_safe=no"
-fi
-rm -f conftest*
-fi
-if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-     SPRNG_INCLUDE=""    
-else
-  echo "$ac_t""no" 1>&6
-   echo "Cannot find sprng 2.0 header file."
-            exit 1  
-        
-fi
-
-    fi
-else 
-    echo "Try to find sprng.h ..."
-    if test -f /usr/local/sprng2/include/sprng.h; then
-    	SPRNG_ROOT=/usr/local/sprng2
-        echo "Found in ${SPRNG_ROOT}/include"
-        SPRNG_INCLUDE="-I${SPRNG_ROOT}/include"
-    elif test -f /usr/local/sprng/include/sprng.h; then
-	SPRNG_ROOT=/usr/local/sprng
-        echo "Found in ${SPRNG_ROOT}/include"
-        SPRNG_INCLUDE="-I${SPRNG_ROOT}/include"
-    else 
-        ac_safe=`echo "sprng.h" | sed 'y%./+-%__p_%'`
-echo $ac_n "checking for sprng.h""... $ac_c" 1>&6
-echo "configure:847: checking for sprng.h" >&5
-if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  cat > conftest.$ac_ext <<EOF
-#line 852 "configure"
-#include "confdefs.h"
-#include <sprng.h>
-EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:857: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  eval "ac_cv_header_$ac_safe=yes"
-else
-  echo "$ac_err" >&5
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_header_$ac_safe=no"
-fi
-rm -f conftest*
-fi
-if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-     SPRNG_INCLUDE=""    
-else
-  echo "$ac_t""no" 1>&6
-   echo "Cannot find sprng 2.0 header file."
-            exit 1  
-        
-fi
-
-    fi
-fi
-
-    echo "Try to find libsprng.a ..."
-    if test -f ${SPRNG_ROOT}/lib/libsprng.a; then
-        echo "Found in ${SPRNG_ROOT}/lib"
-        SPRNG_LIBS="-L${SPRNG_ROOT}/lib -lsprng"
-    else
-        echo $ac_n "checking for main in -lsprng""... $ac_c" 1>&6
-echo "configure:890: checking for main in -lsprng" >&5
-ac_lib_var=`echo sprng'_'main | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-lsprng  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 898 "configure"
-#include "confdefs.h"
-
-int main() {
-main()
-; return 0; }
-EOF
-if { (eval echo configure:905: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  SPRNG_LIBS=""
-else
-  echo "$ac_t""no" 1>&6
-   echo "Cannot find libsprng"; 
-            exit 1  
-        
-fi
-
-    fi
-
-    echo $ac_n "checking for main in -lgmp""... $ac_c" 1>&6
-echo "configure:931: checking for main in -lgmp" >&5
-ac_lib_var=`echo gmp'_'main | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-lgmp  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 939 "configure"
-#include "confdefs.h"
-
-int main() {
-main()
-; return 0; }
-EOF
-if { (eval echo configure:946: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-     SPRNG_LIBS="$SPRNG_LIBS -lgmp"  
-else
-  echo "$ac_t""no" 1>&6
-   echo "libgmp not found. exiting..."
-        exit 1  
-    
-fi
-
-
-PKG_LIBS="${SPRNG_LIBS} ${MPI_LIBS}"
-PKG_CPPFLAGS="${MPI_INCLUDE} ${SPRNG_INCLUDE}"
+PKG_LIBS="${MPI_LIBS}"
+PKG_CPPFLAGS="${MPI_INCLUDE}"
 
 
 

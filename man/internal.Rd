@@ -1,13 +1,17 @@
 \name{Internal functions}
+\alias{bin.nchar}
 \alias{mpi.remote.fun}
 \alias{getpid}
 \alias{mpi.remote.slave}
 \alias{typeindex}
-\alias{type2data}
 \alias{mpi.comm.is.null}
 \title{Internal functions}
 \description{
 Internal functions used by other MPI functions.
+
+\code{bin.nchar} is used to find the number of char in a binary 
+character vector (length 1) produced by 
+\code{\link[serialize]{serialize}}.
 
 \code{getpid} is used to get R process id which then is used for setting R slave 
 log files.
@@ -22,16 +26,14 @@ remote function with master variables.
 \code{\link{mpi.remote.exec}} (to carry out a remote command). 
 
 \code{typeindex} checks an R object mode (integer, double, char, or others).
-
-\code{type2data} creates a receive buffer based on \code{typeindex}.
 }
 \usage{
+bin.nchar(x)
 getpid()
 mpi.comm.is.null(comm)
-mpi.remote.fun(cmd, ..., needsub = TRUE, width.cutoff = 200)
+mpi.remote.fun(cmd, ..., needsub = TRUE, width.cutoff = 500)
 mpi.remote.slave(cmd, tag, ret)
 typeindex(x)
-type2data(x)
 }
 \arguments{
   \item{comm}{a communicator number.}
@@ -41,16 +43,17 @@ type2data(x)
   \item{width.cutoff}{an option used by \code{deparse}.}
   \item{tag}{a tag number}
   \item{ret}{logical.}
-  \item{x}{an R object}
+  \item{x}{an R object.}
 }
 \value{
+\code{bin.nchar} returns the length of a binary char vector.
+
 \code{getpid} returns an integer (process id).
 
 \code{mpi.remote.fun} returns a string (a function with string quotation).
 
 \code{typeindex} returns \code{c(1, length(x))} if \code{x} is an integer 
-vector; \code{c(2,length(x))} if \code{x} is a double vector; \code{c(3, 
-length(x), max(nchar(x)))} if \code{x} is a char vector; and -1 for other 
+vector; \code{c(2,length(x))} if \code{x} is a double vector; and -1 for other 
 objects. } 
 \seealso{
   \code{\link{mpi.spawn.Rslaves}}, 
