@@ -32,6 +32,8 @@ mpi.reduce		Reduce all processes's vectors into one (one process)
 mpi.scatter		Opposite of mpi.gather
 mpi.scatterv		Opposite of mpi.gatherv (diff size data)
 mpi.send		Send a vector to a specific process
+mpi.sendrecv		Send & receive different vectors in one call
+mpi.sendrecv.replace	Send & replace a vector in one call
 mpi.universe.size	Total number of CPUs available
 ******************************************************************************
 MPI Extensions in R Environment:
@@ -57,7 +59,7 @@ MPI Extensions specifically to slavedaemon.R Script (interactive R slaves).
 mpi.bcast.Robj2slave	Master sends an Robj to all slaves
 mpi.bcast.cmd		Broadcast a commond to every process
 mpi.close.Rslaves	Close all slaves launched by mpi.spawn.Rslaves()
-mpi.parallel.sim	Parallel Monto Carlo simulation
+mpi.parallel.sim	Parallel Monte Carlo simulation
 mpi.remote.exec		Run a command remotely on slaves and return 
 			results back to the master 
 slave.hostinfo		Show all slave rank, comm, host information
@@ -69,7 +71,6 @@ bin.nchar		Find the length of a binary string
 getpid			Master process id, used for setting slave log files
 mpi.comm.is.null	Test if a comm is NULL (no members)
 mpi.parallel.slave	Counter part of mpi.parallel.sim (used by slaves)
-mpi.remote.fun		Used by mpi.remote.exec for local variables passing
 mpi.remote.slave	Counter part of mpi.remote.exec (used by slaves)
 mpi.wrap.fun		Used by mpi.parallel.sim to create a wrap function.
 string			Create a string (empty space character) buffer

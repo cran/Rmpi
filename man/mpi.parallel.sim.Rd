@@ -1,8 +1,8 @@
 \name{mpi.parallel.sim}
 \alias{mpi.parallel.sim}
-\title{Parallel Monto Carlo Simulation}
+\title{Parallel Monte Carlo Simulation}
 \description{
- Carry out parallel Monto Carlo simulation on R slaves spawned by 
+ Carry out parallel Monte Carlo simulation on R slaves spawned by 
  using slavedaemon.R script and all executed results are returned back to 
  master. 
 } 
@@ -26,12 +26,12 @@ will be displayed.}
   \item{...}{optional arguments to \code{statistic}}
 }
 \value{
-   The returned values depend on values returned by \code{\link{sapply}} 
-after applying \code{statistic} and the total number of simulation 
-(TNS). If \code{statistic} returns a single value, then the
-result is a vector of length TNS. If \code{statistic} returns a vector 
-(list) of length \code{ncol}, then the result is a matrix of dimension 
-\code{c(TNS,ncol)}.   
+   The returned values depend on values returned by \code{\link{replicate}}
+of \code{statistic(rand.gen(n))} and the total number of simulation 
+(TNS). If \code{statistic} returns a single value, then the result is a 
+vector of length TNS. If \code{statistic} returns a vector (list) of 
+length \code{nrow}, then the result is a matrix of dimension 
+\code{c(nrow, TNS)}.   
 }
 \details{
 It is assumed that one simulation is carried out as 
@@ -45,12 +45,11 @@ To pass values from \code{rand.arg} and/or \code{...} as default values,
 \code{\link{mpi.wrap.fun}} is used. If \code{rand.gen} (\code{statistic}) 
 does not contain the argument \code{...}, \code{\link{mpi.wrap.fun}} 
 returns the same function with default values replaced. Otherwise it 
-returns a wrap function so that additional arguments can be passed 
+returns a wrapper function so that additional arguments can be passed 
 properly. It is recommended to use \code{rand.gen} and \code{statistic} 
 without \code{...} argument.
 
-Each slave job consists of 
-\code{sapply(rep(n,nsim),function(n)statistic(rand.gen(n)))}, 
+Each slave job consists of \code{replicate(nsim,statistic(rand.gen(n)))}, 
 i.e., each job runs \code{nsim} number of simulation. The returned values 
 are transported from slaves to master.
 
@@ -68,7 +67,7 @@ power, \code{run=1} is often enough. But if \code{nsim} is too big, one
 can set \code{run=2} and the slave jog size to be \code{nsim/2} so that  
 TNS=slave.num*(nsim/2)*(2*run). This may improve R computation 
 efficiency slightly. On a cluster of slaves with different CPU power, one 
-can choose a big value of \code{run} and a small of value of \code{nsim} 
+can choose a big value of \code{run} and a small value of \code{nsim} 
 so that master can dispatch more jobs to slaves who run faster than 
 others. This will keep all slaves busy so that load balancing is 
 achieved. 
@@ -93,8 +92,8 @@ applied to required packages or C/Fortran codes. You can use either
 \code{dyn.load(so.lib)} into \code{rand.gen} and \code{statistic}.
  
 It is recommended that \code{statistic} should return a numeric vector or 
-a list so master can use \code{c} to combine values together as a vector 
-or a matrix. Master may have difficult to combine other values. 
+a list so master can use \code{cbind} to combine values together as a 
+matrix. Master may have difficult to combine other values. 
 } 
 
 \seealso{

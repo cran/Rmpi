@@ -1,8 +1,15 @@
+2005-05-09, version 0.4-9:
+	mpi.remote.fun is deprecated and mpi.remote.exec (mpi.remote.slave)
+	has been simplified by using do.call instead.
+	replicate is used in mpi.parallel.sim (mpi.remote.slave) instead 
+	of sapply. To be consistent, mpi.parallel.sim uses cbind to 
+	combine all slave results together.
+	
 2004-04-21, version 0.4-8:
 	Delete .Random.seed in .First.lib if it is a user-defined RNG.  
 	Add needsprng = TRUE argument to mpi.spawn.Rslaves so that SPRNG 
 	can be loaded if there is the package rsprng. 
-	Implement mpi.parallel.sim for parallel Monto Carlo simulation. 
+	Implement mpi.parallel.sim for parallel Monte Carlo simulation. 
 	Some ideas from student projects of Mr. K. Yu, Ms. Tsai, and Mr. 
 	W. Wolterman have been used. Thanks to them for their wonderful 
 	work. 

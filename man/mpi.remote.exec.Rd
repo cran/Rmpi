@@ -30,11 +30,8 @@ with `x' as master variable, use mpi.remote.exec(cmd=myfun, x).}
 }
 
 \section{Warning}{
-  \code{mpi.remote.exec} may have difficult guessing invisible executed results 
-  on R slaves. Use `ret = FALSE' instead. Please do not pass large amount of 
-  data through \code{...} to a function command. The use of the argument 
-  \code{...} is just for the sake of passing some simple variables from master 
-  to R slave.
+  \code{mpi.remote.exec} may have difficult guessing invisible results 
+  on R slaves. Use \code{ret = FALSE} instead. 
 } 
 \seealso{
   \code{\link{mpi.spawn.Rslaves}},

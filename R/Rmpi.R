@@ -160,7 +160,7 @@ mpi.spawn.Rslaves <-
 		arg <- c(Rscript, tmp , "nolog")		
 	if (!is.null(hosts)){
 		hosts <- as.integer(hosts)
-		if (is.na(hosts))
+		if (any(is.na(hosts)))
 		    stop("hosts argument contains non-integer object(s).")
 		if (max(hosts) > mpi.universe.size() -1 ||min(hosts) < 0){
 			tmp1 <- paste("hosts number should be within 0 to",
@@ -199,9 +199,9 @@ mpi.spawn.Rslaves <-
 	   else {
 		if (sum(mpi.remote.exec(as.integer(require(rsprng)),comm=comm))
 			== mpi.comm.size(comm)-1){
-		    mpi.bcast.cmd(mpi.init.sprng())
-		    mpi.init.sprng()
-		    cat("SPRNG is initialized on both master and slaves.\n")
+		    mpi.bcast.cmd(mpi.init.sprng(comm=0))
+		    #mpi.init.sprng()
+		    cat("SPRNG has been initialized on all slaves.\n")
 		}
 		else
 		    cat("It seems rsprng is not installed properly on slave machines.\n")
@@ -218,21 +218,12 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
     tag <- floor(runif(1,1,1000))
     scmd <- substitute(cmd)
     arg <-list(...)
-    if (length(arg)>0){
-	scmd <- mpi.remote.fun(scmd, ..., needsub=FALSE, width.cutoff=500)
-        scmd1 <- paste("mpi.remote.slave(cmd=",scmd,",",sep="")
-        scmd2 <- deparse(substitute(ekaf(tag=tag,ret=ret)),   
-                width.cutoff=500)
-        scmd2 <-unlist(strsplit(scmd2,"ekaf\\("))[-1]
-        scmd <- paste(scmd1,scmd2)
-    }
-    else {
-        scmd <- deparse(substitute(mpi.remote.slave(cmd=scmd, tag=tag, 
-		ret=ret)), width.cutoff = 500)
-    }
-    scmd <- paste(scmd, collapse="\"\"/")
-    mpi.bcast(x=nchar(scmd), type=1, rank=0, comm=comm)
-    mpi.bcast(x=scmd, type=3, rank=0, comm=comm)
+
+    tag.ret <- c(tag, ret)
+    mpi.bcast.cmd(mpi.remote.slave(), comm = comm)
+    mpi.bcast(as.integer(tag.ret), type=1, comm=comm)
+    mpi.bcast.Robj(list(scmd=scmd, arg=arg), comm=comm)
+
     if (ret){
     	size <- mpi.comm.size(comm) 
     	allcode <- mpi.allgather(integer(3), 1, integer(3*size), comm)
@@ -307,12 +298,21 @@ typeindex <- function (x) {
             as.integer(-1)
 }
 
-mpi.remote.slave <- function(cmd,tag,ret){
+mpi.remote.slave <- function(){
     assign(".mpi.err", FALSE,  env = .GlobalEnv)
+    tag.ret <- mpi.bcast(integer(2), type=1, comm=.comm)
+    tag <- tag.ret[1]
+    ret <- as.logical(tag.ret[2])
+    scmd.arg <- mpi.bcast.Robj(comm=.comm)
+
     if (ret){
 	size <- mpi.comm.size(.comm)
    	myerrcode <- as.integer(0)
-    	out <- try(eval(expression(cmd)),TRUE)
+	if (length(scmd.arg$arg)>0)
+            out <- try(do.call(as.character(scmd.arg$scmd), scmd.arg$arg),TRUE)
+        else
+            out <- try(eval(scmd.arg$scmd), TRUE)
+    
     	if (.mpi.err){
 	    print(geterrmessage())
 	    myerrcode <-as.integer(1)
@@ -346,44 +346,13 @@ mpi.remote.slave <- function(cmd,tag,ret){
 	    mpi.send.Robj(out,0,tag,.comm)
 	}		
     }
-    else
-	try(eval(expression(cmd)))
-}
-
-mpi.remote.fun <- function (cmd, ..., needsub=TRUE, width.cutoff=500) {
-    if (needsub)
-    	cmd <- substitute(cmd)
-    cmd <- paste(cmd, "(", sep="")
-    arg <- list(...)
-    if (length(arg)==0)
-	stop("missing argument(s)")
-    argname <- names(arg)
-    argn <- length(arg)
-    for (i in 1:argn){
-	arg[[i]] <- deparse(arg[[i]], width.cutoff= width.cutoff)
-	if (length(arg[[i]]) >1)
-	   stop("one of arguments is too long or too big")
-    }
-    if (is.null(argname)){
-        for (i in seq(1, argn-1, length=argn-1))
-            cmd <- paste(cmd, arg[[i]], ",", sep="")
-        cmd <- paste(cmd, arg[[argn]], ")", sep="")
-    }
     else {
-        for (i in seq(1, argn-1, length=argn-1)){
-            if (argname[i]=="")
-                cmd <- paste(cmd, arg[[i]], ",", sep="")
-            else
-                cmd <- paste(cmd, argname[i],"=", arg[[i]], ",", sep="")
-        }
-        if (argname[argn]=="")
-            cmd <- paste(cmd, arg[[argn]], ")", sep="")
+	if (length(scmd.arg$arg)>0)
+            out <- try(do.call(as.character(scmd.arg$scmd), scmd.arg$arg))
         else
-            cmd <- paste(cmd, argname[argn],"=", arg[[argn]], ")", sep="")
-   }
-   cmd
+            out <- try(eval(scmd.arg$scmd))  
+    }
 }
-
 
 mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
     if (mpi.comm.size(comm) < 2){
@@ -422,6 +391,11 @@ mpi.parallel.sim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
 			statistic, nsim=100, run=1, slaveinfo=TRUE, 
 			comm=1, ...){
 
+    if (!is.function(rand.gen))
+	stop("rand.gen is not a function")
+    if (!is.function(statistic))
+	stop("statistic is not a function")
+
     if (!is.null(rand.arg))
 	if (!is.list(rand.arg))
 	    stop("rand.arg is not a list")
@@ -433,12 +407,13 @@ mpi.parallel.sim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
     wrap.statistic <- mpi.wrap.fun(statistic,list(...),"tmp.statistic")
 
     mpi.bcast.cmd(mpi.parallel.slave())
-
+    
     mpi.bcast.Robj(rand.gen, comm=comm)
     mpi.bcast.Robj(wrap.rand.gen, comm=comm)
-
+        
     mpi.bcast.Robj(statistic, comm=comm)
     mpi.bcast.Robj(wrap.statistic,comm=comm)
+
     nnr <- c(n,nsim,run)
     mpi.bcast(as.integer(nnr),type=1, comm=comm)
 
@@ -456,7 +431,7 @@ mpi.parallel.sim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
 
 	src <- mpi.get.sourcetag()[1]
         mpi.send(as.integer(i), type=1, dest=src, tag=88, comm=comm)
-      	result <- c(result,output)
+      	result <- cbind(result,output)
   	stat[src] <- stat[src]+1
     }
     if (slaveinfo){
@@ -469,15 +444,13 @@ mpi.parallel.sim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
 	    	cat(slavename[i], "finished",stat[i], "job(s)\n")
 	}
     }
-    num.col <- length(result)/(slave.num*run*nsim)
-    if (num.col > 1)
-	#if (is.numeric(result))
-	    result <- matrix(result,ncol=num.col,byrow=TRUE)    
+    if(length(result)==slave.num*run*nsim)
+	result <- as.vector(result)	
     result
 }
 
 mpi.parallel.slave <- function(){
-    assign("tmp.rand.gen", mpi.bcast.Robj(comm=.comm),
+    assign("tmp.rand.gen", mpi.bcast.Robj(comm=.comm),		
 		envir=.GlobalEnv)
     assign("wrap.rand.gen", mpi.bcast.Robj(comm=.comm))
 
@@ -488,14 +461,11 @@ mpi.parallel.slave <- function(){
     nnr <- mpi.bcast(integer(3), type=1, comm=.comm)
     n <- nnr[1];  nsim <- nnr[2];  run <- nnr[3]
 
-    assign("comb.fun", function(n) wrap.statistic(wrap.rand.gen(n)))
-    
     i <- 0
     slave.num <- mpi.comm.size(.comm)-1
     
     while( i < slave.num*(run-1)+1){
-
-    	out <- sapply(rep(n,nsim), comb.fun)
+	out <- replicate(nsim, wrap.statistic(wrap.rand.gen(n)))
 	mpi.send.Robj(obj=out, dest=0, tag=8, comm=.comm)
 	i <- mpi.recv(integer(1), type=1, source=0, tag=88, comm=.comm)
     }
@@ -504,7 +474,8 @@ mpi.parallel.slave <- function(){
     rm(tmp.statistic,envir=.GlobalEnv)
 }
 
-mpi.wrap.fun <- function(cmd, arg, cmd.name=substitute(cmd)){
+mpi.wrap.fun <- function(cmd, arg, 
+			cmd.name=as.character(substitute(cmd))){
    org.arg <- formals(cmd)
    if (length(org.arg)==0|length(arg)==0)
 	return(cmd)
@@ -531,17 +502,33 @@ mpi.wrap.fun <- function(cmd, arg, cmd.name=substitute(cmd)){
    	if (length(arg2)>0)
 	    org.arg <- c(org.arg, arg[arg2])
 
-   	org.arg.names <- names(org.arg)
-   	arg.length <- length(org.arg.names)
-   	new.cmd <- paste(cmd.name, "(", sep="")
-   	for (i in seq(1,arg.length-1, length=arg.length-1))
-  	    new.cmd <- paste(new.cmd,org.arg.names[i],",",sep="")
-   	new.cmd <- paste(new.cmd,org.arg.names[arg.length],")",sep="")
-
-   	fun<- function(texted.fun)
-	    eval(parse(text=texted.fun))
-   
-   	formals(fun)<-c(org.arg, texted.fun=new.cmd)
+        fun <- function() {
+           arg.names <- names(formals())
+    	   arg.names <- arg.names[-length(arg.names)]
+	   arg <-  mget(arg.names,envir=as.environment(-1))
+	   do.call(cmd.name, arg)
+        }
+	formals(fun)<-c(org.arg,cmd.name=cmd.name)
    	return(fun)
    }
 }
+
+mpi.sendrecv <-  function(senddata, sendtype, dest, sendtag, recvdata, 
+			recvtype, source, recvtag, 
+         		comm = 1, status = 0) 
+ {
+   .Call("mpi_sendrecv", senddata, as.integer(sendtype), 
+	  as.integer(dest), 
+          as.integer(sendtag), recvdata, as.integer(recvtype), 
+          as.integer(source), as.integer(recvtag), as.integer(comm),
+          as.integer(status), PACKAGE="Rmpi")
+}
+
+mpi.sendrecv.replace <- function(x, type, dest, sendtag, source, recvtag,  
+         comm = 1, status = 0)
+ {
+   .Call("mpi_sendrecv_replace", x, as.integer(type), as.integer(dest),
+          as.integer(sendtag), as.integer(source), as.integer(recvtag), 
+          as.integer(comm), as.integer(status), PACKAGE="Rmpi")
+}
+

@@ -21,6 +21,7 @@ static MPI_Comm	*comm;
 static MPI_Status *status;
 static MPI_Datatype *datatype;
 static MPI_Info *info;
+static MPI_Request *request;
 
 SEXP mpi_initialize(){
 	int flag;
@@ -35,6 +36,7 @@ SEXP mpi_initialize(){
 		status=(MPI_Status *)Calloc(1, MPI_Status); 
 		datatype=(MPI_Datatype *)Calloc(1, MPI_Datatype); 
 		info=(MPI_Info *)Calloc(1, MPI_Info);
+		request=(MPI_Request *)Calloc(1, MPI_Request);
 		comm[0]=MPI_COMM_WORLD;
 
 		return AsInt(1);
@@ -865,3 +867,145 @@ SEXP mpi_comm_remote_size(SEXP sexp_comm){
 	mpi_errhandler(MPI_Comm_remote_size(comm[INTEGER(sexp_comm)[0]], &size));
 	return AsInt(size);
 }
+
+SEXP mpi_sendrecv(SEXP sexp_senddata,
+        SEXP sexp_sendtype,
+        SEXP sexp_dest,
+        SEXP sexp_sendtag,
+        SEXP sexp_recvdata,
+        SEXP sexp_recvtype,                   
+        SEXP sexp_source,                   
+        SEXP sexp_recvtag,
+        SEXP sexp_comm,
+        SEXP sexp_status)
+{
+    int slen, rlen;
+    int sendcount=LENGTH(sexp_senddata), sendtype=INTEGER(sexp_sendtype)[0];
+    int dest=INTEGER(sexp_dest)[0], sendtag=INTEGER(sexp_sendtag)[0];
+    int recvcount=LENGTH(sexp_recvdata), recvtype=INTEGER(sexp_recvtype)[0];
+    int source=INTEGER(sexp_source)[0], recvtag=INTEGER(sexp_recvtag)[0];
+    int commn=INTEGER(sexp_comm)[0],statusn=INTEGER(sexp_status)[0];
+
+    switch(sendtype){
+        case 1:
+            switch(recvtype){
+               	case 1:
+                    MPI_Sendrecv(INTEGER(sexp_senddata),sendcount, 
+			MPI_INT,dest,sendtag, INTEGER(sexp_recvdata), 
+			recvcount, MPI_INT, source,recvtag,
+                        comm[commn], &status[statusn]);
+                    break;
+                case 2:
+                    MPI_Sendrecv(INTEGER(sexp_senddata),sendcount, 
+			MPI_INT,dest,sendtag, REAL(sexp_recvdata), 
+			recvcount, MPI_DOUBLE, source,recvtag,
+                        comm[commn], &status[statusn]);
+                    break;
+                case 3:
+                    rlen=LENGTH(STRING_ELT(sexp_recvdata,0)); 
+                    MPI_Sendrecv(INTEGER(sexp_senddata),sendcount,
+			MPI_INT, dest, sendtag, 
+			CHAR(STRING_ELT(sexp_recvdata,0)), rlen, 
+			MPI_CHAR, source, recvtag, comm[commn],  
+			&status[statusn]);
+                    break;
+                }
+	    break;
+        case 2:
+            switch(recvtype){
+                case 1:
+                    MPI_Sendrecv(REAL(sexp_senddata),sendcount, 
+			MPI_DOUBLE,dest,sendtag, INTEGER(sexp_recvdata), 
+			recvcount, MPI_INT, source,recvtag,
+                        comm[commn], &status[statusn]);
+                    break;
+                case 2: 
+                    MPI_Sendrecv(REAL(sexp_senddata),sendcount, 
+			MPI_DOUBLE,dest,sendtag, REAL(sexp_recvdata), 
+			recvcount, MPI_DOUBLE, source,recvtag,
+                        comm[commn], &status[statusn]);
+                    break;
+                case 3:
+                    rlen=LENGTH(STRING_ELT(sexp_recvdata,0)); 
+                    MPI_Sendrecv(REAL(sexp_recvdata),sendcount,
+			MPI_DOUBLE, dest, sendtag, 
+			CHAR(STRING_ELT(sexp_recvdata,0)), rlen, 
+			MPI_CHAR, source, recvtag, comm[commn],  
+			&status[statusn]);
+                    break;
+                }
+            break;
+        case 3: 
+            slen=LENGTH(STRING_ELT(sexp_senddata,0));                       
+  
+            switch(recvtype){
+               	case 1:
+                    MPI_Sendrecv(CHAR(STRING_ELT(sexp_senddata,0)),slen, 
+			MPI_CHAR,dest,sendtag, INTEGER(sexp_recvdata), 
+			recvcount, MPI_INT, source,recvtag,
+                        comm[commn], &status[statusn]);
+                    break;
+                case 2:                       
+		    MPI_Sendrecv(CHAR(STRING_ELT(sexp_senddata,0)),slen, 
+			MPI_CHAR,dest,sendtag, REAL(sexp_recvdata), 
+			recvcount, MPI_DOUBLE, source,recvtag,
+                        comm[commn], &status[statusn]);
+                    break;
+                case 3:
+                    rlen=LENGTH(STRING_ELT(sexp_recvdata,0));
+                        
+		    MPI_Sendrecv(CHAR(STRING_ELT(sexp_senddata,0)),slen,
+			MPI_CHAR, dest, sendtag, 
+			CHAR(STRING_ELT(sexp_recvdata,0)), rlen, 
+			MPI_CHAR, source, recvtag, comm[commn], 
+			&status[statusn]);
+                    break;
+          	}
+   		break;
+	    }
+    return sexp_recvdata;          
+}
+
+SEXP mpi_sendrecv_replace(SEXP sexp_data,
+        SEXP sexp_type,
+        SEXP sexp_dest,
+        SEXP sexp_sendtag,
+        SEXP sexp_source,
+        SEXP sexp_recvtag,
+        SEXP sexp_comm, 
+        SEXP sexp_status)
+{
+        int i, slen;
+        int len=LENGTH(sexp_data), type=INTEGER(sexp_type)[0];
+        int dest=INTEGER(sexp_dest)[0], sendtag=INTEGER(sexp_sendtag)[0];
+        int source=INTEGER(sexp_source)[0],recvtag=INTEGER(sexp_recvtag)[0];
+        int commn=INTEGER(sexp_comm)[0],statusn=INTEGER(sexp_status)[0];
+
+        switch (type){
+        case 1:
+                MPI_Sendrecv_replace(INTEGER(sexp_data), len, MPI_INT, dest, 
+		sendtag, source, recvtag, comm[commn], &status[statusn]);
+                break;
+        case 2:
+                MPI_Sendrecv_replace(REAL(sexp_data), len, MPI_DOUBLE, dest, 
+		sendtag, source, recvtag, comm[commn], &status[statusn]);
+                break;
+
+        case 3:
+                slen=LENGTH(STRING_ELT(sexp_data,0));
+                for (i=0; i < len; i++){
+                        MPI_Sendrecv_replace(CHAR(STRING_ELT(sexp_data,i)),
+                                slen,MPI_CHAR, dest, sendtag, source, recvtag, 
+				comm[commn], &status[statusn]);  
+                }
+                break;
+        default:
+                PROTECT(sexp_data=AS_NUMERIC(sexp_data));
+                MPI_Sendrecv_replace(REAL(sexp_data), 1, datatype[0], dest, 
+			sendtag, source, recvtag, comm[commn],
+                        &status[statusn]);                        
+                break;
+          }
+          return sexp_data;
+}
+

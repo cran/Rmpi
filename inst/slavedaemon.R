@@ -10,7 +10,7 @@ mpi.intercomm.merge(.intercomm,1,.comm)
 mpi.comm.set.errhandler(.comm)
 mpi.comm.disconnect(.intercomm)
 mpi.hostinfo(.comm)
-while (1) {
+repeat {
     try(eval(mpi.bcast.cmd(rank=0,comm=.comm),envir=sys.parent()),TRUE)
 }
 print("Done")

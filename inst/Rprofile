@@ -32,7 +32,7 @@ if (mpi.comm.rank(0) >0){
 if (mpi.comm.rank(0) == 0) {
     if (!interactive()){
 	mylib <- dirname(.path.package("Rmpi"))
-        ver <- package.description("Rmpi", lib = mylib)["Version"]
+        ver <- packageDescription("Rmpi", lib = mylib)["Version"]
         vertxt <- paste("\n\tRmpi version:", ver, "\n")
         introtxt <- paste("\tRmpi is an interface (wrapper) to MPI APIs\n",
               "\twith interactive R slave functionalities\n",
