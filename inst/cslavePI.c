@@ -23,7 +23,7 @@ int main(int argc, char **argv){
 
         MPI_Bcast(n,1,MPI_INT,0, all_processes);
 
-        //Compute portion of pi on each node
+        /*Compute portion of pi on each node */
         h   = 1.0 / (double) (*n);
         sum = 0.0;
         for (i = rank ; i <= *n; i += size-1) {
@@ -32,10 +32,10 @@ int main(int argc, char **argv){
          }
         mypi = h * sum;
 
-	//Send all computed portion of pi to rank 0 and sum together
+	/*Send all computed portion of pi to rank 0 and sum together */
 	MPI_Reduce(&mypi, &pi,1, MPI_DOUBLE, MPI_SUM,0, all_processes);
 
-        //All done
+        /*All done*/
 	MPI_Comm_free(&all_processes);
         MPI_Finalize();
         exit(0);

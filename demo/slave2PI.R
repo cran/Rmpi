@@ -3,7 +3,6 @@ slave2 <- function (){
     request <-1
     job <-2
     anytag <- mpi.any.tag()
-    id <- mpi.comm.rank(.comm)
     mypi <- 0
     while (1) {
     	#send master a request

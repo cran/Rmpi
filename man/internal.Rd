@@ -3,6 +3,7 @@
 \alias{mpi.remote.fun}
 \alias{getpid}
 \alias{mpi.remote.slave}
+\alias{string}
 \alias{typeindex}
 \alias{mpi.comm.is.null}
 \title{Internal functions}
@@ -25,6 +26,8 @@ remote function with master variables.
 \code{mpi.remote.slave} is executed on R slaves by 
 \code{\link{mpi.remote.exec}} (to carry out a remote command). 
 
+\code{string}  create a string (empty space character) buffer.
+
 \code{typeindex} checks an R object mode (integer, double, char, or others).
 }
 \usage{
@@ -33,6 +36,7 @@ getpid()
 mpi.comm.is.null(comm)
 mpi.remote.fun(cmd, ..., needsub = TRUE, width.cutoff = 500)
 mpi.remote.slave(cmd, tag, ret)
+string(length)
 typeindex(x)
 }
 \arguments{
@@ -44,6 +48,7 @@ typeindex(x)
   \item{tag}{a tag number}
   \item{ret}{logical.}
   \item{x}{an R object.}
+  \item{length}{length of a string.}
 }
 \value{
 \code{bin.nchar} returns the length of a binary char vector.
@@ -51,6 +56,8 @@ typeindex(x)
 \code{getpid} returns an integer (process id).
 
 \code{mpi.remote.fun} returns a string (a function with string quotation).
+
+\code{string} returns an empty character string.
 
 \code{typeindex} returns \code{c(1, length(x))} if \code{x} is an integer 
 vector; \code{c(2,length(x))} if \code{x} is a double vector; and -1 for other 

@@ -41,6 +41,13 @@ mpi.proc.null <- function(){
     .Call("mpi_proc_null")
 }
 
+string <- function(length){
+    if (as.integer(length) < 1)
+	stop("need positive length")
+
+    .Call("mkstr",as.integer(length))
+}
+
 mpi.info.create <- function(info=0){
 	.Call("mpi_info_create", as.integer(info))
 }
@@ -136,7 +143,9 @@ mpi.spawn.Rslaves <-
 	comm=1,
 	hosts=NULL,
 #	mergecomm=TRUE,
-	needlog=TRUE) {	
+	needlog=TRUE) {
+	if (!is.loaded("mpi_comm_spawn"))
+	    stop("You cannot use MPI_Comm_spawn API")	
         if (mpi.comm.size(comm) > 0){
 	     err <-paste("It seems there are some slaves running on comm ", comm)
 	     stop(err)
@@ -379,9 +388,13 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
 	if (length(system(paste("ls", logfile),TRUE,ignore.stderr=TRUE))>1)
 	    system(paste("rm", logfile))
 	}
-     mpi.barrier(comm)
-    if (comm >0)
-	 mpi.comm.disconnect(comm)
+#     mpi.barrier(comm)
+    if (comm >0){
+        if (is.loaded("mpi_comm_disconnect"))
+            mpi.comm.disconnect(comm) 
+        else
+            mpi.comm.free(comm)
+    }
 #   mpi.comm.set.errhandler(0)
 }
 

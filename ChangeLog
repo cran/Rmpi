@@ -1,4 +1,12 @@
+2002-06-01, version 0.4-4:
+	Add a function string for creating a (binary) character buffer.  
+	Remove all C++ style comments.
+	Remove all deprecated functions.
+	Remove mpi.barrier from slavedaemon.R (it causes slaves hanging if 
+	master crashed)
+
 2002-05-06, version 0.4-3:
+
 	Take SPRNG out. Use rsprng package instead. Use mpi.init.sprng to 
 	start SPRNG.
 
@@ -22,7 +30,7 @@
 
 2002-05-02, version 0.4.2: 
 	Some bugs fix. 
-	Add Rprofile and Rmpi in inst
+	Add Rprofile in inst
 	Add a function mpi.comm.dup
 
 2002-04-29, version 0.4.1: 

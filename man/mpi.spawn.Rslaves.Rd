@@ -29,7 +29,7 @@ tail.slave.log(nlines = 3, comm = 1)
   \item{nslaves}{number of slaves to be spawned.}
   \item{root}{the rank number of the member who spawns R slaves.}
   \item{intercomm}{an intercommunicator number}
-  \item{comm}{a communicator number mergered from an intercomm.}
+  \item{comm}{a communicator number merged from an intercomm.}
   \item{hosts}{NULL or LAM node numbers to specify where R slaves to be 
 spawned.}
   \item{needlog}{a logical. If TRUE, R BATCH outputs will be saved in log files.  

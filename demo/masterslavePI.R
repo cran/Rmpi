@@ -5,6 +5,8 @@ if (!mpi.comm.is.null(2))
 
 #master job
 master <- function(){
+	if (mpi.comm.size(1) > 0)
+	    stop("There are some slaves running on comm 1")
 	slave<-system.file("Rslaves.sh",package="Rmpi")
 	Rscript <- system.file("demo","masterslavePI.R",package="Rmpi")
 	arg <- c(Rscript, getpid(),"nolog")

@@ -14,8 +14,6 @@ while (1) {
     try(eval(mpi.bcast.cmd(rank=0,comm=.comm),envir=sys.parent()))
 }
 print("Done")
-mpi.barrier(.comm)
 mpi.comm.disconnect(.comm)
-mpi.barrier(0)
-mpi.abort(0)
-#mpi.quit()
+#mpi.abort(0)
+mpi.quit()

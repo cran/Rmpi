@@ -17,8 +17,6 @@
 
 #include "Rmpi.h"
 
-//static int MPI_COMM_MAXSIZE=10;
-//static MPI_Comm MPI_MASTER_SLAVE;
 static MPI_Comm	*comm;
 static MPI_Status *status;
 static MPI_Datatype *datatype;

@@ -18,8 +18,9 @@ with `x' as master variable, use mpi.remote.exec(cmd=myfun, x).}
 }
 \value{
   return executed results from R slaves if the argument \code{ret} is 
-  set to be TRUE.
-}
+  set to be TRUE. The value could be a data.frame if values 
+  (integer or double) from each slave have the same dimension. 
+  Otherwise a list is returned.}
 \details{
   Once R slaves are spawned by \code{\link{mpi.spawn.Rslaves}} with the 
   slavedaemon.R script, they are waiting for instructions from master. One can 

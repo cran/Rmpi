@@ -11,7 +11,7 @@ when creating the new communicator}
   \item{comm}{a (intra)communicator number}
 }
 \description{
-  Creates an intracommuncator from an intercommunicator 
+  Creates an intracommunicator from an intercommunicator 
 }
 \details{
   When master spawns slaves, an intercommunicator is created. To make 

@@ -5,7 +5,7 @@
     vertxt <- paste("\n\tRmpi version:", ver, "\n")
     introtxt <-
         paste("\tRmpi is an interface (wrapper) to MPI APIs\n",
-	      "\twith interactive R slave functionalities\n",
+	      "\twith interactive R slave functionalities.\n",
               "\tSee `library (help=Rmpi)' for details.\n",
               sep = "")
     if(interactive() || getOption("verbose"))

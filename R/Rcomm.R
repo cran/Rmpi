@@ -62,6 +62,9 @@ mpi.comm.spawn <- function(slave,
 			info=0,
 			root=0, 
 			intercomm=2){
+        if (!is.loaded("mpi_comm_spawn"))
+            stop("You cannot use MPI_Comm_spawn API")
+
 	if (!is.character(slave))
 		stop("character argument (slave) expected")
 	if (nslaves > mpi.universe.size()){
