@@ -1,12 +1,11 @@
-******************************************************************************
 MPI API:
 
 mpi.abort		Abort (quit) all tasks associated with a comm
 mpi.allgather		Gather data from each process to all process
-mpi.allgatherv		Gather diffsize data from each process to all process
+mpi.allgatherv		Gather diff size data from each process to all process
 mpi.allreduce		Reduce all process's vectors into one vector
 mpi.barrier		Block the caller until all group have called it
-mpi.bcast		Broadcast a vector (int,double,char) to every process. 
+mpi.bcast		Broadcast a vector (int,double,char) to every process 
 mpi.comm.disconnect	Disconeect and free a comm
 mpi.comm.dup		Duplicate a comm to a new comm
 mpi.comm.free		Free a comm
@@ -19,7 +18,7 @@ mpi.comm.spawn		Spawn slaves
 mpi.comm.test.inter	Test if a comm is an intercomm
 mpi.finalize		Exit MPI environment (call MPI_Finalize())
 mpi.gather		Gather data from each process to a root process
-mpi.gatherv		Gather diffs data from each process to a root process
+mpi.gatherv		Gather diff data from each process to a root process
 mpi.get.count		Get the length of a message for given status and type
 mpi.get.processor.name	Get the process (host) name 
 mpi.info.create		Create an info object
@@ -61,7 +60,7 @@ mpi.close.Rslaves	Close all slaves launched by mpi.spawn.Rslaves()
 mpi.remote.exec		Run a command remotely on slaves and return 
 			results back to the master 
 slave.hostinfo		Show all slave rank, comm, host information
-tail.slave.log		Tail (view) last lines of slave log files
+tailslave.log		Tail (view) last lines of slave log files
 *****************************************************************************
 Internal Functions used by Other MPI Functions
 
@@ -72,3 +71,4 @@ mpi.remote.fun		Used by mpi.remote.exec for local variables passing
 mpi.remote.slave	Counter part of mpi.remote.exec (used by slaves)
 string			Create a string (empty space character) buffer
 typeindex		Identify an R object to type 1, 2, 3, or others
+

@@ -1,4 +1,4 @@
-\name{mpi.info}
+\name{mpi.info.create}
 \alias{mpi.info.create}
 \alias{mpi.info.free}
 \alias{mpi.info.get}

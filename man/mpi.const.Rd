@@ -1,4 +1,4 @@
-\name{mpi.constants}
+\name{mpi.any.source}
 \alias{mpi.any.source}
 \alias{mpi.any.tag}
 \alias{mpi.proc.null}

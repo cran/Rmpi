@@ -2,25 +2,25 @@
 mpi.finalize <- function(){
     if(mpi.is.master())
         print("Exiting Rmpi. Rmpi cannot be used unless relaunching R.")
-    .Call("mpi_finalize")
+    .Call("mpi_finalize",PACKAGE = "Rmpi")
 }
 
 mpi.exit <- function(){
     if (mpi.is.master())
     	print("Detaching Rmpi. Rmpi cannot be used unless relaunching R.")
-    .Call("mpi_finalize")
+    .Call("mpi_finalize",PACKAGE = "Rmpi")
     detach(package:Rmpi)
 }
 
 mpi.quit <- function(save="no"){
-    .Call("mpi_finalize")
+    .Call("mpi_finalize",PACKAGE = "Rmpi")
     q(save=save,runLast=FALSE)
 }
 
 mpi.is.master <- function () 
 {
     if (is.loaded("mpi_comm_get_parent"))
-	as.logical(.Call("mpi_is_master"))
+	as.logical(.Call("mpi_is_master",PACKAGE = "Rmpi"))
     else {
 	if (mpi.comm.size(1)>0)
 	    as.logical(mpi.comm.rank(1)==0)
@@ -30,48 +30,51 @@ mpi.is.master <- function ()
 }
 
 mpi.any.source <- function(){
-    .Call("mpi_any_source")
+    .Call("mpi_any_source",PACKAGE = "Rmpi")
 }
 
 mpi.any.tag <- function(){
-    .Call("mpi_any_tag")
+    .Call("mpi_any_tag",PACKAGE = "Rmpi")
 }
 
 mpi.proc.null <- function(){
-    .Call("mpi_proc_null")
+    .Call("mpi_proc_null",PACKAGE = "Rmpi")
 }
 
 string <- function(length){
     if (as.integer(length) < 1)
 	stop("need positive length")
 
-    .Call("mkstr",as.integer(length))
+    .Call("mkstr",as.integer(length),PACKAGE = "Rmpi")
 }
 
 mpi.info.create <- function(info=0){
-	.Call("mpi_info_create", as.integer(info))
+	.Call("mpi_info_create", as.integer(info),PACKAGE = "Rmpi")
 }
 
 mpi.info.set <- function(info=0, key, value){
     .Call("mpi_info_set", as.integer(info), as.character(key), 
-	as.character(value))
+	as.character(value),PACKAGE = "Rmpi")
 }
 
 mpi.info.get <- function(info=0, key, valuelen){
     .Call("mpi_info_get",as.integer(info), as.character(key), 
-	as.integer(valulen), .Call("mkstr",as.integer(valuelen)))
+	as.integer(valulen), .Call("mkstr",as.integer(valuelen),
+	PACKAGE = "Rmpi"),PACKAGE = "Rmpi")
 }
 
 mpi.info.free <- function(info=0){
-	.Call("mpi_info_free", as.integer(info))
+	.Call("mpi_info_free", as.integer(info),PACKAGE = "Rmpi")
 }
 
 mpi.universe.size <- function(){
-	.Call("mpi_universe_size")
+	if (!is.loaded("mpi_universe_size")) 
+        stop("This function is not supported under MPI 1.2")
+	.Call("mpi_universe_size",PACKAGE = "Rmpi")
 }
 
 mpi.get.processor.name <- function(short=TRUE){
-    name <- .Call("mpi_get_processor_name")
+    name <- .Call("mpi_get_processor_name",PACKAGE = "Rmpi")
     if (short)
 	name <- unlist(strsplit(name, "\\."))[1]
     name
@@ -122,7 +125,7 @@ slave.hostinfo <- function(comm=1){
 }
 
 getpid <- function(){
-    .Call("pid")
+    .Call("pid",PACKAGE = "Rmpi")
 }
 
 lamhosts <- function(){
@@ -286,16 +289,12 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
 }
 
 typeindex <- function (x) {
-    if(is.null(class(x))){ 
-        if (is.integer(x))
+    if(class(x)=="integer")
             as.integer(c(1,length(x)))
-        else if (is.double(x))
+    else if (class(x)=="numeric")
             as.integer(c(2,length(x)))
-        else
-            as.integer(-1)
-    }
     else
-	as.integer(-1)
+            as.integer(-1)
 }
 
 mpi.remote.slave <- function(cmd,tag,ret){
@@ -303,9 +302,9 @@ mpi.remote.slave <- function(cmd,tag,ret){
     if (ret){
 	size <- mpi.comm.size(.comm)
    	myerrcode <- as.integer(0)
-    	out <- try(eval(expression(cmd)))
+    	out <- try(eval(expression(cmd)),TRUE)
     	if (.mpi.err){
-	    print(.Last.value)        #Leave real error messages in log file
+	    print(geterrmessage())
 	    myerrcode <-as.integer(1)
     	    type <- integer(2)
 	}
@@ -385,7 +384,8 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
     if (dellog){
 	tmp <- paste(getpid(),"+",comm,sep="")	
   	logfile <- paste("*.",tmp,".*.log", sep="")
-	if (length(system(paste("ls", logfile),TRUE,ignore.stderr=TRUE))>1)
+	if (length(system(paste("ls", 
+		logfile),TRUE,ignore.stderr=TRUE))>=1)
 	    system(paste("rm", logfile))
 	}
 #     mpi.barrier(comm)
@@ -398,7 +398,7 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
 #   mpi.comm.set.errhandler(0)
 }
 
-tail.slave.log <- function(nlines=3,comm=1){
+tailslave.log <- function(nlines=3,comm=1){
     if (mpi.comm.size(comm)==0)
 	stop ("It seems no slaves running")
     tmp <- paste(getpid(),"+",comm,sep="")	

@@ -19,19 +19,17 @@ this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************
 
-Rmpi requires R version 1.5.0 or higher, serialize 0.2-0 or higher,  and 
-LAM-MPI 6.5.6 (other MPI implementations can be used. See the NOTE in 
-installing LAM-MPI). Rmpi works only for Unix (Linux Redhat 7.2 on INTEL 
-PIII Xeon SMP and Linux Redhat 7.1 on Compaq alpha SMP Beowulf clusters 
-are tested) at present. A Beowulf cluster should be set up properly before 
-attempting Rmpi.
+Rmpi requires R version 1.8.1 or higher, and LAM-MPI 7.0.2 or higher 
+(it should still work with LAM-MPI 6 and other MPI implementations such 
+as MPICH. See the NOTE in installing LAM-MPI). Rmpi works only for Unix 
+(Linux Redhat 9.0 on INTEL PIII Xeon SMP and Linux Redhat 7.1 on Compaq 
+alpha SMP Beowulf clusters are tested) at present. A Beowulf cluster should 
+be set up properly before attempting Rmpi.
 
 INSTALLATION INSTRUCTIONS:
 
-1. Install LAM-MPI 6.5.6 (http://www.lam-mpi.org). Follow the installation 
-   instructions provided by LAM-MPI or simply choose a pre-compiled Linux RPM 
-   such as
-	http://www.lam-mpi.org/download/files/lam-6.5.6-tcp.1.i386.rpm 
+1. Install LAM-MPI 7.0.2 (http://www.lam-mpi.org). Follow the installation 
+   instructions provided by LAM-MPI or simply choose a pre-compiled Linux RPM. 
    Modify the file lam-bhost.def (probably in /etc/lam) to include host names 
    and CPU numbers per host in a cluster. A remote shell program such as 
    rsh or ssh must be set properly otherwise LAM-MPI will not be functional. 
@@ -50,33 +48,30 @@ INSTALLATION INSTRUCTIONS:
 	lamexec C hostname
    to see all nodes response with their host names.
 
-NOTE: If your site has a different MPI such as MPICH installed, you still 
-   can install and use Rmpi. Only two functions lamhosts and 
-   mpi.spawn.Rslaves are LAM-MPI specific. In fact, you still can use  
-   mpi.spawn.Rslaves as long as you leave the argument hosts to its 
-   default (NULL). Unless you remove the part of checking lam-mpi in zzz.R 
+NOTE: If your site has a different MPI such as MPICH installed, Rmpi 
+   could still detect it and disable MPI-2 related functions 
+   automatically. Unless you remove the part of checking lam-mpi in zzz.R.in 
    file in R directory, you need to create a file lamnodes and put the line
 	echo "FAKE lamnodes"
    Make sure lamnodes is executable and in the path. Try
 	mpirun -np 1 R
    to start a master R and load Rmpi. 
 
-   If your cluster does not have MPI_Comm_spawn enabled (UWO sharcnet 
-   www.sharcnet.ca purposely removes it to prevent end users spawning 
-   processes), you have to edit the C file Rmpi.c in src directory and 
-   remove affected parts.  Because you cannot use mpi.spawn.Rslaves, you 
-   have to use the following way to spawn R slaves. Save Rprofile in inst 
-   (will be in the root directory of Rmpi after installation) as .Rprofile 
-   in the working or root directory. Then run, for example,
-	mpirun -np 9 R --save -q
+   If your cluster does not have MPI_Comm_spawn enabled so you cannot 
+   use mpi.spawn.Rslaves, you have to use the following way to spawn R 
+   slaves. Save Rprofile in inst (will be in the root directory of Rmpi 
+   after installation) as .Rprofile in the working or root directory. 
+   Then run, for example,
+	mpirun -np 9 R --slave
    This will create one master and 8 slaves.
 
 2. Install Rmpi. If LAM-MPI is installed in /usr or /usr/local,  run
 	R INSTALL Rmpi_version.tar.gz.
    On Debian with lam3, lam3-dev lam-runtime installed, above will work 
    too.
-   
-   For LAM-MPI in a different location, use
+   Rmpi will also detect if MPICH installed in /usr/lib as either 
+   /usr/lib/mpi or /usr/lib/mpich. 
+   For LAM-MPI or other MPI in a different location, use
 	R INSTALL Rmpi_version.tar.gz --configure-args=--with-mpi=/mpipath
 
    Notice that R and Rmpi have to be installed on all hosts in a cluster. The 
@@ -85,13 +80,6 @@ NOTE: If your site has a different MPI such as MPICH installed, you still
    file system and putting R and Rmpi on it should work. The same issue 
    applies to user's home directory: it should be the same across a 
    cluster of computers. 
-
-NOTE: In case you have different MPI other than LAM-MPI, you have to edit 
-   the file configure.in and change the part related to liblam to a 
-   library needed by your MPI. Then run autoconf and build a new tar.gz 
-   file. If some MPI functions are not available on your cluster, you need 
-   to edit Rmpi.c in src. Most likely they are related to spawning and 
-   intercommunicator and I put them in the end of the file.
 
 3. Test. Before running R and Rmpi, make sure LAM-MPI is running properly. Use
 	lamboot -v

@@ -29,8 +29,8 @@ SEXP mpi_initialize(){
 		return AsInt(1);
 	else {	
 		MPI_Init((void *)0,(void *)0);
-		MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
-		MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN);
+		MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+		MPI_Errhandler_set(MPI_COMM_SELF, MPI_ERRORS_RETURN);
 		comm=(MPI_Comm *)Calloc(COMM_MAXSIZE, MPI_Comm); 
 		status=(MPI_Status *)Calloc(1, MPI_Status); 
 		datatype=(MPI_Datatype *)Calloc(1, MPI_Datatype); 
@@ -68,11 +68,14 @@ SEXP bin_nchar(SEXP sexp_data){
 	return AsInt(LENGTH(STRING_ELT(sexp_data,0)));
 }
 
+#ifdef MPI2
 SEXP mpi_universe_size(){
-	int *MPI_Universe_Size, univ_flag;
+	int *MPI_Universe_Size;
+	int univ_flag;
 	MPI_Comm_get_attr(comm[0], MPI_UNIVERSE_SIZE, &MPI_Universe_Size, &univ_flag);
-    return AsInt(*MPI_Universe_Size);
+    	return AsInt(*MPI_Universe_Size);
 }
+#endif
 
 SEXP mpi_any_source(){
 	return AsInt(MPI_ANY_SOURCE);
@@ -230,7 +233,7 @@ SEXP mpi_scatter(SEXP sexp_sdata,
 				   SEXP sexp_rdata,
 				   SEXP sexp_root,
 				   SEXP sexp_comm){
-	int len=LENGTH(sexp_sdata), commn=INTEGER(sexp_comm)[0], root=INTEGER(sexp_root)[0];
+	int len=LENGTH(sexp_rdata), commn=INTEGER(sexp_comm)[0], root=INTEGER(sexp_root)[0];
 	
 	switch (INTEGER(sexp_type)[0]){
 	case 1:
@@ -787,7 +790,7 @@ SEXP mpi_abort(SEXP sexp_comm){
 
 /********************Intercomm********************************************/
 SEXP mpi_comm_set_errhandler(SEXP sexp_comm){
-	return AsInt(erreturn(MPI_Comm_set_errhandler(comm[INTEGER(sexp_comm)[0]], 
+	return AsInt(erreturn(MPI_Errhandler_set(comm[INTEGER(sexp_comm)[0]], 
 		MPI_ERRORS_RETURN)));
 }
 
@@ -797,6 +800,7 @@ SEXP mpi_comm_test_inter(SEXP sexp_comm){
 	return AsInt(flag);
 }
 
+#ifdef MPI2
 SEXP mpi_comm_spawn (SEXP sexp_slave,
 					 SEXP sexp_argv,
 					 SEXP sexp_nslave,
@@ -832,25 +836,8 @@ SEXP mpi_comm_spawn (SEXP sexp_slave,
     return AsInt(realns);
 }
 
-SEXP mpi_comm_remote_size(SEXP sexp_comm){
-	int size;
-	mpi_errhandler(MPI_Comm_remote_size(comm[INTEGER(sexp_comm)[0]], &size));
-	return AsInt(size);
-}
-
 SEXP mpi_comm_get_parent(SEXP sexp_comm){
 	return AsInt(erreturn(mpi_errhandler(MPI_Comm_get_parent(&comm[INTEGER(sexp_comm)[0]]))));
-}
-
-SEXP mpi_intercomm_merge(SEXP sexp_intercomm, SEXP sexp_high, SEXP sexp_comm){
-	return AsInt(erreturn(mpi_errhandler(MPI_Intercomm_merge(comm[INTEGER(sexp_intercomm)[0]],
-		INTEGER(sexp_high)[0],
-		&comm[INTEGER(sexp_comm)[0]]))));
-}
-
-
-SEXP mpi_comm_disconnect(SEXP sexp_comm){
-	return AsInt(erreturn(mpi_errhandler(MPI_Comm_disconnect(&comm[INTEGER(sexp_comm)[0]]))));
 }
 
 SEXP mpi_is_master(){
@@ -862,3 +849,19 @@ SEXP mpi_is_master(){
 	return AsInt(check);
 }
 
+SEXP mpi_comm_disconnect(SEXP sexp_comm){
+	return AsInt(erreturn(mpi_errhandler(MPI_Comm_disconnect(&comm[INTEGER(sexp_comm)[0]]))));
+}
+#endif
+
+SEXP mpi_intercomm_merge(SEXP sexp_intercomm, SEXP sexp_high, SEXP sexp_comm){
+	return AsInt(erreturn(mpi_errhandler(MPI_Intercomm_merge(comm[INTEGER(sexp_intercomm)[0]],
+		INTEGER(sexp_high)[0],
+		&comm[INTEGER(sexp_comm)[0]]))));
+}
+
+SEXP mpi_comm_remote_size(SEXP sexp_comm){
+	int size;
+	mpi_errhandler(MPI_Comm_remote_size(comm[INTEGER(sexp_comm)[0]], &size));
+	return AsInt(size);
+}

@@ -1,7 +1,7 @@
 \name{mpi.spawn.Rslaves}
 \alias{mpi.spawn.Rslaves}
 \alias{mpi.close.Rslaves}
-\alias{tail.slave.log}
+\alias{tailslave.log}
 \title{Spawn and Close R Slaves}
 \description{
 \code{mpi.spawn.Rslaves} spawns R slaves to those hosts automatically 
@@ -13,7 +13,7 @@ environments.
 \code{mpi.close.Rslaves} shuts down R slaves spawned by 
 \code{mpi.spawn.Rslaves}.
 
-\code{tail.slave.log} view (from tail) R slave log files (assuming they are all 
+\code{tailslave.log} view (from tail) R slave log files (assuming they are all 
 in one working directory).
 }
 \usage{
@@ -22,7 +22,7 @@ mpi.spawn.Rslaves(Rscript=system.file("slavedaemon.R", package="Rmpi"),
         comm = 1, hosts = NULL, needlog = TRUE))
 
 mpi.close.Rslaves(dellog = TRUE, comm = 1)
-tail.slave.log(nlines = 3, comm = 1)
+tailslave.log(nlines = 3, comm = 1)
 }
 \arguments{
   \item{Rscript}{an R script file used to run R in BATCH mode.}
@@ -44,7 +44,7 @@ slaves are successfully spawned and where they are running.
 
  \code{mpi.close.Rslaves} return 1 if success and 0 otherwise.
 
-\code{tail.slave.log} returns last lines of R slave's log files.
+\code{tailslave.log} returns last lines of R slave's log files.
 }
 \details{
 The R slaves that \code{mpi.spawn.Rslaves} spawns are really running a shell 

@@ -1,55 +1,58 @@
 ### Copyright (C) 2002 Hao Yu
 mpi.probe <- function(source, tag, comm=1, status=0){
 	.Call("mpi_probe", as.integer(source), as.integer(tag), 
-			as.integer(comm), as.integer(status))
+		as.integer(comm), as.integer(status),
+		PACKAGE = "Rmpi")
 }
 
 mpi.get.count <- function(type, status = 0){
-	.Call("mpi_get_count",as.integer(status), as.integer(type))
+	.Call("mpi_get_count",as.integer(status), 
+		as.integer(type),PACKAGE = "Rmpi")
 }
 
 mpi.get.sourcetag <- function(status=0){
-	.Call("mpi_get_sourcetag", as.integer(status))
+	.Call("mpi_get_sourcetag", as.integer(status),PACKAGE = "Rmpi")
 }
 
 mpi.gather <- function(x, type, rdata, root=0,  comm=1){
     .Call("mpi_gather", x, as.integer(type), rdata, 
-		as.integer(root), as.integer(comm))
+		as.integer(root), as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.scatter <- function(x, type, rdata, root=0,  comm=1){
     .Call("mpi_scatter", x, as.integer(type), rdata, 
-		as.integer(root), as.integer(comm))
+		as.integer(root), as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.gatherv <- function(x, type, rdata, rcounts, root=0,  comm=1){
     .Call("mpi_gatherv", x, as.integer(type), rdata, as.integer(rcounts), 
-		as.integer(root), as.integer(comm))
+		as.integer(root), as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.scatterv <- function(x, scounts, type, rdata, root=0, comm=1){
     .Call("mpi_scatterv", x, as.integer(scounts), as.integer(type), rdata, 
-		as.integer(root), as.integer(comm))
+		as.integer(root), as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.allgather <- function(x, type, rdata, comm=1){
-    .Call("mpi_allgather", x, as.integer(type), rdata, as.integer(comm))
+    .Call("mpi_allgather", x, as.integer(type), rdata, as.integer(comm),
+		PACKAGE = "Rmpi")
 }
 
 mpi.allgatherv <- function(x, type, rdata, rcounts, comm=1){
     .Call("mpi_allgatherv", x, as.integer(type), rdata, 
-	as.integer(rcounts), as.integer(comm))
+	as.integer(rcounts), as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.bcast <- function (x, type, rank = 0, comm = 1) {
     .Call("mpi_bcast", x, as.integer(type), as.integer(rank), 
-        as.integer(comm))
+        as.integer(comm),PACKAGE = "Rmpi")
 }
 
 bin.nchar <- function(x){
 	if (!is.character(x))
 		stop("Must be a (binary) character")
-	.Call("bin_nchar", x[1])
+	.Call("bin_nchar", x[1],PACKAGE = "Rmpi")
 }
 
 mpi.bcast.cmd <- function (cmd=NULL, rank=0, comm=1){
@@ -64,8 +67,8 @@ mpi.bcast.cmd <- function (cmd=NULL, rank=0, comm=1){
     	if (is.character(charlen))   #error
             parse(text="break")
     	else {
-	    out <- mpi.bcast(x=.Call("mkstr", as.integer(charlen)), 
-			type=3, rank=rank, comm=comm)
+	    out <- mpi.bcast(x=.Call("mkstr", as.integer(charlen),
+			PACKAGE = "Rmpi"), type=3, rank=rank, comm=comm)
 	    parse(text=unlist(strsplit(out,"\"\"/"))) 
     	}
     }
@@ -79,8 +82,8 @@ mpi.bcast.Robj <- function(obj=NULL, rank=0, comm=1){
     }
     else {
 	charlen <- mpi.bcast(integer(1), 1, rank, comm)
-	unserialize(mpi.bcast(.Call("mkstr", as.integer(charlen)), 3, 
-		rank, comm))
+	unserialize(mpi.bcast(.Call("mkstr", as.integer(charlen),
+	PACKAGE = "Rmpi"), 3, rank, comm))
     }
 }
 
@@ -97,12 +100,13 @@ mpi.bcast.Robj2slave <- function(obj, comm=1){
 
 mpi.send <- function (x, type,  dest, tag, comm=1){
 	.Call("mpi_send", x, as.integer(type), as.integer(dest), 
-	as.integer(tag), as.integer(comm))
+	as.integer(tag), as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.recv <- function (x, type, source, tag, comm=1, status=0){
 	.Call("mpi_recv", x, as.integer(type), as.integer(source), 
-	as.integer(tag), as.integer(comm), as.integer(status))
+	as.integer(tag), as.integer(comm), as.integer(status),
+	PACKAGE = "Rmpi")
 }
 
 mpi.send.Robj <- function(obj, dest, tag, comm=1){
@@ -113,8 +117,8 @@ mpi.recv.Robj <- function(source, tag, comm=1, status=0){
     mpi.probe(source, tag, comm, status)
     srctag <- mpi.get.sourcetag(status)
     charlen <- mpi.get.count(type=3, status)
-    unserialize(mpi.recv(x=.Call("mkstr", as.integer(charlen)), type=3,
-	srctag[1],srctag[2], comm, status))
+    unserialize(mpi.recv(x=.Call("mkstr", as.integer(charlen),
+	PACKAGE = "Rmpi"), type=3,srctag[1],srctag[2], comm, status))
 }
 
 mpi.reduce <- function(x, type=2, 
@@ -140,11 +144,11 @@ mpi.reduce <- function(x, type=2,
 #	}
 		
 	.Call("mpi_reduce", x, as.integer(type), as.integer(op), 
-		as.integer(dest), as.integer(comm))
+		as.integer(dest), as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.allreduce <- function(x,type=2,
-	op=c("sum","prod","max","min"), comm=1){
+	op=c("sum","prod","max","min","maxloc","minloc"), comm=1){
 #	op <- switch(match.arg(op),sum=1,prod=2,max=3,min=4)
 	op <- pmatch(match.arg(op), c("sum","prod","max","min","maxloc","minloc"))
 	if (is.integer(x)){
@@ -158,5 +162,5 @@ mpi.allreduce <- function(x,type=2,
 	else 
 		stop("Not implemented.")
 	.Call("mpi_allreduce", x, as.integer(type), as.integer(op), 
-		as.integer(comm))
+		as.integer(comm),PACKAGE = "Rmpi")
 }

@@ -1,4 +1,4 @@
-\name{Internal functions}
+\name{bin.nchar}
 \alias{bin.nchar}
 \alias{mpi.remote.fun}
 \alias{getpid}

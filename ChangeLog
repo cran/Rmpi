@@ -1,3 +1,21 @@
+2004-04-05, version 0.4-7: 
+	Update to require R-1.8.1 and remove the requirement for the 
+	serialise package (build into R-1.8.1).
+	Some minor bugs fix.  
+	Add #ifdef MPI2 to src/Rmpi.c and change MPI_Comm_set_errhandler 
+	back to MPI_Errhandler_set for backward compatibility with 
+	MPI-1.2, suggested by Ross Boylan. 
+	Add -DMPI2 in configure.in in case lam lib is detected. Otherwise
+	MPI-2 related functions will be disabled.
+	Add detect MPI in /usr/lib/mpi or /usr/lib/mpich, hopefully to 
+	catch MPICH MPI. 
+2003-09-24, version 0.4-6:
+	Add some lines to configure.in so that configure can detect 
+	lam on Debian Linux. Thanks to Kurt Hornik 
+	<Kurt.Hornik@wu-wien.ac.at> for Debian instructions.
+
+2003-02-03, version 0.4-5: internal use.
+
 2002-06-01, version 0.4-4:
 	Add a function string for creating a (binary) character buffer.  
 	Remove all C++ style comments.
@@ -26,7 +44,7 @@
 	implementations. 
 
 	Thanks to Kurt Hornik <Kurt.Hornik@wu-wien.ac.at> for 
-	Denian instructions.
+	Debian instructions.
 
 2002-05-02, version 0.4.2: 
 	Some bugs fix. 

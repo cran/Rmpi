@@ -1,4 +1,4 @@
-\name{hosts.utilities}
+\name{lamhosts}
 \alias{mpi.is.master}
 \alias{lamhosts}
 \alias{mpi.hostinfo}

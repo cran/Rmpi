@@ -1,4 +1,4 @@
-\name{mpi.comm.inter}
+\name{mpi.comm.get.parent}
 \title{MPI\_Comm\_get\_parent, MPI\_Comm\_remote\_size, MPI\_Comm\_test\_inter 
 APIs}
 \usage{

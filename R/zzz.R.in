@@ -25,10 +25,8 @@
 	stop("Fail to load Rmpi dynamic library.")
     if (!is.loaded("mpi_initialize"))
 	stop("Probably Rmpi has been detached. Please quit R.")
-    if(!.Call("mpi_initialize"))
+    if(!.Call("mpi_initialize",PACKAGE = "Rmpi"))
 	stop("Cannot start MPI_Init(). Exit")
-    if (!require(serialize))
-	stop("serialize package cannot be loaded. Exit")	
 }
 
 .Last.lib <- function(libpath){

@@ -1,4 +1,4 @@
-\name{mpi.comm}
+\name{mpi.comm.size}
 \title{MPI\_Comm\_dup, MPI\_Comm\_rank. and MPI\_Comm\_size APIs}
 \usage{
   mpi.comm.dup(comm, newcomm)
@@ -25,7 +25,7 @@ Hao Yu
   \url{http://www.lam-mpi.org/}, 
   \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
 }
-%\examples{
-%}
+\examples{
+}
 \keyword{interface}
  

@@ -11,7 +11,7 @@ mpi.comm.set.errhandler(.comm)
 mpi.comm.disconnect(.intercomm)
 mpi.hostinfo(.comm)
 while (1) {
-    try(eval(mpi.bcast.cmd(rank=0,comm=.comm),envir=sys.parent()))
+    try(eval(mpi.bcast.cmd(rank=0,comm=.comm),envir=sys.parent()),TRUE)
 }
 print("Done")
 mpi.comm.disconnect(.comm)
