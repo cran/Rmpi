@@ -1,7 +1,10 @@
 ### Copyright (C) 2002 Hao Yu 
 .First.lib <- function (lib, pkg) {
     mylib <- dirname(.path.package("Rmpi"))
-    ver <- package.description("Rmpi", lib = mylib)["Version"]
+    if (exists("packageDescription"))
+        ver <- packageDescription("Rmpi", lib = mylib)["Version"]
+    else
+        ver <- package.description("Rmpi", lib = mylib)["Version"]
     vertxt <- paste("\n\tRmpi version:", ver, "\n")
     introtxt <-
         paste("\tRmpi is an interface (wrapper) to MPI APIs\n",
@@ -27,6 +30,11 @@
 	stop("Probably Rmpi has been detached. Please quit R.")
     if(!.Call("mpi_initialize",PACKAGE = "Rmpi"))
 	stop("Cannot start MPI_Init(). Exit")
+    if (exists(".Random.seed") && 
+	round(.Random.seed[1]-5,-1) == .Random.seed[1]-5) {
+        rm(.Random.seed, envir=.GlobalEnv)
+    }
+	
 }
 
 .Last.lib <- function(libpath){

@@ -1,3 +1,12 @@
+2004-04-21, version 0.4-8:
+	Delete .Random.seed in .First.lib if it is a user-defined RNG.  
+	Add needsprng = TRUE argument to mpi.spawn.Rslaves so that SPRNG 
+	can be loaded if there is the package rsprng. 
+	Implement mpi.parallel.sim for parallel Monto Carlo simulation. 
+	Some ideas from student projects of Mr. K. Yu, Ms. Tsai, and Mr. 
+	W. Wolterman have been used. Thanks to them for their wonderful 
+	work. 
+	
 2004-04-05, version 0.4-7: 
 	Update to require R-1.8.1 and remove the requirement for the 
 	serialise package (build into R-1.8.1).

@@ -145,8 +145,8 @@ mpi.spawn.Rslaves <-
 	intercomm=2,
 	comm=1,
 	hosts=NULL,
-#	mergecomm=TRUE,
-	needlog=TRUE) {
+	needlog=TRUE,
+	needsprng=TRUE) {
 	if (!is.loaded("mpi_comm_spawn"))
 	    stop("You cannot use MPI_Comm_spawn API")	
         if (mpi.comm.size(comm) > 0){
@@ -189,25 +189,35 @@ mpi.spawn.Rslaves <-
     }		
     if (realns==0)
 	stop("It seems no single slave spawned.")
-#    if(mergecomm){
-	if(mpi.intercomm.merge(intercomm,0,comm)) {
-#	    tmp <- paste("The comm number for master and slaves is", comm)
-	    mpi.comm.set.errhandler(comm)
-	    mpi.comm.disconnect(intercomm)
-	    slave.hostinfo(comm)	
-#	    print(tmp)
-    	}
-    	else
-	    stop("Fail to merge the comm for master and slaves.")
-#    }
+    if (mpi.intercomm.merge(intercomm,0,comm)) {
+	mpi.comm.set.errhandler(comm)
+	mpi.comm.disconnect(intercomm)
+	slave.hostinfo(comm)
+	if (needsprng) {
+	   if (!suppressWarnings(require(rsprng,quietly=TRUE)))
+		cat("rsprng package is not installed. Cannot use SPRNG.\n")
+	   else {
+		if (sum(mpi.remote.exec(as.integer(require(rsprng)),comm=comm))
+			== mpi.comm.size(comm)-1){
+		    mpi.bcast.cmd(mpi.init.sprng())
+		    mpi.init.sprng()
+		    cat("SPRNG is initialized on both master and slaves.\n")
+		}
+		else
+		    cat("It seems rsprng is not installed properly on slave machines.\n")
+	   }
+	}	
+    }
+    else
+	stop("Fail to merge the comm for master and slaves.")
 }	
 
 mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
-	#	retobj=c("auto","list")
+    if (mpi.comm.size(comm) < 2)
+	stop("It seems no slaves running.")
     tag <- floor(runif(1,1,1000))
     scmd <- substitute(cmd)
     arg <-list(...)
-  #  retobj <- match.arg(retobj)
     if (length(arg)>0){
 	scmd <- mpi.remote.fun(scmd, ..., needsub=FALSE, width.cutoff=500)
         scmd1 <- paste("mpi.remote.slave(cmd=",scmd,",",sep="")
@@ -352,7 +362,7 @@ mpi.remote.fun <- function (cmd, ..., needsub=TRUE, width.cutoff=500) {
     for (i in 1:argn){
 	arg[[i]] <- deparse(arg[[i]], width.cutoff= width.cutoff)
 	if (length(arg[[i]]) >1)
-	   stop("one of arguments is too long")
+	   stop("one of arguments is too long or too big")
     }
     if (is.null(argname)){
         for (i in seq(1, argn-1, length=argn-1))
@@ -406,4 +416,132 @@ tailslave.log <- function(nlines=3,comm=1){
     if (length(system(paste("ls", logfile),TRUE,ignore.stderr=TRUE))==0)
 	stop("It seems no slave log files.")
     system(paste("tail -",nlines," ", logfile,sep=""))
+}
+
+mpi.parallel.sim <- function(n=100,rand.gen=rnorm, rand.arg=NULL, 
+			statistic, nsim=100, run=1, slaveinfo=TRUE, 
+			comm=1, ...){
+
+    if (!is.null(rand.arg))
+	if (!is.list(rand.arg))
+	    stop("rand.arg is not a list")
+
+    if (mpi.comm.size(comm) < 2)
+        stop("It seems no slaves running.")
+
+    wrap.rand.gen <- mpi.wrap.fun(rand.gen,rand.arg,"tmp.rand.gen")
+    wrap.statistic <- mpi.wrap.fun(statistic,list(...),"tmp.statistic")
+
+    mpi.bcast.cmd(mpi.parallel.slave())
+
+    mpi.bcast.Robj(rand.gen, comm=comm)
+    mpi.bcast.Robj(wrap.rand.gen, comm=comm)
+
+    mpi.bcast.Robj(statistic, comm=comm)
+    mpi.bcast.Robj(wrap.statistic,comm=comm)
+    nnr <- c(n,nsim,run)
+    mpi.bcast(as.integer(nnr),type=1, comm=comm)
+
+    slave.num <- mpi.comm.size(comm)-1
+    i <- 0
+    anysrc <- mpi.any.source()
+    anytag <- mpi.any.tag()
+	
+    stat <- integer(slave.num)
+    result <- numeric()
+
+    while (i < slave.num*run){
+   	i <- i+1
+  	output <- mpi.recv.Robj(source=anysrc, tag=8, comm=comm)
+
+	src <- mpi.get.sourcetag()[1]
+        mpi.send(as.integer(i), type=1, dest=src, tag=88, comm=comm)
+      	result <- c(result,output)
+  	stat[src] <- stat[src]+1
+    }
+    if (slaveinfo){
+	slavename <- paste("slave",1:slave.num, sep="")
+	cat("Finished slave jobs summary:\n")
+	for (i in 1:slave.num){
+            if (i < 10)
+	    	cat(slavename[i], " finished",stat[i], "job(s)\n")
+	    else
+	    	cat(slavename[i], "finished",stat[i], "job(s)\n")
+	}
+    }
+    num.col <- length(result)/(slave.num*run*nsim)
+    if (num.col > 1)
+	#if (is.numeric(result))
+	    result <- matrix(result,ncol=num.col,byrow=TRUE)    
+    result
+}
+
+mpi.parallel.slave <- function(){
+    assign("tmp.rand.gen", mpi.bcast.Robj(comm=.comm),
+		envir=.GlobalEnv)
+    assign("wrap.rand.gen", mpi.bcast.Robj(comm=.comm))
+
+    assign("tmp.statistic", mpi.bcast.Robj(comm=.comm),
+		envir=.GlobalEnv)
+    assign("wrap.statistic", mpi.bcast.Robj(comm=.comm))
+
+    nnr <- mpi.bcast(integer(3), type=1, comm=.comm)
+    n <- nnr[1];  nsim <- nnr[2];  run <- nnr[3]
+
+    assign("comb.fun", function(n) wrap.statistic(wrap.rand.gen(n)))
+    
+    i <- 0
+    slave.num <- mpi.comm.size(.comm)-1
+    
+    while( i < slave.num*(run-1)+1){
+
+    	out <- sapply(rep(n,nsim), comb.fun)
+	mpi.send.Robj(obj=out, dest=0, tag=8, comm=.comm)
+	i <- mpi.recv(integer(1), type=1, source=0, tag=88, comm=.comm)
+    }
+
+    rm(tmp.rand.gen,envir=.GlobalEnv)
+    rm(tmp.statistic,envir=.GlobalEnv)
+}
+
+mpi.wrap.fun <- function(cmd, arg, cmd.name=substitute(cmd)){
+   org.arg <- formals(cmd)
+   if (length(org.arg)==0|length(arg)==0)
+	return(cmd)
+   arb.arg <- match("...", names(org.arg))
+   if (!is.na(arb.arg))
+ 	org.arg <- org.arg[-arb.arg]
+   org.arg.names <- names(org.arg)
+   match.arg <- match(names(arg), org.arg.names)
+   if(is.na(arb.arg)){
+   	if (!any(is.na(match.arg))){
+	   for (i in  1:length(match.arg))
+		org.arg[[match.arg[i]]] <- arg[[i]]
+   	   formals(cmd)<-org.arg
+   	   return(cmd)
+	}
+	else
+	    stop("Wrong argment(s) for the function", cmd.name)
+    }
+   else {
+    	arg1 <- match.arg[!is.na(match.arg)]
+    	arg2 <- which(is.na(match.arg))
+      	for (i in seq(1,length(arg1),length=length(arg1)))
+            org.arg[[arg1[i]]] <- arg[[i]]
+   	if (length(arg2)>0)
+	    org.arg <- c(org.arg, arg[arg2])
+
+   	org.arg.names <- names(org.arg)
+   	arg.length <- length(org.arg.names)
+   	new.cmd <- paste(cmd.name, "(", sep="")
+   	for (i in seq(1,arg.length-1, length=arg.length-1))
+  	    new.cmd <- paste(new.cmd,org.arg.names[i],",",sep="")
+   	new.cmd <- paste(new.cmd,org.arg.names[arg.length],")",sep="")
+
+   	fun<- function(texted.fun)
+	    eval(parse(text=texted.fun))
+   
+   	formals(fun)<-c(org.arg, texted.fun=new.cmd)
+   	return(fun)
+   }
 }

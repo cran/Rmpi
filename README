@@ -63,7 +63,8 @@ NOTE: If your site has a different MPI such as MPICH installed, Rmpi
    after installation) as .Rprofile in the working or root directory. 
    Then run, for example,
 	mpirun -np 9 R --slave
-   This will create one master and 8 slaves.
+   This will create one master and 8 slaves. Those slaves will behave as 
+   though mpi.spawn.Rslaves has been used.
 
 2. Install Rmpi. If LAM-MPI is installed in /usr or /usr/local,  run
 	R INSTALL Rmpi_version.tar.gz.
@@ -106,10 +107,9 @@ NOTE: If your site has a different MPI such as MPICH installed, Rmpi
 	>mpi.remote.exec(double(n)) #will not work if n does not exit on slaves
 	>n <- 10
  	>mpi.remote.exec(double, n) #the arg n is passed to double
-   If rsprng package is installed, try
-	>mpi.bcast.cmd(mpi.init.sprng())
-	>mpi.init.sprng()
-	>mpi.remote.exec(rnorm(10))
+   If SPRNG has been properly initialized on both master and slaves, try 
+   the parallel Monto Carlo simulation
+	>mpi.parallel.sim(statistic=mean)
 
    There are a few demo examples from Rmpi. Use
 	demo(package="Rmpi")

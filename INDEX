@@ -57,6 +57,7 @@ MPI Extensions specifically to slavedaemon.R Script (interactive R slaves).
 mpi.bcast.Robj2slave	Master sends an Robj to all slaves
 mpi.bcast.cmd		Broadcast a commond to every process
 mpi.close.Rslaves	Close all slaves launched by mpi.spawn.Rslaves()
+mpi.parallel.sim	Parallel Monto Carlo simulation
 mpi.remote.exec		Run a command remotely on slaves and return 
 			results back to the master 
 slave.hostinfo		Show all slave rank, comm, host information
@@ -67,8 +68,10 @@ Internal Functions used by Other MPI Functions
 bin.nchar		Find the length of a binary string
 getpid			Master process id, used for setting slave log files
 mpi.comm.is.null	Test if a comm is NULL (no members)
+mpi.parallel.slave	Counter part of mpi.parallel.sim (used by slaves)
 mpi.remote.fun		Used by mpi.remote.exec for local variables passing
 mpi.remote.slave	Counter part of mpi.remote.exec (used by slaves)
+mpi.wrap.fun		Used by mpi.parallel.sim to create a wrap function.
 string			Create a string (empty space character) buffer
 typeindex		Identify an R object to type 1, 2, 3, or others
 
