@@ -96,6 +96,7 @@ fi
 AC_CHECK_LIB(util, openpty, [ MPI_LIBS="$MPI_LIBS -lutil" ])
 AC_CHECK_LIB(pthread, main, [ MPI_LIBS="$MPI_LIBS -lpthread" ])
 
+
 PKG_LIBS="${MPI_LIBS}"
 PKG_CPPFLAGS="${MPI_INCLUDE} ${MPI_DEPS}"
 
@@ -103,4 +104,4 @@ AC_SUBST(PKG_LIBS)
 AC_SUBST(PKG_CPPFLAGS)
 AC_SUBST(DEFS)
 
-AC_OUTPUT(src/Makevars R/zzz.R)
+AC_OUTPUT(src/Makevars)

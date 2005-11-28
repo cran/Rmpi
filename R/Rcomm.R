@@ -72,11 +72,11 @@ mpi.comm.spawn <- function(slave,
 
 	if (!is.character(slave))
 		stop("character argument (slave) expected")
-	if (nslaves > mpi.universe.size()){
-                tmp <- paste("Number of R slaves is over",
-                        mpi.universe.size(),": maximum CPUs.")
-                warning(tmp)
-        }
+	#if (nslaves > mpi.universe.size()){
+    #            tmp <- paste("Number of R slaves is over",
+    #                    mpi.universe.size(),": maximum CPUs.")
+    #            warning(tmp)
+    #    }
 	else if (nslaves <= 0)
 		stop("Choose a positive number of slaves.")
 	.Call("mpi_comm_spawn",

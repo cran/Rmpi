@@ -1,4 +1,4 @@
-MPI API:
+MPI APIs:
 
 mpi.abort		Abort (quit) all tasks associated with a comm
 mpi.allgather		Gather data from each process to all process
@@ -6,6 +6,12 @@ mpi.allgatherv		Gather diff size data from each process to all process
 mpi.allreduce		Reduce all process's vectors into one vector
 mpi.barrier		Block the caller until all group have called it
 mpi.bcast		Broadcast a vector (int,double,char) to every process 
+mpi.cart.coords		Translate a rank to the Cartesian topology coordinate
+mpi.cart.create		Create a Cartesian structure of arbitrary dimension
+mpi.cartdim.get		Get dim information about a Cartesian topology
+mpi.cart.get		Provide the Cartesian topology associated with a comm
+mpi.cart.rank		Translate a Cartesian topology coordinate to the rank
+mpi.cart.shift		Shift Cartesian topology in displacement and direction
 mpi.comm.disconnect	Disconeect and free a comm
 mpi.comm.dup		Duplicate a comm to a new comm
 mpi.comm.free		Free a comm
@@ -16,6 +22,7 @@ mpi.comm.size		Find the size (total # of master and slaves)
 mpi.comm.set.errhandler	Set comm to error return (no crash)
 mpi.comm.spawn		Spawn slaves
 mpi.comm.test.inter	Test if a comm is an intercomm
+mpi.dims.create		Create a Cartesian dim used by mpi.cart.create
 mpi.finalize		Exit MPI environment (call MPI_Finalize())
 mpi.gather		Gather data from each process to a root process
 mpi.gatherv		Gather diff data from each process to a root process
@@ -45,7 +52,7 @@ mpi.bcast.Robj		Broadcast an R object to every process
 mpi.exit		Call MPI_Finalize and detach Rmpi library
 mpi.get.sourcetag	Get the source and tag for a given status
 mpi.hostinfo		Get the host information that the process is running
-mpi.init.sprng		MPI wrapper to initialize SPRNG
+mpi.init.sprng		MPI wrapper to initialize SPRNG in rsprng library
 mpi.is.master		TRUE if it is a master otherwise FALSE (slave)
 mpi.proc.null		Dummy source and destination
 mpi.quit		Call MPI_Finalize and quit R

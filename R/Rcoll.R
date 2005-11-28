@@ -95,7 +95,7 @@ mpi.bcast.Robj2slave <- function(obj, comm=1){
 	mpi.bcast.Robj(obj, rank=0, comm=comm)
 	mpi.bcast.cmd(cmd=assign(.tmpRobj$objname,.tmpRobj$obj, 
 			env = .GlobalEnv), rank=0, comm=comm)
-	mpi.bcast.cmd(rm(.tmpRobj), rank=0, comm=comm) 
+	#mpi.bcast.cmd(rm(.tmpRobj,envir = .GlobalEnv), rank=0, comm=comm) 
 }
 
 mpi.send <- function (x, type,  dest, tag, comm=1){

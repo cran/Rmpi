@@ -10,9 +10,8 @@ mpi.init.sprng <- function(seed = floor(runif(1, 1, 2147483648)),
 	stop(paste("It seems no members running on comm", comm))
 
     if (commsize == 1){
-	if (!is.na (pmatch (kindprng, "default"))) {
+		if (!is.na (pmatch (kindprng, "default"))) 
             kindprng <- "LFG"
-    	}
     	kind <- pmatch (kindprng, c ("LFG", "LCG", "LCG64",
                                  "CMRG", "MLFG", "PMLCG")) - 1
     	if (is.na (kind)) {

@@ -1,3 +1,38 @@
+2005-11-28, version 0.5-0:
+	Rmpi can be compiled and run under MPICH2 for Windows. src/Makevars.win is 
+	added so that Rmpi can be compiled without manual configuration if MPICH2 
+	for Windows is installed at default place. Instructions to run Rmpi on 
+	windows platform are given in 
+	http://www.stats.uwo.ca/faculty/yu/Rmpi.
+
+        inst/Rslaves.bat windows batch file is created for spawning R slaves under 
+	windows platform (localhost only, a restriction imposed by MPICH2 for 
+	Windows).  
+
+	Full sets of creating a Cartesian topology APIs are implemented. 
+
+	inst/Rslaves.sh is modified so that the same R program Master R is runing 
+	will be used by slaves Rs. This allows co-existences of different versions 
+	of R.
+
+	inst/Rprofile used by mpiexec under unix and windows platforms is modified. 
+	The main change is that sys.parent() in eval is removed. This is due to 
+	a unknown reason that the infinite loop cannot be broken if the env R_RPOFILE 
+	is used to launch multiple Rs. Objects created on R slaves are no longer 
+	global unless <<- are used, though they are accessible during the duration 
+	of R slaves. If Rprofile is copied as .Rprofile at the working directory, 
+	sys.parent() can still be used (need to modify .Rprofile). 
+
+	To run multiple Rs without using .Rprofile, add the following line  
+		R_PROFILE=${R_HOME}/library/Rmpi/Rprofile; export R_PROFILE
+	in the R shell script (after "export R_HOME") and rename it, say, Rmpi.
+	Then one can use
+		mpiexec -n number_of_nodes Rmpi --no-save -q
+	to launch multiple Rs (assume Rmpi is in the PATH).
+
+	Parts of nonblocking point-to-point MPI APIs are implemented at C level 
+	only. They will be released in the next version of Rmpi. 
+
 2005-05-09, version 0.4-9:
 	mpi.remote.fun is deprecated and mpi.remote.exec (mpi.remote.slave)
 	has been simplified by using do.call instead.
@@ -12,7 +47,7 @@
 	Implement mpi.parallel.sim for parallel Monte Carlo simulation. 
 	Some ideas from student projects of Mr. K. Yu, Ms. Tsai, and Mr. 
 	W. Wolterman have been used. Thanks to them for their wonderful 
-	work. 
+	works. 
 	
 2004-04-05, version 0.4-7: 
 	Update to require R-1.8.1 and remove the requirement for the 

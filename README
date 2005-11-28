@@ -19,12 +19,11 @@ this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************
 
-Rmpi requires R version 1.8.1 or higher, and LAM-MPI 7.0.2 or higher 
-(it should still work with LAM-MPI 6 and other MPI implementations such 
-as MPICH. See the NOTE in installing LAM-MPI). Rmpi works only for Unix 
-(Linux Redhat 9.0 on INTEL PIII Xeon SMP and Linux Redhat 7.1 on Compaq 
-alpha SMP Beowulf clusters are tested) at present. A Beowulf cluster should 
-be set up properly before attempting Rmpi.
+Rmpi requires R version 2.0.0 or higher, and LAM-MPI 7.0.2 or higher on unix 
+platform or MPICH2 for Windows on windows platform. Instructions to install and
+run Rmpi on windows platform are given in 
+        http://www.stats.uwo.ca/faculty/yu/Rmpi.
+
 
 INSTALLATION INSTRUCTIONS:
 
@@ -58,14 +57,20 @@ NOTE: If your site has a different MPI such as MPICH installed, Rmpi
    to start a master R and load Rmpi. 
 
    If your cluster does not have MPI_Comm_spawn enabled so you cannot 
-   use mpi.spawn.Rslaves, you have to use the following way to spawn R 
-   slaves. Save Rprofile in inst (will be in the root directory of Rmpi 
-   after installation) as .Rprofile in the working or root directory. 
-   Then run, for example,
-	mpirun -np 9 R --slave
-   This will create one master and 8 slaves. Those slaves will behave as 
-   though mpi.spawn.Rslaves has been used.
-
+   use mpi.spawn.Rslaves, there are two ways to launch multiple Rs. 
+   a). Save Rprofile in inst (will be in the root directory of Rmpi 
+       after installation) as .Rprofile in the working or root directory. 
+       Then run, for example,
+	 	mpiexec -n 9 R --no-save -q
+       This will create one master and 8 slaves. Those slaves will behave as 
+       though mpi.spawn.Rslaves has been used.
+   b). To run multiple Rs without using .Rprofile, add the following line
+                R_PROFILE=${R_HOME}/library/Rmpi/Rprofile; export R_PROFILE
+       in the R shell script (after "export R_HOME") and rename it, say, Rmpi.
+       Then one can use
+                mpiexec -n 9 Rmpi --no-save -q
+       assuming that Rmpi is in the PATH.
+ 
 2. Install Rmpi. If LAM-MPI is installed in /usr or /usr/local,  run
 	R CMD INSTALL Rmpi_version.tar.gz.
    On Debian with lam3, lam3-dev lam-runtime installed, above will work 

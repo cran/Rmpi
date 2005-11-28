@@ -24,7 +24,7 @@ static MPI_Info *info;
 static MPI_Request *request;
 
 SEXP mpi_initialize(){
-	int flag;
+	int i,flag;
 	MPI_Initialized(&flag);
 	if (flag)
 		return AsInt(1);
@@ -36,8 +36,10 @@ SEXP mpi_initialize(){
 		status=(MPI_Status *)Calloc(1, MPI_Status); 
 		datatype=(MPI_Datatype *)Calloc(1, MPI_Datatype); 
 		info=(MPI_Info *)Calloc(1, MPI_Info);
+		info[0]=MPI_INFO_NULL;
 		request=(MPI_Request *)Calloc(1, MPI_Request);
 		comm[0]=MPI_COMM_WORLD;
+		for (i=1;i < COMM_MAXSIZE; comm[i++]=MPI_COMM_NULL);
 
 		return AsInt(1);
 	}
@@ -75,7 +77,10 @@ SEXP mpi_universe_size(){
 	int *MPI_Universe_Size;
 	int univ_flag;
 	MPI_Comm_get_attr(comm[0], MPI_UNIVERSE_SIZE, &MPI_Universe_Size, &univ_flag);
+	if (univ_flag)
     	return AsInt(*MPI_Universe_Size);
+	else 
+		return AsInt(0);
 }
 #endif
 
@@ -1007,5 +1012,165 @@ SEXP mpi_sendrecv_replace(SEXP sexp_data,
                 break;
           }
           return sexp_data;
+}
+
+/************ cart dim *************************************/
+
+SEXP mpi_cart_create(SEXP sexp_comm_old,  SEXP sexp_dims, SEXP sexp_periods, SEXP sexp_reorder, 
+           SEXP sexp_comm_cart) {
+        int comm_old = INTEGER(sexp_comm_old)[0];
+        int ndims = LENGTH(sexp_dims);
+        int reorder = INTEGER(sexp_reorder)[0];
+        int comm_cart = INTEGER(sexp_comm_cart)[0];
+        int retcode; 
+        retcode=erreturn(mpi_errhandler(MPI_Cart_create(comm[comm_old], ndims, 
+                INTEGER(sexp_dims), INTEGER(sexp_periods), reorder, &comm[comm_cart])));    
+        return  AsInt(retcode);
+}
+
+SEXP mpi_dims_create(SEXP sexp_nnodes, SEXP sexp_ndims, SEXP sexp_dims) {
+        int nnodes = INTEGER(sexp_nnodes)[0];
+        int ndims = INTEGER(sexp_ndims)[0];
+        mpi_errhandler(MPI_Dims_create(nnodes, ndims, INTEGER(sexp_dims)));
+        return sexp_dims;
+}
+
+
+SEXP mpi_cartdim_get(SEXP sexp_comm) {
+        int comm2 = INTEGER(sexp_comm)[0];
+        int ndims;
+        mpi_errhandler(MPI_Cartdim_get(comm[comm2], &ndims));
+        return AsInt(ndims);    
+}
+
+SEXP mpi_cart_get(SEXP sexp_comm, SEXP sexp_maxdims) {
+        int comm2 = INTEGER(sexp_comm)[0];
+        int maxdims = INTEGER(sexp_maxdims)[0];
+        SEXP dims_periods_coords;
+
+        PROTECT (dims_periods_coords = allocVector(INTSXP, maxdims*3));
+        
+        mpi_errhandler(MPI_Cart_get(comm[comm2], maxdims, INTEGER(dims_periods_coords), 
+		INTEGER(dims_periods_coords) + maxdims, INTEGER(dims_periods_coords) + maxdims*2));
+        
+        UNPROTECT(1);
+        return dims_periods_coords;
+}
+
+
+SEXP mpi_cart_rank(SEXP sexp_comm, SEXP sexp_coords){
+        int comm2 = INTEGER(sexp_comm)[0];      
+        int rank;
+        mpi_errhandler(MPI_Cart_rank(comm[comm2], INTEGER(sexp_coords), &rank));
+        return AsInt(rank);
+}
+
+SEXP mpi_cart_coords(SEXP sexp_comm, SEXP sexp_rank, SEXP sexp_maxdims) {
+        int comm2 = INTEGER(sexp_comm)[0];
+        int rank = INTEGER(sexp_rank)[0];
+        int maxdims = INTEGER(sexp_maxdims)[0];
+        SEXP coords;
+        PROTECT (coords = allocVector(INTSXP, maxdims));
+        mpi_errhandler(MPI_Cart_coords(comm[comm2], rank, maxdims, INTEGER(coords)));
+        UNPROTECT(1);   
+        return coords;
+}
+
+
+SEXP mpi_cart_shift(SEXP sexp_comm, SEXP sexp_direction, SEXP sexp_disp) {
+        int comm2 = INTEGER(sexp_comm)[0];
+        int direction = INTEGER(sexp_direction)[0];
+        int disp = INTEGER(sexp_disp)[0];
+        SEXP rank_source_dest;  
+        PROTECT (rank_source_dest = allocVector(INTSXP,2 ));
+        mpi_errhandler(MPI_Cart_shift(comm[comm2], direction, disp, &INTEGER(rank_source_dest)[0],
+		 &INTEGER(rank_source_dest)[1]));
+        UNPROTECT(1);
+        return rank_source_dest;
+}
+
+/************** nonblocking point to point calls *************************/
+SEXP mpi_isend(SEXP sexp_data,
+                          SEXP sexp_type,
+                          SEXP sexp_dest,
+                          SEXP sexp_tag,
+                          SEXP sexp_comm,
+                          SEXP sexp_request){
+        int i,slen,len=LENGTH(sexp_data),type=INTEGER(sexp_type)[0], dest=INTEGER(sexp_dest)[0];
+        int commn=INTEGER(sexp_comm)[0], tag=INTEGER(sexp_tag)[0], requestn=INTEGER(sexp_request)[0];
+        
+        switch (type){
+        case 1:
+                mpi_errhandler(MPI_Isend(INTEGER(sexp_data), len, MPI_INT, dest, tag, 
+			comm[commn], &request[requestn]));
+                break;
+        case 2:
+
+                mpi_errhandler(MPI_Isend(REAL(sexp_data), len, MPI_DOUBLE, dest, tag, comm[commn], 
+			&request[requestn]));
+                break;
+        case 3:
+                for (i=0; i<len; i++){
+                        slen=LENGTH(STRING_ELT(sexp_data,i));
+                        mpi_errhandler(MPI_Isend(CHAR(STRING_ELT(sexp_data,i)),slen, MPI_CHAR, dest, 
+			tag, comm[commn], &request[requestn]));
+                }
+                break;
+        default:
+                PROTECT(sexp_data=AS_NUMERIC(sexp_data));
+                mpi_errhandler(MPI_Isend(REAL(sexp_data), 1, datatype[0], dest, tag, comm[commn], 
+			&request[requestn]));
+                UNPROTECT(1);
+                break;
+        }
+        return R_NilValue;
+}
+
+SEXP mpi_irecv(SEXP sexp_data,
+                          SEXP sexp_type,
+                          SEXP sexp_source,
+                          SEXP sexp_tag,
+                          SEXP sexp_comm,
+                          SEXP sexp_request){
+        int i,slen,len=LENGTH(sexp_data),type=INTEGER(sexp_type)[0], source=INTEGER(sexp_source)[0];
+        int commn=INTEGER(sexp_comm)[0], tag=INTEGER(sexp_tag)[0], requestn=INTEGER(sexp_request)[0];
+
+        switch (type){
+        case 1:
+                mpi_errhandler(MPI_Irecv(INTEGER(sexp_data), len, MPI_INT, source, tag, 
+			comm[commn], &request[requestn]));
+                break;
+        case 2:
+                mpi_errhandler(MPI_Irecv(REAL(sexp_data), len, MPI_DOUBLE, source, tag, comm[commn], 
+			&request[requestn]));
+                break;
+        case 3:
+                for (i=0; i<len; i++){
+                        slen=LENGTH(STRING_ELT(sexp_data,i));
+                        mpi_errhandler(MPI_Irecv(CHAR(STRING_ELT(sexp_data,i)),slen, MPI_CHAR, 
+				source, tag, comm[commn], &request[requestn]));
+                }
+                break;
+        default:
+                PROTECT(sexp_data=AS_NUMERIC(sexp_data));
+                mpi_errhandler(MPI_Irecv(REAL(sexp_data), 1, datatype[0], source, tag, comm[commn], 
+			&request[requestn]));
+                UNPROTECT(1);
+                break;
+        }
+        return sexp_data;
+}
+
+SEXP mpi_wait(SEXP sexp_request, SEXP sexp_status){
+        int requestn=INTEGER(sexp_request)[0], statusn=INTEGER(sexp_status)[0];
+        mpi_errhandler(MPI_Wait(&request[requestn], &status[statusn]));
+        return R_NilValue;
+}
+
+
+SEXP mpi_test(SEXP sexp_request,  SEXP sexp_status){
+        int requestn=INTEGER(sexp_request)[0], flag, statusn=INTEGER(sexp_status)[0];
+        mpi_errhandler(MPI_Test(&request[requestn], &flag, &status[statusn]));
+        return AsInt(flag);
 }
 

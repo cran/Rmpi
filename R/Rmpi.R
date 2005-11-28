@@ -70,7 +70,11 @@ mpi.info.free <- function(info=0){
 mpi.universe.size <- function(){
 	if (!is.loaded("mpi_universe_size")) 
         stop("This function is not supported under MPI 1.2")
-	.Call("mpi_universe_size",PACKAGE = "Rmpi")
+	out <-.Call("mpi_universe_size",PACKAGE = "Rmpi")
+	if (out==0)
+		if (exists(".mpi.universe.size"))
+			out<-.mpi.universe.size
+	out
 }
 
 mpi.get.processor.name <- function(short=TRUE){
@@ -149,15 +153,16 @@ mpi.spawn.Rslaves <-
 	needsprng=TRUE) {
 	if (!is.loaded("mpi_comm_spawn"))
 	    stop("You cannot use MPI_Comm_spawn API")	
-        if (mpi.comm.size(comm) > 0){
+    if (mpi.comm.size(comm) > 0){
 	     err <-paste("It seems there are some slaves running on comm ", comm)
 	     stop(err)
 	}
 	tmp <- paste(getpid(), "+", comm, sep="")	
 	if (needlog)
-		arg <- c(Rscript, tmp, "needlog")
+		arg <- c(Rscript, tmp, "needlog", R.home())
 	else
-		arg <- c(Rscript, tmp , "nolog")		
+		arg <- c(Rscript, tmp , "nolog", R.home())	
+
 	if (!is.null(hosts)){
 		hosts <- as.integer(hosts)
 		if (any(is.na(hosts)))
@@ -176,17 +181,27 @@ mpi.spawn.Rslaves <-
 		close(fileobj)
 		mpi.info.create(0)
 		mpi.info.set(0,"file",tmpfile)
-	}	
-	realns<-mpi.comm.spawn(slave=system.file("Rslaves.sh",package="Rmpi"),
+	}
+      #  Rslavecmd<-ifelse(.Platform$OS=="windows","Rslalves.cmd","Rslaves.sh")
+ 	if (.Platform$OS=="windows")
+	    realns<-mpi.comm.spawn(slave=system.file("Rslaves.bat", package="Rmpi"),
 		slavearg=arg,
 		nslaves=nslaves,
 		info=0,
 		root=root,
 		intercomm=intercomm)
+	else
+	    realns<-mpi.comm.spawn(slave=system.file("Rslaves.sh", package="Rmpi"),
+		slavearg=arg,
+		nslaves=nslaves,
+		info=0,
+		root=root,
+		intercomm=intercomm)
+
     if (!is.null(hosts)){
-	mpi.info.free(0)
-	unlink(tmpfile)
-    }		
+		unlink(tmpfile)
+    	mpi.info.free(0)
+	}
     if (realns==0)
 	stop("It seems no single slave spawned.")
     if (mpi.intercomm.merge(intercomm,0,comm)) {
@@ -360,12 +375,14 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
 	stop(err)
     }
     mpi.bcast.cmd(break, rank=0, comm=comm)
+	if (.Platform$OS!="windows"){
     if (dellog){
 	tmp <- paste(getpid(),"+",comm,sep="")	
   	logfile <- paste("*.",tmp,".*.log", sep="")
 	if (length(system(paste("ls", 
 		logfile),TRUE,ignore.stderr=TRUE))>=1)
 	    system(paste("rm", logfile))
+	}
 	}
 #     mpi.barrier(comm)
     if (comm >0){
@@ -532,3 +549,39 @@ mpi.sendrecv.replace <- function(x, type, dest, sendtag, source, recvtag,
           as.integer(comm), as.integer(status), PACKAGE="Rmpi")
 }
 
+mpi.cart.create <- function(commold=1, dims, periods, reorder=FALSE, commcart=3) {
+        .Call("mpi_cart_create", as.integer(commold), as.integer(dims), 
+        as.integer(periods), as.integer(reorder), as.integer(commcart), PACKAGE="Rmpi")
+}
+
+mpi.cartdim.get <- function(comm=3) {
+        .Call("mpi_cartdim_get",as.integer(comm), PACKAGE="Rmpi")
+}
+
+mpi.cart.get <- function(comm=3, maxdims) {
+
+        out <- .Call("mpi_cart_get",as.integer(comm), as.integer(maxdims), PACKAGE="Rmpi")
+        dims <- out[1:maxdims]
+        periods <- out[(maxdims+1):(maxdims*2)]
+        coords <- out[(maxdims*2 + 1):(maxdims*3)]
+        list(dims=dims,periods=periods,coords=coords)
+}
+
+mpi.cart.rank <- function(comm=3, coords) {
+        .Call("mpi_cart_rank",as.integer(comm), as.integer(coords), PACKAGE="Rmpi")
+}
+
+mpi.cart.coords <- function(comm=3, rank, maxdims) {
+        .Call("mpi_cart_coords",as.integer(comm), as.integer(rank), as.integer(maxdims), 
+	PACKAGE="Rmpi")
+}
+
+mpi.cart.shift <- function(comm=3, direction, disp){
+	.Call("mpi_cart_shift",   as.integer(comm), as.integer(direction-1), 
+		as.integer(disp), PACKAGE="Rmpi")
+}
+
+mpi.dims.create <- function(nnodes, ndims, dims=integer(ndims)){
+	.Call("mpi_dims_create",as.integer(nnodes),as.integer(ndims),as.integer(dims),
+	PACKAGE="Rmpi")
+}
