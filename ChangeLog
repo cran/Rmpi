@@ -1,3 +1,39 @@
+2005-12-15, version 0.5-1:
+	Rename some internal functions used by slaves. They follow by the 
+	convention .mpi.slave.xxx and hidden.
+
+	Automatically loading SPRNG in mpi.spawn.Rslaves is dropped. Instead one can 
+	use mpi.setup.sprng or mpi.setup.rngstream to setup parallel RNG on slaves. 
+
+	Some codes tidy on mpi.remote.exec and mpi.parSim. As a result, mpi.wrap.fun 
+ 	is dropped.
+
+	Add mpichhosts to find host names on windows platform.
+
+	Modify mpi.universe.size to return length(mpichhosts())-1 under windows 
+	platform.
+
+	Add mpi.apply: an array is scattered to slaves and then a fun is applied.
+	Add mpi.applyLB: a load balancing version of mpi.apply.
+
+	Add mpi.parApply, mpi.parLapply, mpi.parRapply, mpi.parCapply, and mpi.parSapply: 
+	they are clones of those functions in package snow if job.num=slave.num. They are 
+	load balanced if job.num > slave.num.
+
+	Add mpi.parReplicate: wrapper for mpi.parSapply, mainly used in parallel 
+	simulation. It will eventually replace mpi.parSim due to its efficiency.
+
+	Add network map drive function in inst/Rslaves.bat. May see some error messages
+	if multiple R slaves are spawned on the same remote node. 
+
+	Add nonblocking calls: mpi.isend, mpi.irecv, mpi.isend.Rojb, 
+	mpi.iprobe, mpi.test, mpi.testany, mpi.testsome, mpi.testall, 
+	mpi.wait, mpi.waitany, mpi.waitsome, mpi.waitall, mpi.cancel, 
+	and mpi.test.cancelled.
+
+	Add mpi.comm.maxsize, mpi.request.maxsize, mpi.status.maxsize, 
+	mpi.realloc.comm, mpi.realloc.request, and mpi.realloc.status.
+
 2005-11-28, version 0.5-0:
 	Rmpi can be compiled and run under MPICH2 for Windows. src/Makevars.win is 
 	added so that Rmpi can be compiled without manual configuration if MPICH2 

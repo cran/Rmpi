@@ -19,7 +19,7 @@ in one working directory).
 \usage{
 mpi.spawn.Rslaves(Rscript=system.file("slavedaemon.R", package="Rmpi"),
         nslaves=mpi.universe.size(), root = 0, intercomm = 2,
-        comm = 1, hosts = NULL, needlog = TRUE, needsprng = TRUE)
+        comm = 1, hosts = NULL, needlog = TRUE, mapdrive=TRUE)
 
 mpi.close.Rslaves(dellog = TRUE, comm = 1)
 tailslave.log(nlines = 3, comm = 1)
@@ -34,8 +34,8 @@ tailslave.log(nlines = 3, comm = 1)
 spawned.}
   \item{needlog}{a logical. If TRUE, R BATCH outputs will be saved in log files.  
   If FALSE, the outputs will send to /dev/null.}
-  \item{needsprng}{a logical. If TRUE and the package \pkg{rsprng} is 
-installed on slaves and SPRNG will be initialized.}  
+  \item{mapdrive}{a logical. If TRUE and master's working dir is on a network, mapping network drive 
+is attemped on remote nodes under windows platform.}
   \item{dellog}{a logical specifying if R slave's log files are deleted or 
 not.}
   \item{nlines}{number of lines to view from tail in R slave's log files.}
@@ -56,9 +56,6 @@ file as one of its arguments. Other arguments are used to see if a log
 file (R output) is needed and how to name it. The master process id and 
 the comm number, along with host names where R slaves are running  are 
 used to name these log files. 
-
-A warning message will appear if one tries to spawn more R slaves than 
-total CPUs available in a cluster. 
 
 Once R slaves are successfully spawned, the 
 mergers from an intercomm (default `intercomm = 2') to a comm (default 

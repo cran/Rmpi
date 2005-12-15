@@ -112,9 +112,9 @@ NOTE: If your site has a different MPI such as MPICH installed, Rmpi
 	>mpi.remote.exec(double(n)) #will not work if n does not exit on slaves
 	>n <- 10
  	>mpi.remote.exec(double, n) #the arg n is passed to double
-   If SPRNG has been properly initialized on both master and slaves, try 
-   the parallel Monto Carlo simulation
-	>mpi.parallel.sim(statistic=mean)
+   If package rlecuyer or rsprng has been installed, try to use 
+	mpi.setup.rngstream or mpisetup.sprng
+   initialize one (not two).
 
    There are a few demo examples from Rmpi. Use
 	demo(package="Rmpi")

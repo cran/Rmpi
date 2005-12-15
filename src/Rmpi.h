@@ -3,7 +3,7 @@
 #include <Rdefines.h>
 #include <R_ext/Random.h>
 
-#define COMM_MAXSIZE 10
+/* #define COMM_MAXSIZE 10 */
 
 int mpi_errhandler(int errcode);
 int erreturn(int errcode);

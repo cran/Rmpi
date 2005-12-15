@@ -1,110 +1,106 @@
 ### Copyright (C) 2002 Hao Yu 
 mpi.barrier <- function(comm=1){
-	.Call("mpi_barrier", as.integer(comm),PACKAGE = "Rmpi")
+    .Call("mpi_barrier", as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.set.errhandler <- function(comm=1){
-	.Call("mpi_comm_set_errhandler", as.integer(comm),
-	PACKAGE = "Rmpi")
+    .Call("mpi_comm_set_errhandler", as.integer(comm),
+    PACKAGE = "Rmpi")
 }
 
 mpi.comm.test.inter <- function(comm=2){
- 	if(mpi.comm.is.null(comm))
-		stop("NULL communicator")
-	.Call("mpi_comm_test_inter",as.integer(comm),PACKAGE = "Rmpi")
+    if(mpi.comm.is.null(comm))
+        stop("NULL communicator")
+    .Call("mpi_comm_test_inter",as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.rank <- function(comm=1){
-	.Call("mpi_comm_rank", as.integer(comm),PACKAGE = "Rmpi")
+    .Call("mpi_comm_rank", as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.size <- function(comm=1){
-	if (.Call("mpi_comm_is_null", as.integer(comm),
-		PACKAGE = "Rmpi")==1)
-		0
-	else 
-		.Call("mpi_comm_size",as.integer(comm),PACKAGE = "Rmpi")
+    if (.Call("mpi_comm_is_null", as.integer(comm),
+        PACKAGE = "Rmpi")==1)
+        0
+    else 
+        .Call("mpi_comm_size",as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.dup <- function(comm, newcomm){
         .Call("mpi_comm_dup", as.integer(comm), as.integer(newcomm),
-	PACKAGE = "Rmpi")
+    PACKAGE = "Rmpi")
 }
 
 mpi.comm.remote.size <- function(comm=2){
-	.Call("mpi_comm_remote_size", as.integer(comm),PACKAGE = "Rmpi")
+    .Call("mpi_comm_remote_size", as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.free <- function(comm=1){
     if (mpi.comm.size(comm)==0){
-	tmp<-paste("It seems no members(slaves) associated with comm", comm)
-	stop(tmp)
+    tmp<-paste("It seems no members(slaves) associated with comm", comm)
+    stop(tmp)
      }
      .Call("mpi_comm_free",as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.abort <- function(comm=1){
     if (mpi.comm.size(comm)==0){
-	tmp<-paste("It seems no members(slaves) associated with comm", comm)
-	stop(tmp)
+    tmp<-paste("It seems no members(slaves) associated with comm", comm)
+    stop(tmp)
      }
      .Call("mpi_abort",as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.disconnect <- function(comm=1){
     if (mpi.comm.size(comm)==0){
-	tmp<-paste("It seems no members(slaves) associated with comm", comm)
-	stop(tmp)
+    tmp<-paste("It seems no members(slaves) associated with comm", comm)
+    stop(tmp)
      }
      if (!is.loaded("mpi_comm_disconnect"))
-		stop("MPI_Comm_disconnect is not supported.")
+        stop("MPI_Comm_disconnect is not supported.")
      .Call("mpi_comm_disconnect",as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.spawn <- function(slave, 
-			slavearg=character(0), 
-			nslaves=mpi.universe.size(),
-			info=0,
-			root=0, 
-			intercomm=2){
+            slavearg=character(0), 
+            nslaves=mpi.universe.size(),
+            info=0,
+            root=0, 
+            intercomm=2){
         if (!is.loaded("mpi_comm_spawn"))
             stop("MPI_Comm_spawn is not supported.")
 
-	if (!is.character(slave))
-		stop("character argument (slave) expected")
-	#if (nslaves > mpi.universe.size()){
+    if (!is.character(slave))
+        stop("character argument (slave) expected")
+    #if (nslaves > mpi.universe.size()){
     #            tmp <- paste("Number of R slaves is over",
     #                    mpi.universe.size(),": maximum CPUs.")
     #            warning(tmp)
     #    }
-	else if (nslaves <= 0)
-		stop("Choose a positive number of slaves.")
-	.Call("mpi_comm_spawn",
+    else if (nslaves <= 0)
+        stop("Choose a positive number of slaves.")
+    .Call("mpi_comm_spawn",
                 as.character(slave),
                 as.character(slavearg),
                 as.integer(nslaves),
-		as.integer(info),
-		as.integer(root),
-		as.integer(intercomm),PACKAGE = "Rmpi")
+        as.integer(info),
+        as.integer(root),
+        as.integer(intercomm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.get.parent <- function(comm=2){
-	if (!is.loaded("mpi_comm_get_parent"))
-		stop("MPI_Comm_get_parent is not supported.")
-	.Call("mpi_comm_get_parent", as.integer(comm),PACKAGE = "Rmpi")
+    if (!is.loaded("mpi_comm_get_parent"))
+        stop("MPI_Comm_get_parent is not supported.")
+    .Call("mpi_comm_get_parent", as.integer(comm),PACKAGE = "Rmpi")
 }
 
 mpi.comm.is.null <- function(comm){
-	as.logical(.Call("mpi_comm_is_null", as.integer(comm),
-	PACKAGE = "Rmpi"))
+    as.logical(.Call("mpi_comm_is_null", as.integer(comm),
+    PACKAGE = "Rmpi"))
 }
 
 mpi.intercomm.merge <- function(intercomm=2,high=0,comm=1){
-	.Call("mpi_intercomm_merge", as.integer(intercomm),
-				     as.integer(high),
-				     as.integer(comm),PACKAGE = "Rmpi")
+    .Call("mpi_intercomm_merge", as.integer(intercomm),
+                     as.integer(high),
+                     as.integer(comm),PACKAGE = "Rmpi")
 }
-
-#mpi.realloc.comm <- function(maxsize=10){
-#	.Call("mpi_realloc_comm", as.integer(maxsize))
-#}

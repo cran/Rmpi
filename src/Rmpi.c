@@ -22,6 +22,9 @@ static MPI_Status *status;
 static MPI_Datatype *datatype;
 static MPI_Info *info;
 static MPI_Request *request;
+static int COMM_MAXSIZE=10;
+static int STATUS_MAXSIZE=5000;
+static int REQUEST_MAXSIZE=10000;
 
 SEXP mpi_initialize(){
 	int i,flag;
@@ -33,11 +36,12 @@ SEXP mpi_initialize(){
 		MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 		MPI_Errhandler_set(MPI_COMM_SELF, MPI_ERRORS_RETURN);
 		comm=(MPI_Comm *)Calloc(COMM_MAXSIZE, MPI_Comm); 
-		status=(MPI_Status *)Calloc(1, MPI_Status); 
+		status=(MPI_Status *)Calloc(STATUS_MAXSIZE, MPI_Status); 
 		datatype=(MPI_Datatype *)Calloc(1, MPI_Datatype); 
 		info=(MPI_Info *)Calloc(1, MPI_Info);
 		info[0]=MPI_INFO_NULL;
-		request=(MPI_Request *)Calloc(1, MPI_Request);
+		request=(MPI_Request *)Calloc(REQUEST_MAXSIZE, MPI_Request);
+		for (i=0; i< REQUEST_MAXSIZE; request[i++]=MPI_REQUEST_NULL);	
 		comm[0]=MPI_COMM_WORLD;
 		for (i=1;i < COMM_MAXSIZE; comm[i++]=MPI_COMM_NULL);
 
@@ -49,6 +53,7 @@ SEXP mpi_finalize(){
 	MPI_Finalize();
 	Free(comm);
 	Free(status);
+	Free(request);
 	Free(datatype);
 	Free(info);
 	return AsInt(1);
@@ -92,6 +97,10 @@ SEXP mpi_any_tag(){
 	return AsInt(MPI_ANY_TAG);
 }
 
+SEXP mpi_undefined(){
+	return AsInt(MPI_UNDEFINED);
+}
+
 SEXP mpi_proc_null(){
 	return AsInt(MPI_PROC_NULL);
 }
@@ -120,13 +129,44 @@ SEXP mpi_info_free(SEXP sexp_info){
 }
 
 SEXP mpi_realloc_comm(SEXP sexp_newncomm){
-	comm=(MPI_Comm *)Realloc(comm, INTEGER(sexp_newncomm)[0], MPI_Comm); 
+	int i, newcomm=INTEGER(sexp_newncomm)[0];
+	if (newcomm > COMM_MAXSIZE){
+		comm=(MPI_Comm *)Realloc(comm, newcomm, MPI_Comm); 	
+		for (i=COMM_MAXSIZE; i < newcomm; comm[i++]=MPI_COMM_NULL);
+		COMM_MAXSIZE=newcomm;
+	}
 	return AsInt(1);
 }
 
+SEXP mpi_comm_maxsize(){
+	return AsInt(COMM_MAXSIZE);
+}
+
 SEXP mpi_realloc_status(SEXP sexp_newnstatus){
-	status=(MPI_Status *)Realloc(status, INTEGER(sexp_newnstatus)[0], MPI_Status); 
+	int newsize=INTEGER(sexp_newnstatus)[0];
+	if (newsize > STATUS_MAXSIZE){
+		status=(MPI_Status *)Realloc(status, newsize, MPI_Status); 
+		STATUS_MAXSIZE=newsize;
+	}
 	return AsInt(1);
+}
+
+SEXP mpi_status_maxsize(){
+	return AsInt(STATUS_MAXSIZE);
+}
+
+SEXP mpi_realloc_request(SEXP sexp_newnrequest){
+	int i, newsize=INTEGER(sexp_newnrequest)[0];
+	if (newsize > REQUEST_MAXSIZE){
+		request=(MPI_Request *)Realloc(request, newsize , MPI_Request); 
+		for (i=REQUEST_MAXSIZE; i< newsize; request[i++]=MPI_REQUEST_NULL);	
+		REQUEST_MAXSIZE=newsize;
+	}
+	return AsInt(1);
+}
+
+SEXP mpi_request_maxsize(){
+	return AsInt(REQUEST_MAXSIZE);
 }
 
 SEXP mpi_realloc_datatype(SEXP sexp_newndatatype){
@@ -707,6 +747,14 @@ SEXP mpi_allreduce(SEXP sexp_send,
 	return sexp_recv;
 }
 
+SEXP mpi_iprobe(SEXP sexp_source, SEXP sexp_tag, SEXP sexp_comm, SEXP sexp_status){
+	int flag;
+	mpi_errhandler(MPI_Iprobe(INTEGER (sexp_source)[0], 
+		INTEGER(sexp_tag)[0], comm[INTEGER(sexp_comm)[0]], &flag, 
+		&status[INTEGER(sexp_status)[0]]));
+	return AsInt(flag);
+}
+
 SEXP mpi_probe(SEXP sexp_source, SEXP sexp_tag, SEXP sexp_comm, SEXP sexp_status){
 	return AsInt(erreturn(mpi_errhandler(MPI_Probe(INTEGER (sexp_source)[0], 
 		INTEGER(sexp_tag)[0], comm[INTEGER(sexp_comm)[0]], 
@@ -753,10 +801,6 @@ SEXP mpi_barrier(SEXP sexp_comm){
 
 SEXP mpi_comm_is_null(SEXP sexp_comm){
 	return AsInt(comm[INTEGER(sexp_comm)[0]]==MPI_COMM_NULL);
-}
-
-SEXP mpi_comm_maxsize(){
-	return AsInt(COMM_MAXSIZE);
 }
 
 SEXP mpi_comm_size(SEXP sexp_comm){
@@ -1158,7 +1202,7 @@ SEXP mpi_irecv(SEXP sexp_data,
                 UNPROTECT(1);
                 break;
         }
-        return sexp_data;
+        return R_NilValue;
 }
 
 SEXP mpi_wait(SEXP sexp_request, SEXP sexp_status){
@@ -1174,3 +1218,70 @@ SEXP mpi_test(SEXP sexp_request,  SEXP sexp_status){
         return AsInt(flag);
 }
 
+SEXP mpi_cancel(SEXP sexp_request){
+	int requestn=INTEGER(sexp_request)[0];
+	mpi_errhandler(MPI_Cancel(&request[requestn]));
+	return R_NilValue;
+}
+
+SEXP mpi_test_cancelled(SEXP sexp_status){
+        int flag, statusn=INTEGER(sexp_status)[0];
+        mpi_errhandler(MPI_Test_cancelled(&status[statusn], &flag));
+        return AsInt(flag);
+}
+
+SEXP mpi_waitany(SEXP sexp_count, SEXP sexp_status){
+        int index, countn=INTEGER(sexp_count)[0],statusn=INTEGER(sexp_status)[0];
+        mpi_errhandler(MPI_Waitany(countn, request, &index, &status[statusn]));
+        return AsInt(index);
+}
+
+SEXP mpi_testany(SEXP sexp_count, SEXP sexp_status){
+        int countn=INTEGER(sexp_count)[0], index, statusn=INTEGER(sexp_status)[0];
+		SEXP indexflag;
+		PROTECT (indexflag = allocVector(INTSXP, 2));
+        mpi_errhandler(MPI_Testany(countn, request, &INTEGER(indexflag)[0],
+		&INTEGER(indexflag)[1], &status[statusn]));
+		UNPROTECT(1);
+        return indexflag;
+}
+
+SEXP mpi_waitall(SEXP sexp_count){
+        int countn=INTEGER(sexp_count)[0];
+        mpi_errhandler(MPI_Waitall(countn, request, status));
+        return R_NilValue;
+}
+
+SEXP mpi_testall(SEXP sexp_count){
+        int countn=INTEGER(sexp_count)[0], flag;
+        mpi_errhandler(MPI_Testall(countn, request, &flag, status));
+        return AsInt(flag);
+}
+
+SEXP mpi_testsome(SEXP sexp_count){
+        int countn=INTEGER(sexp_count)[0];
+		SEXP indices;
+		PROTECT (indices = allocVector(INTSXP, countn+1));
+        mpi_errhandler(MPI_Testsome(countn, request, &INTEGER(indices)[0], 
+		&INTEGER(indices)[1], status));
+		UNPROTECT(1);
+        return indices;
+}
+
+SEXP mpi_waitsome(SEXP sexp_count){
+        int countn=INTEGER(sexp_count)[0];
+		SEXP indices;
+		PROTECT (indices = allocVector(INTSXP, countn+1));
+        mpi_errhandler(MPI_Waitsome(countn, request, &INTEGER(indices)[0], 
+		&INTEGER(indices)[1], status));
+		UNPROTECT(1);
+        return indices;
+}
+
+/*
+SEXP mpi_request_get_status(SEXP sexp_request,  SEXP sexp_status){
+        int requestn=INTEGER(sexp_request)[0], flag, statusn=INTEGER(sexp_status)[0];
+        mpi_errhandler(MPI_Request_get_status(request[requestn], &flag, &status[statusn]));
+        return AsInt(flag);
+}
+*/

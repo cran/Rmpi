@@ -1,5 +1,6 @@
-\name{mpi.parallel.sim}
+\name{mpi.parSim}
 \alias{mpi.parallel.sim}
+\alias{mpi.parSim}
 \title{Parallel Monte Carlo Simulation}
 \description{
  Carry out parallel Monte Carlo simulation on R slaves spawned by 
@@ -7,8 +8,8 @@
  master. 
 } 
 \usage{
-mpi.parallel.sim(n=100, rand.gen=rnorm, rand.arg=NULL,statistic, 
-nsim=100, run=1, slaveinfo=TRUE, comm=1, ...)  
+mpi.parSim(n=100, rand.gen=rnorm, rand.arg=NULL,statistic, 
+nsim=100, run=1, slaveinfo=FALSE, sim.seq=NULL, simplify=TRUE, comm=1, ...)  
 }
 \arguments{
   \item{n}{sample size.}
@@ -22,6 +23,10 @@ details section}
   \item{run}{the number of looping. See the details section.}
   \item{slaveinfo}{if TRUE, the numbers of jobs finished by slaves 
 will be displayed.}
+  \item{sim.seq}{if reproducing the same simulation is desirable, set it 
+to the integer vector .mpi.parSim generated in previous simulation.}
+  \item{simplify}{logical; should the result be simplified to a vector or
+matrix if possible?}
   \item{comm}{a communicator number}
   \item{...}{optional arguments to \code{statistic}}
 }
@@ -40,14 +45,6 @@ values as long as \code{statistic} can take them. Additional arguments can
 be passed to \code{rand.gen} by \code{rand.arg} as a list. Optional 
 arguments can also be passed to \code{statistic} by the argument 
 \code{...}. 
-
-To pass values from \code{rand.arg} and/or \code{...} as default values, 
-\code{\link{mpi.wrap.fun}} is used. If \code{rand.gen} (\code{statistic}) 
-does not contain the argument \code{...}, \code{\link{mpi.wrap.fun}} 
-returns the same function with default values replaced. Otherwise it 
-returns a wrapper function so that additional arguments can be passed 
-properly. It is recommended to use \code{rand.gen} and \code{statistic} 
-without \code{...} argument.
 
 Each slave job consists of \code{replicate(nsim,statistic(rand.gen(n)))}, 
 i.e., each job runs \code{nsim} number of simulation. The returned values 
@@ -72,32 +69,35 @@ so that master can dispatch more jobs to slaves who run faster than
 others. This will keep all slaves busy so that load balancing is 
 achieved. 
 
-See the warning section before you use \code{mpi.parallel.sim}.
+The sequence of slaves who deliver results to master are saved into 
+\code{.mpi.parSim}. It keeps track which part of results done by which slaves. 
+\code{.mpi.parSim} can be used to reproduce the same simulation result if the same
+seed is used and the argument \code{sim.seq} is equal to \code{.mpi.parSim}.
+ 
+See the warning section before you use \code{mpi.parSim}.
 }
 
 \section{Warning}{
-It is assumed that the package \pkg{rsprng} must be installed and SPRNG 
-must be properly initialized. \code{\link{mpi.spawn.Rslaves}} will 
-initialize SPRNG as default. Though \code{mpi.parallel.sim} is still 
-functional without SPRNG, the quality of simulation is not guarantied. 
-See \code{\link{mpi.init.sprng}} how to initialize SPRNG.
+It is assumed that a parallel RNG is used on all slaves. Either the package 
+\pkg{rsprng} or \pkg{rlecuyer} can be used. To set either of them, use
+\code{mpi.setup.rngstream} or \code{mpi.setup.sprng}. Though \code{mpi.parSim} 
+works without a parallel RNG, the quality of simulation is not guarantied. 
 
-\code{mpi.parallel.sim} will automatically transfer \code{rand.gen} 
+\code{mpi.parSim} will automatically transfer \code{rand.gen} 
 and \code{statistic} to slaves. However, any functions that 
-\code{rand.gen} and \code{statistic} reply on but are no in slaves 
-must be transfered to slaves before using \code{mpi.parallel.sim}. You 
+\code{rand.gen} and \code{statistic} reply on but are not on slaves 
+must be transfered to slaves before using \code{mpi.parSim}. You 
 can use \code{\link{mpi.bcast.Robj2slave}} for that purpose. The same is 
 applied to required packages or C/Fortran codes. You can use either 
 \code{\link{mpi.bcast.cmd}} or put \code{required(package)} and/or 
 \code{dyn.load(so.lib)} into \code{rand.gen} and \code{statistic}.
  
-It is recommended that \code{statistic} should return a numeric vector or 
-a list so master can use \code{cbind} to combine values together as a 
-matrix. Master may have difficult to combine other values. 
-} 
+If \code{simplify} is TRUE, sapply style simplication is applied. Otherwise a list of length 
+slave.num*run is returned.} 
 
 \seealso{
-  \code{\link{mpi.spawn.Rslaves}},
+  \code{\link{mpi.setup.rngstream}}
+  \code{\link{mpi.setup.sprng}}
   \code{\link{mpi.bcast.cmd}}
   \code{\link{mpi.bcast.Robj2slave}}
 }

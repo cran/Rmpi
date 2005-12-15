@@ -7,7 +7,7 @@
    call so all members in a comm must call it together.
 }
 \usage{
-mpi.init.sprng(seed = floor(runif(1, 1, 2147483648)), 
+mpi.init.sprng(seed = runif(1, 1, 2^31-1), 
 		   kindprng = "default",
                    para = 0,
 		   rank = 0,
