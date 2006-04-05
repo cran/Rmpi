@@ -896,7 +896,7 @@ SEXP mpi_is_master(){
 	MPI_Comm master;
 	MPI_Comm_get_parent(&master);
 	check=(master==MPI_COMM_NULL);
-	MPI_Comm_free(&master);
+	if (!check) MPI_Comm_free(&master);
 	return AsInt(check);
 }
 

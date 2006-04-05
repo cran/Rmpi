@@ -19,7 +19,7 @@
 \author{
 Alek Hunchak and Hao Yu
 }
-\seealse{
+\seealso{
 \code{\link{mpi.cart.get}}
 }
 \references{

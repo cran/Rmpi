@@ -1,3 +1,12 @@
+2006-04-5, version 0.5-2:
+	Change "MPI_Comm_free(&master);" in mpi_is_master of Rmpi.c to
+	"if (!check) MPI_Comm_free(&master);"
+	Thanks to Martin Siegert <siegert@sfu.ca> for fixing.
+
+	Some patch to configure.in, suggested by Aaron A. King <aaron.king@umich.edu>,
+	so that if MPI_ROOT is supplied as an environmental variable or is given by users,
+	mpi.h will be searched within subfolders of MPI_ROOT. 
+
 2005-12-15, version 0.5-1:
 	Rename some internal functions used by slaves. They follow by the 
 	convention .mpi.slave.xxx and hidden.
@@ -47,7 +56,7 @@
 
 	Full sets of creating a Cartesian topology APIs are implemented. 
 
-	inst/Rslaves.sh is modified so that the same R program Master R is runing 
+	inst/Rslaves.sh is modified so that the same R program Master R is ruining 
 	will be used by slaves Rs. This allows co-existences of different versions 
 	of R.
 

@@ -4,10 +4,7 @@ AC_INIT(DESCRIPTION)
 
 AC_ARG_WITH(mpi,
 [   --with-mpi=/opt/lib32/usr/lib          Location of MPI library.],
-[   if test "${withval}" = no; then
-        supply_mpi=no
-    else
-        supply_mpi=yes
+[   if test "${withval}" != no; then
         MPI_ROOT=${withval}
     fi  ]
 )
@@ -15,74 +12,97 @@ AC_ARG_WITH(mpi,
 if test -z "$MPI_ROOT"; then
   for d in /opt/lib /usr/local/lib /usr/lib; do
     if test -f $d/lam/include/mpi.h && test -f $d/lam/lib/libmpi.a; then
-      echo "I am here"
+      echo "I am here $d/lam"
       MPI_ROOT=$d/lam
       break
     elif test -f $d/mpi/include/mpi.h; then
-      echo "I am here"
+      echo "I am here $d/mpi"
       MPI_ROOT=$d/mpi
       break
     elif test -f $d/mpich/include/mpi.h; then
-      echo "I am here"
+      echo "I am here $d/mpich"
       MPI_ROOT=$d/mpich
       break
     fi
   done
 fi
 
-echo "Try to find mpi.h ..."
-AC_CHECK_HEADER(mpi.h, [ MPI_INCLUDE="" ],
-[   if test "${supply_mpi}" = yes; then
-        echo "Try to find mpi.h ..."
-        if test -f ${MPI_ROOT}/include/mpi.h; then
-            echo "Found in ${MPI_ROOT}/include"
-            MPI_INCLUDE="-I${MPI_ROOT}/include"
-        elif test -f /usr/include/lam/mpi.h; then
-            echo "Found in /usr/include/lam"
-            MPI_INCLUDE="-I/usr/include/lam"
-        elif test -f /usr/local/include/mpi.h; then
-            echo "Found in /usr/local/include"
-            MPI_INCLUDE="-I/usr/local/include"
-        else 
-            echo "Cannot find mpi head file"
-            echo "Please check if --with-mpi=${MPI_ROOT} is right"
-            exit 1
-        fi
-    else
-        echo "Try to find mpi.h ..."
-        if test -f ${MPI_ROOT}/include/mpi.h; then
-            echo "Found in ${MPI_ROOT}/include"
-            MPI_INCLUDE="-I${MPI_ROOT}/include"
-        elif test -f /usr/include/lam/mpi.h; then
-            echo "Found in /usr/include/lam"
-            MPI_INCLUDE="-I/usr/include/lam"
-        elif test -f /usr/local/include/mpi.h; then
-            echo "Found in /usr/local/include"
-            MPI_INCLUDE="-I/usr/local/include"
-        else 
-            echo "Cannot find mpi header file."
-            echo "Please use --with-mpi=/path/to/mpi"
-            exit 1  
-        fi
-    fi 
-]
-)
+#echo "Try to find mpi.h ..."
+#AC_CHECK_HEADER(mpi.h, [ MPI_INCLUDE="" ],
+#[   if test "${supply_mpi}" = yes; then
+#        echo "Try to find mpi.h ..."
+#        if test -f ${MPI_ROOT}/include/mpi.h; then
+#            echo "Found in ${MPI_ROOT}/include"
+#            MPI_INCLUDE="-I${MPI_ROOT}/include"
+#        elif test -f /usr/include/lam/mpi.h; then
+#            echo "Found in /usr/include/lam"
+#            MPI_INCLUDE="-I/usr/include/lam"
+#        elif test -f /usr/local/include/mpi.h; then
+#            echo "Found in /usr/local/include"
+#            MPI_INCLUDE="-I/usr/local/include"
+#        else 
+#            echo "Cannot find mpi head file"
+#            echo "Please check if --with-mpi=${MPI_ROOT} is right"
+#            exit 1
+#        fi
+#    else
+#        echo "Try to find mpi.h ..."
+#        if test -f ${MPI_ROOT}/include/mpi.h; then
+#            echo "Found in ${MPI_ROOT}/include"
+#            MPI_INCLUDE="-I${MPI_ROOT}/include"
+#        elif test -f /usr/include/lam/mpi.h; then
+#            echo "Found in /usr/include/lam"
+#            MPI_INCLUDE="-I/usr/include/lam"
+#        elif test -f /usr/local/include/mpi.h; then
+#            echo "Found in /usr/local/include"
+#            MPI_INCLUDE="-I/usr/local/include"
+#        else 
+#            echo "Cannot find mpi header file."
+#            echo "Please use --with-mpi=/path/to/mpi"
+#            exit 1  
+#        fi
+#    fi 
+#]
+#)
+if test -n "$MPI_ROOT"; then
+    echo "Try to find mpi.h ..."
+    if test -f ${MPI_ROOT}/include/mpi.h; then
+         echo "Found in ${MPI_ROOT}/include"
+         MPI_INCLUDE="-I${MPI_ROOT}/include"
+    elif test -f /usr/include/lam/mpi.h; then
+         echo "Found in /usr/include/lam"
+         MPI_INCLUDE="-I/usr/include/lam"
+    elif test -f /usr/local/include/mpi.h; then
+         echo "Found in /usr/local/include"
+         MPI_INCLUDE="-I/usr/local/include"
+    else 
+         echo "Cannot find mpi head file"
+         echo "Please use --with-mpi=/path/to/mpi or specify the environment variable MPI_ROOT"
+         exit 1
+    fi
+else
+    AC_CHECK_HEADER(mpi.h)
+fi 
 
-echo "Try to find libmpi ..."
+echo "Try to find libmpi or libmpich ..."
 if test -f ${MPI_ROOT}/lib/libmpi.a; then
-        echo "Found in ${MPI_ROOT}/lib"
+        echo "Found libmpi in ${MPI_ROOT}/lib"
         MPI_LIBS="-L${MPI_ROOT}/lib -lmpi"
+elif test -f ${MPI_ROOT}/lib/libmpich.a; then
+        echo "Found libmpich in ${MPI_ROOT}/lib"
+        MPI_LIBS="-L${MPI_ROOT}/lib -lmpich"
+	MPI_DEPS="-DMPI2"
 else
     AC_CHECK_LIB(mpi, main,
     	[   MPI_LIBS="-lmpi"  ],
     	[   echo "libmpi not found. exiting..."
         	exit 1  ]
-    )
+)
 fi    
 
 echo "Try to find liblam ..."
 if test -f ${MPI_ROOT}/lib/liblam.a; then
-        echo "Found in ${MPI_ROOT}/lib"
+        echo "Found liblam in ${MPI_ROOT}/lib"
         MPI_LIBS="${MPI_LIBS} -llam"
 	MPI_DEPS="-DMPI2"
 else

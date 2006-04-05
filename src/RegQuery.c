@@ -6,9 +6,9 @@
 #include <windows.h>
 
 SEXP RegQuery(SEXP sexp_hkey, SEXP sexp_key) { 
-    DWORD   cValues;              // number of values for key 
-    DWORD   cchMaxValue;          // longest value name 
-    DWORD   cbMaxValueData;       // longest value data 
+    DWORD   cValues;              /* number of values for key */
+    DWORD   cchMaxValue;          /* longest value name */
+    DWORD   cbMaxValueData;       /* longest value data */
     DWORD 	i, retCode; 
     DWORD 	cchValue; 
 	DWORD 	cchData;
@@ -33,9 +33,9 @@ SEXP RegQuery(SEXP sexp_hkey, SEXP sexp_key) {
 		return R_NilValue;
 		
     retCode = RegQueryInfoKey(hKey,NULL,NULL,NULL,NULL,NULL,NULL, 
-        &cValues,                // number of values for this key 
-        &cchMaxValue,            // longest value name 
-        &cbMaxValueData,         // longest value data 
+        &cValues,                /* number of values for this key */ 
+        &cchMaxValue,            /* longest value name */
+        &cbMaxValueData,         /* longest value data */
         NULL, NULL);      
  
     if (cValues){
