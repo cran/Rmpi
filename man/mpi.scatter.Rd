@@ -12,7 +12,8 @@ mpi.scatterv(x, scounts, type, rdata, root = 0, comm = 1)
 }
 \arguments{
   \item{x}{data to be scattered.}
-  \item{type}{1 for integer and 2 for double. Others are not supported.}
+  \item{type}{1 for integer, 2 for double, and 3 for character. Others are not 
+supported.}
   \item{rdata}{the receive buffer. Must be the same type as the sender} 
   \item{scounts}{int vector specifying the block length inside a message to be 
   scattered to other members.}
@@ -43,6 +44,17 @@ Hao Yu
 \seealso{
   \code{\link{mpi.gather}}, \code{\link{mpi.gatherv}}.
 }
-%\examples{
-%}
+\examples{
+\dontrun{
+#Need 3 slaves to run properly
+#Or run  mpi.spawn.Rslaves(nslaves=3)
+  num="123456789abcd"
+  scounts<-c(2,3,1,7)
+  mpi.bcast.cmd(strnum<-mpi.scatter(integer(1),type=1,rdata=integer(1),root=0))
+  strnum<-mpi.scatter(scounts,type=1,rdata=integer(1),root=0)
+  mpi.bcast.cmd(ans <- mpi.scatterv(string(1),scounts=0,type=3,rdata=string(strnum),root=0))
+  mpi.scatterv(as.character(num),scounts=scounts,type=3,rdata=string(strnum),root=0)
+  mpi.remote.exec(ans)
+}
+}
 \keyword{interface}

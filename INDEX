@@ -57,13 +57,14 @@ mpi.waitany		Wait if any nonblocking send/recv requests are complete
 mpi.waitsome		Wait if some nonblocking send/recv requests are complete
 ******************************************************************************
 MPI Extensions in R Environment:
-
 lamhosts		Hosts id and machine host name mapping 
+mpi.allgather.Robj      Gather any type of objects to every number
 mpi.any.source		A constant for receiving a message from any source
 mpi.any.tag		A constant for receiving a message from any tag
 mpi.bcast.Robj		Broadcast an R object to every process
 mpi.comm.maxsize	Find the length of comm array
 mpi.exit		Call MPI_Finalize and detach Rmpi library
+mpi.gather.Robj		Gather any type of object to  a root process
 mpi.get.sourcetag	Get the source and tag for a given status
 mpi.hostinfo		Get the host information that the process is running
 mpi.init.sprng		MPI wrapper to initialize SPRNG in rsprng library
@@ -76,6 +77,7 @@ mpi.realloc.comm	Increase comm array to a new size
 mpi.realloc.request	Increase request array to a new size
 mpi.realloc.status	Increase status array to a new size
 mpi.request.maxsize	Find the length of request array
+mpi.scatter.Robj	Scatter an list to every number 
 mpi.send.Robj		Send an R object to a specific process
 mpi.spawn.Rslaves	Spawn R slaves. The default R script is slavedaemon.R
 mpi.status.maxsize	Find the length of status array

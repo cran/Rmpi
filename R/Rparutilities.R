@@ -215,6 +215,24 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
             out[[i]]<- out1[lowlen[i]:uplen[i]]
         }
     }
+ else if (all(type==4)){
+        if (eqlen){
+                out <- mpi.gather(raw(len[1]),4,raw(size*len[1]),0,comm)
+                out <- out[(len[1]+1):(size*len[1])]
+                dim(out) <- c(len[1], size-1)
+                out <- data.frame(out)
+            }
+        else {
+          out1<-mpi.gatherv(raw(1),4,raw(1+sum(len)),c(1,len),0,comm)
+            uplen <- cumsum(len)+1
+            lowlen <-c(2, uplen[-(size-1)]+1)
+                out <- as.list(integer(size-1))
+                names(out) <- paste("slave",1:(size-1), sep="")
+                for (i in 1:(size-1))
+            		out[[i]]<- out1[lowlen[i]:uplen[i]]
+        }
+    }
+
     else {
             out <- as.list(integer(size-1))
             names(out) <- paste("slave",1:(size-1), sep="")
@@ -233,6 +251,9 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
             as.integer(c(1,length(x)))
     else if (class(x)=="numeric")
             as.integer(c(2,length(x)))
+    else if (class(x)=="raw")
+            as.integer(c(4,length(x)))
+
     else
             as.integer(-1)
 }
@@ -259,7 +280,7 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
         else {
         type <- .typeindex(out)
         if (is.na(type[2]))
-            type[2] <- 0    
+            type[2] <- as.integer(0)    
         }
     allcode <- mpi.allgather(type, 1, integer(2*size), .comm)
     type <- allcode[seq(3,2*size,2)]
@@ -277,6 +298,13 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
         else
                 mpi.gatherv(out, 2, double(1), integer(1), 0, .comm)
         }
+     else if (all(type==4)) {
+            if (eqlen)
+                mpi.gather(out, 4, raw(1), 0, .comm)
+        else
+                mpi.gatherv(out, 4, raw(1), integer(1), 0, .comm)
+        }
+
     else {
         mpi.send.Robj(out,0,tag,.comm)
     }       
@@ -710,3 +738,4 @@ mpi.parApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
 }
 
 mpi.parallel.sim <- mpi.parSim
+

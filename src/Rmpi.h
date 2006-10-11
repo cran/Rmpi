@@ -8,9 +8,9 @@
 int mpi_errhandler(int errcode);
 int erreturn(int errcode);
 
-/*MPI_Datatype mpitype(SEXP sexp_type); 
+MPI_Datatype mpitype(SEXP sexp_type); 
 
-void mystrcpy(char *new_str, char *old_str, int size); */
+void mystrcpy(char *new_str, char *old_str, int size);
 
 SEXP AsInt (int n);
 

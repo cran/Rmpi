@@ -79,4 +79,12 @@ Notice that this is LAM-MPI specific.
 \author{
 Hao Yu
 }
+\examples{
+\dontrun{
+mpi.spawn.Rslaves(nslaves=2)
+tailslave.log()
+mpi.remote.exec(rnorm(10))
+mpi.close.Rslaves()
+}
+}
 \keyword{utilities}

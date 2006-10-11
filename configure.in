@@ -27,43 +27,6 @@ if test -z "$MPI_ROOT"; then
   done
 fi
 
-#echo "Try to find mpi.h ..."
-#AC_CHECK_HEADER(mpi.h, [ MPI_INCLUDE="" ],
-#[   if test "${supply_mpi}" = yes; then
-#        echo "Try to find mpi.h ..."
-#        if test -f ${MPI_ROOT}/include/mpi.h; then
-#            echo "Found in ${MPI_ROOT}/include"
-#            MPI_INCLUDE="-I${MPI_ROOT}/include"
-#        elif test -f /usr/include/lam/mpi.h; then
-#            echo "Found in /usr/include/lam"
-#            MPI_INCLUDE="-I/usr/include/lam"
-#        elif test -f /usr/local/include/mpi.h; then
-#            echo "Found in /usr/local/include"
-#            MPI_INCLUDE="-I/usr/local/include"
-#        else 
-#            echo "Cannot find mpi head file"
-#            echo "Please check if --with-mpi=${MPI_ROOT} is right"
-#            exit 1
-#        fi
-#    else
-#        echo "Try to find mpi.h ..."
-#        if test -f ${MPI_ROOT}/include/mpi.h; then
-#            echo "Found in ${MPI_ROOT}/include"
-#            MPI_INCLUDE="-I${MPI_ROOT}/include"
-#        elif test -f /usr/include/lam/mpi.h; then
-#            echo "Found in /usr/include/lam"
-#            MPI_INCLUDE="-I/usr/include/lam"
-#        elif test -f /usr/local/include/mpi.h; then
-#            echo "Found in /usr/local/include"
-#            MPI_INCLUDE="-I/usr/local/include"
-#        else 
-#            echo "Cannot find mpi header file."
-#            echo "Please use --with-mpi=/path/to/mpi"
-#            exit 1  
-#        fi
-#    fi 
-#]
-#)
 if test -n "$MPI_ROOT"; then
     echo "Try to find mpi.h ..."
     if test -f ${MPI_ROOT}/include/mpi.h; then

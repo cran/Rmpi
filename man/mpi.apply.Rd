@@ -27,4 +27,14 @@ slave, corresponding error message will be returned in the returning list.  }
 \author{
 Hao Yu
 }
+\examples{
+\dontrun{
+#Assume that there are at least 5 slaves running
+#Otherwise run mpi.spawn.Rslaves(nslaves=5)
+x=c(10,20)
+mpi.apply(x,runif)
+meanx=1:5
+mpi.apply(meanx,rnorm,n=2,sd=4)
+}
+}
 \keyword{utilities}

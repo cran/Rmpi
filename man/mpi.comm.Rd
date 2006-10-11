@@ -26,6 +26,20 @@ Hao Yu
   \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
 }
 \examples{
+\dontrun{
+#Assume that there are some slaves running
+mpi.comm.size(comm=1)
+mpi.comm.size(comm=0)
+
+mpi.remote.exec(mpi.comm.rank(comm=1))
+mpi.remote.exec(mpi.comm.rank(comm=0))
+
+mpi.remote.exec(mpi.comm.size(comm=1))
+mpi.remote.exec(mpi.comm.size(comm=0))
+
+mpi.bcast.cmd(mpi.comm.dup(comm=1,newcomm=5))
+mpi.comm.dup(comm=1,newcomm=5)
+}
 }
 \keyword{interface}
  

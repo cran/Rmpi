@@ -1,3 +1,14 @@
+2006-10-11, version 0.5-3:
+	R raw data type has been added as type 4. This is used for 
+	transfering R objects, i.e., all R objects are serialized to raw 
+	type for transfering. This is in line with the change of 
+	serialize in R 2.4.0. Wrappers .mpi.serialize and .mpi.unserialize 
+	are used in case Rmpi is running under R 2.2.0 to R.2.3.1. 
+
+        Add a few examples to several mpi functions.
+
+        Add mpi.scatter.Robj, mpi.gather.Robj, and mpi.allgather.Robj.
+
 2006-04-5, version 0.5-2:
 	Change "MPI_Comm_free(&master);" in mpi_is_master of Rmpi.c to
 	"if (!check) MPI_Comm_free(&master);"

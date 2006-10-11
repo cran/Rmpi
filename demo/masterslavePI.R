@@ -9,7 +9,7 @@ master <- function(){
 	    stop("There are some slaves running on comm 1")
 	slave<-system.file("Rslaves.sh",package="Rmpi")
 	Rscript <- system.file("demo","masterslavePI.R",package="Rmpi")
-	arg <- c(Rscript, Sys.getpid(),"nolog", R.home())
+	arg <- c(Rscript, getpid(),"nolog")
 	mpi.comm.spawn(slave=slave,slavearg=arg )
 	mpi.intercomm.merge(2,0,1)
 	out <- mpi.reduce(0)

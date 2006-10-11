@@ -40,4 +40,12 @@ with `x' as master variable, use mpi.remote.exec(cmd=myfun, x).}
 \author{
 Hao Yu
 }
+\examples{
+\dontrun{
+mpi.remote.exec(mpi.comm.rank())
+ x=5
+mpi.remote.exec(rnorm,x)
+}
+}
+
 \keyword{utilities}

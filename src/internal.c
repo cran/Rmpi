@@ -38,7 +38,7 @@ int erreturn(int errcode){
 		return 0;
 }
 
-/*
+
 MPI_Datatype mpitype(SEXP sexp_type){
 	MPI_Datatype datatype;
 	
@@ -52,6 +52,9 @@ MPI_Datatype mpitype(SEXP sexp_type){
 	case 3:
 		datatype=MPI_CHAR;
 		break;
+	case 4:
+                datatype=MPI_BYTE;
+                break;
 	}
 	return datatype;
 }
@@ -59,5 +62,5 @@ MPI_Datatype mpitype(SEXP sexp_type){
 void mystrcpy(char *new_str, char *old_str, int size) {
 	int i;
 	for (i=0; i< size; new_str[i]=old_str[i++]);
-}*/
+}
  
