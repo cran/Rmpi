@@ -1,3 +1,27 @@
+2007-10-01, version 0.5.4:
+	All character vector transfers have been rewriteen since R 2.6.0 does not 
+	allow any modifications under C level. Due to complication of creating 
+	multiple temp buffers for storing receiving buffers, only the first element 
+	in a charcter vector (R char vector) is transfered. For sending buffers,
+		#define CHAR2(x) ((char *) CHAR(x)) 
+	has been used, suggested by Prof. Ripley <ripley@stats.ox.ac.uk>.
+	In addition character receive in mpi.irecv is disabled. 
+
+	Add lib64/lam in search path in configure.ac. This  might make Rmpi compile
+	under FC 64bit.
+
+	Change libmpi.a to libmpi.so in configure.ac so Rmpi can be compiled under
+	OpenMPI. 
+
+	Add AC_PROG_CC in configure.ac to work with SUSE linux, suggested by
+	"George Ostrouchov" <ostrouchovg@ornl.gov>.
+
+	Modify configure.ac so that LAM on Mac OS X can be detected.
+
+	Change configure.in to configure.ac and add MPI_INCLUDE, LDFLAGS, 
+	CFLAGS, in case MPI_ROOT is supplied by users, suggested by "Dennis van Dok" 
+	<dennisvd@nikhef.nl>.
+
 2006-10-11, version 0.5-3:
 	R raw data type has been added as type 4. This is used for 
 	transfering R objects, i.e., all R objects are serialized to raw 

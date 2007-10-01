@@ -59,8 +59,47 @@ MPI_Datatype mpitype(SEXP sexp_type){
 	return datatype;
 }
 
+/*
 void mystrcpy(char *new_str, char *old_str, int size) {
 	int i;
 	for (i=0; i< size; new_str[i]=old_str[i++]);
 }
- 
+*/ 
+
+/* Return a copy of a string using memory from R_alloc */
+
+/*
+char *acopy_string2(const char *in)
+{
+    char *out;
+    int len = strlen(in);
+    if (len > 0) {
+        out = (char *) R_alloc(strlen(in), sizeof(char));
+        strcpy(out, in);
+    } else          
+        out = "";  
+    return out;
+}
+
+char *charsxp2char(SEXP x)
+{
+    return acopy_string2(CHAR(x));
+}
+
+*/
+
+/*
+void *R_chk_calloc2(size_t nelem, size_t elsize)
+{ 
+    void *p;
+#ifndef HAVE_WORKING_CALLOC
+    if(nelem == 0)                  
+        return(NULL);
+#endif
+    p = calloc(nelem, elsize);              
+    if(!p) error(_("Calloc could not allocate (%d of %d) memory"),
+                 nelem, elsize);
+    return(p);
+}
+
+*/

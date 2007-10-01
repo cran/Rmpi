@@ -59,8 +59,7 @@ mpi.info.set <- function(info=0, key, value){
 
 mpi.info.get <- function(info=0, key, valuelen){
     .Call("mpi_info_get",as.integer(info), as.character(key), 
-	as.integer(valulen), .Call("mkstr",as.integer(valuelen),
-	PACKAGE = "Rmpi"),PACKAGE = "Rmpi")
+	as.integer(valulen), .as.integer(valuelen),PACKAGE = "Rmpi")
 }
 
 mpi.info.free <- function(info=0){

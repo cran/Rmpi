@@ -9,8 +9,8 @@
     # Check if lam-mpi is running
     if (.Platform$OS=="unix"){
     	if (length(system("lamnodes",TRUE,ignore.stderr = TRUE)) == 0){
-    		cat("\n\tLAM/MPI runtime environment is not operating.\n")
-    		cat("\tStarting LAM/MPI runtime environment.\n")
+    		#cat("\n\tLAM/MPI runtime environment is not operating.\n")
+    		#cat("\tStarting LAM/MPI runtime environment.\n")
 	    	system("lamboot -H",ignore.stderr = TRUE)
 		}
     }

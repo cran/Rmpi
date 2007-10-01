@@ -13,7 +13,8 @@ instead of
 MPI\_ERRORS\_ARE\_FATAL (default) which crashes R on any type of MPI errors.  
 Almost all MPI API calls return errcodes which can map to specific MPI error 
 messages. All MPI related error messages come from predefined 
-MPI\_Error\_string. }
+MPI\_Error\_string. 
+}
 \value{
   1 if success. Otherwise 0. 
 }
@@ -24,8 +25,7 @@ Hao Yu
   \url{http://www.lam-mpi.org/}, 
   \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
 }
-}
+
 %\examples{
 %}
 \keyword{interface}
- 

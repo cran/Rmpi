@@ -44,7 +44,7 @@ SEXP mkstr(SEXP sexp_charlen){
 	return new_strvec; 
 }
 
-
+/*
 SEXP stringslink(SEXP sexp_strings,SEXP new_string){
         int i, sum=0,stringlen = LENGTH(sexp_strings);
 	int sublen[stringlen];
@@ -70,3 +70,4 @@ SEXP stringcut(SEXP sexp_string,SEXP new_strings){
 	 return new_strings;
 }
 
+*/

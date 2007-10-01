@@ -24,7 +24,7 @@ mpi.scatter <- function(x, type, rdata, root=0,  comm=1){
 }
 
 mpi.gatherv <- function(x, type, rdata, rcounts, root=0,  comm=1){
-    .Call("mpi_gatherv",.force.type( x,type), as.integer(type),.force.type( rdata,type), as.integer(rcounts), 
+    .Call("mpi_gatherv", x, as.integer(type),rdata, as.integer(rcounts), 
         as.integer(root), as.integer(comm),PACKAGE = "Rmpi")
 }
 
@@ -126,18 +126,22 @@ bin.nchar <- function(x){
 mpi.bcast.cmd <- function (cmd=NULL, rank=0, comm=1){
     if(mpi.comm.rank(comm) == rank){
         cmd <- deparse(substitute(cmd), width.cutoff=500)
-    cmd <- paste(cmd, collapse="\"\"/")
-    mpi.bcast(x=nchar(cmd), type=1, rank=rank, comm=comm)
-    invisible(mpi.bcast(x=cmd, type=3, rank=rank, comm=comm))
+    #cmd <- paste(cmd, collapse="\"\"/")
+    cmd <- .mpi.serialize(cmd)
+    #mpi.bcast(x=nchar(cmd), type=1, rank=rank, comm=comm)
+    mpi.bcast(x=length(cmd), type=1, rank=rank, comm=comm)
+    invisible(mpi.bcast(x=cmd, type=4, rank=rank, comm=comm))
     } 
     else {
         charlen <- mpi.bcast(x=integer(1), type=1, rank=rank, comm=comm)
         if (is.character(charlen))   #error
             parse(text="break")
         else {
-        out <- mpi.bcast(x=.Call("mkstr", as.integer(charlen),
-            PACKAGE = "Rmpi"), type=3, rank=rank, comm=comm)
-        parse(text=unlist(strsplit(out,"\"\"/"))) 
+        #out <- mpi.bcast(x=.Call("mkstr", as.integer(charlen),
+        #    PACKAGE = "Rmpi"), type=3, rank=rank, comm=comm)
+        out <- .mpi.unserialize(mpi.bcast(x=raw(charlen), type=4, rank=rank, comm=comm))
+        #parse(text=unlist(strsplit(out,"\"\"/"))) 
+        parse(text=out) 
         }
     }
 }
@@ -239,6 +243,8 @@ mpi.isend <- function (x, type,  dest, tag, comm=1, request=0){
 
 mpi.irecv <- function (x, type, source, tag, comm=1, request=0){
     #mpi.realloc.request(request+1)
+    if (type==3)
+	stop ("Character receiver is not supported")
     invisible(.Call("mpi_irecv", x, as.integer(type), as.integer(source), 
     as.integer(tag), as.integer(comm), as.integer(request),
     PACKAGE = "Rmpi"))

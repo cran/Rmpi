@@ -1,4 +1,4 @@
-#!/bin/sh 
+#! /bin/sh
 if [ $# -lt 4 ]; then
 	echo "Need 4 arguments" > err.log
 	exit 1
