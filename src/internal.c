@@ -40,7 +40,7 @@ int erreturn(int errcode){
 
 
 MPI_Datatype mpitype(SEXP sexp_type){
-	MPI_Datatype datatype;
+	MPI_Datatype datatype = MPI_DATATYPE_NULL;
 	
 	switch(INTEGER(sexp_type)[0]){
 	case 1:

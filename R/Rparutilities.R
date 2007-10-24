@@ -98,6 +98,7 @@ mpi.spawn.Rslaves <-
       #  Rslavecmd<-ifelse(.Platform$OS=="windows","Rslalves.cmd","Rslaves.sh")
     if (.Platform$OS=="windows"){
         workdrive <- unlist(strsplit(getwd(),":"))[1]
+		workdir <- paste(unlist(strsplit(getwd(),"/")),collapse="\\")
         tmpdrive <- unlist(strsplit(tempdir(),":"))[1]
         worktmp <- as.logical(toupper(workdrive)==toupper(tmpdrive))
         tmpdir <- unlist(strsplit(tempdir(),"/Rtmp"))[1]
@@ -106,7 +107,7 @@ mpi.spawn.Rslaves <-
                         PACKAGE="Rmpi")
         remotepath <-networkdrive[which(networkdrive=="RemotePath")+1]
         mapdrive <- as.logical(mapdrive && !is.null(remotepath))
-        arg <- c(Rscript, R.home(), workdrive, getwd(),worktmp, tmpdir, 
+        arg <- c(Rscript, R.home(), workdrive, workdir, worktmp, tmpdir, 
                     localhost, mapdrive, remotepath)
         realns<-mpi.comm.spawn(slave=system.file("Rslaves.bat", package="Rmpi"),
         slavearg=arg,
@@ -488,10 +489,17 @@ mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
     do.call("fun", lapply(args, enquote))
 }
 
-#from snow
 .splitIndices <- function(nx, ncl) {
-    i <- 1:nx;
-    structure(split(i, cut(i, ncl)), names=NULL)
+    #i <- 1:nx;
+    #structure(split(i, cut(i, ncl)), names=NULL)
+    x <- 1:nx
+    r <- nx/ncl
+    ii <- 0:(ncl - 1) * r
+    if (nx < ncl)
+        intv <- 0:ncl
+    else
+        intv <- c(x[round(1 + ii)]-1,nx)
+    structure(split(x, cut(x, intv)), names = NULL)
 }
 
 #mpi.parLapply <- function(x, fun, ...,comm=1){

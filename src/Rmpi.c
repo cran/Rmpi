@@ -17,6 +17,10 @@
 
 #include "Rmpi.h"
 
+#ifndef Win32
+#include <dlfcn.h>
+#endif
+
 static MPI_Comm	*comm;
 static MPI_Status *status;
 static MPI_Datatype *datatype;
@@ -29,10 +33,28 @@ static int REQUEST_MAXSIZE=10000;
 SEXP mpi_initialize(){
 	int i,flag;
 	MPI_Initialized(&flag);
+
+#ifndef MPI2
+        static int fake_argc = 1;
+       	char *fake_argv[1];
+        char *fake_argv0 = "R";
+#endif
+
 if (flag)
-		return AsInt(1);
-	else {	
-		MPI_Init((void *)0,(void *)0);
+	return AsInt(1);
+	else {
+	
+#ifdef OPENMPI
+	dlopen("libmpi.so.0", RTLD_GLOBAL);
+#endif
+
+#ifndef MPI2
+   	fake_argv[0] = (char *)&fake_argv0;
+       	MPI_Init(&fake_argc, (char ***)(void*)&fake_argv);
+#else
+	MPI_Init((void *)0,(void *)0);
+#endif
+
 		MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 		MPI_Errhandler_set(MPI_COMM_SELF, MPI_ERRORS_RETURN);
 		comm=(MPI_Comm *)Calloc(COMM_MAXSIZE, MPI_Comm); 
@@ -188,7 +210,7 @@ SEXP mpi_gather(SEXP sexp_sdata,
 				   SEXP sexp_comm){
 	int len, rlen, commn=INTEGER(sexp_comm)[0], root=INTEGER(sexp_root)[0];
 	char *rdata;
-	SEXP sexp_rdata2;
+	SEXP sexp_rdata2 = NULL;
 
 	switch (INTEGER(sexp_type)[0]){
 	case 1:
@@ -238,9 +260,9 @@ SEXP mpi_gatherv(SEXP sexp_sdata,
 				   SEXP sexp_root,
 				   SEXP sexp_comm){
 	int len, rlen, commn=INTEGER(sexp_comm)[0], root=INTEGER(sexp_root)[0];
-	int *displs, gsize, rank, i;
+	int *displs=NULL, gsize, rank, i;
 	char *rdata;
-	SEXP sexp_rdata2;
+	SEXP sexp_rdata2 = NULL;
 	
 	MPI_Comm_size(comm[commn], &gsize);
 	MPI_Comm_rank(comm[commn], &rank);
@@ -307,7 +329,7 @@ SEXP mpi_scatter(SEXP sexp_sdata,
 	int 	len, rlen;
 	int	commn=INTEGER(sexp_comm)[0], root=INTEGER(sexp_root)[0];
 	char 	*rdata;
-	SEXP 	sexp_rdata2;
+	SEXP 	sexp_rdata2 = NULL;
 
 	switch (INTEGER(sexp_type)[0]){
 	case 1:
@@ -357,9 +379,9 @@ SEXP mpi_scatterv(SEXP sexp_sdata,
 				  SEXP sexp_root,
 				  SEXP sexp_comm){
 	int len, rlen, commn=INTEGER(sexp_comm)[0], root=INTEGER(sexp_root)[0];
-	int gsize,rank,i,*displs;
+	int gsize,rank,i,*displs=NULL;
     	char *rdata;
-	SEXP sexp_rdata2;
+	SEXP sexp_rdata2 = NULL;
 
 	MPI_Comm_size(comm[commn], &gsize);
 	MPI_Comm_rank(comm[commn], &rank);
@@ -425,7 +447,7 @@ SEXP mpi_allgather(SEXP sexp_sdata,
 				   SEXP sexp_comm){
 	int len, rlen, commn=INTEGER(sexp_comm)[0];
 	char *rdata;
-	SEXP sexp_rdata2;
+	SEXP sexp_rdata2 = NULL;
 	
 	switch (INTEGER(sexp_type)[0]){
 	case 1:
@@ -476,7 +498,7 @@ SEXP mpi_allgatherv(SEXP sexp_sdata,
 				   SEXP sexp_comm){
 	int len, rlen, commn=INTEGER(sexp_comm)[0], *displs, gsize, i;
 	char *rdata;
-	SEXP sexp_rdata2;
+	SEXP sexp_rdata2 = NULL;
 	
 	MPI_Comm_size(comm[commn], &gsize);
 	displs=(int *)Calloc(gsize, int);
@@ -538,7 +560,7 @@ SEXP mpi_bcast(SEXP sexp_data,
 	int rank=INTEGER(sexp_rank)[0], root,  commn=INTEGER(sexp_comm)[0],slen;
 	int errcode=0;
 	char *rdata;
-	SEXP sexp_data2;
+	SEXP sexp_data2 = NULL;
 
 	switch (type){
 	case 1:
@@ -629,7 +651,7 @@ SEXP mpi_recv(SEXP sexp_data,
 	int tag=INTEGER(sexp_tag)[0],commn=INTEGER(sexp_comm)[0], statusn=INTEGER(sexp_status)[0];
 	int slen;
 	char *rdata;
-	SEXP sexp_data2;
+	SEXP sexp_data2 = NULL;
 
 	switch (type){
 	case 1:
@@ -674,8 +696,8 @@ SEXP mpi_reduce(SEXP sexp_send,
 				SEXP sexp_comm){
 	int len=LENGTH(sexp_send), type=INTEGER(sexp_type)[0], dest=INTEGER(sexp_dest)[0];
 	int commn=INTEGER(sexp_comm)[0], intop = INTEGER(sexp_op)[0];
-	MPI_Op op;
-	SEXP sexp_recv;
+	MPI_Op op= MPI_SUM;
+	SEXP sexp_recv = NULL;
 
 	switch(intop){
 	case 1:
@@ -760,8 +782,8 @@ SEXP mpi_allreduce(SEXP sexp_send,
 				   SEXP sexp_comm){
 	int len=LENGTH(sexp_send), type=INTEGER(sexp_type)[0], commn=INTEGER(sexp_comm)[0];
 	int intop = INTEGER(sexp_op)[0];
-	MPI_Op op;
-	SEXP sexp_recv;
+	MPI_Op op = MPI_SUM;
+	SEXP sexp_recv = NULL;
 
 	switch(intop){
 	case 1:
@@ -856,7 +878,7 @@ SEXP mpi_probe(SEXP sexp_source, SEXP sexp_tag, SEXP sexp_comm, SEXP sexp_status
 
 SEXP mpi_get_count(SEXP sexp_status, SEXP sexp_type){
 	SEXP sexp_count;
-	MPI_Datatype datatype;
+	MPI_Datatype datatype = MPI_DATATYPE_NULL;
 	
 	switch(INTEGER(sexp_type)[0]){
 	case 1:
@@ -1032,7 +1054,7 @@ SEXP mpi_sendrecv(SEXP sexp_senddata,
     int source=INTEGER(sexp_source)[0], recvtag=INTEGER(sexp_recvtag)[0];
     int commn=INTEGER(sexp_comm)[0],statusn=INTEGER(sexp_status)[0];
     char *rdata;
-    SEXP sexp_recvdata2;
+    SEXP sexp_recvdata2 = NULL;
 
     switch(sendtype){
         case 1:
@@ -1191,7 +1213,7 @@ SEXP mpi_sendrecv_replace(SEXP sexp_data,
         int source=INTEGER(sexp_source)[0],recvtag=INTEGER(sexp_recvtag)[0];
         int commn=INTEGER(sexp_comm)[0],statusn=INTEGER(sexp_status)[0];
 	char *srdata;
-	SEXP sexp_data2;
+	SEXP sexp_data2 = NULL;
 
         switch (type){
         case 1:
@@ -1417,7 +1439,7 @@ SEXP mpi_waitany(SEXP sexp_count, SEXP sexp_status){
 }
 
 SEXP mpi_testany(SEXP sexp_count, SEXP sexp_status){
-        int countn=INTEGER(sexp_count)[0], index, statusn=INTEGER(sexp_status)[0];
+        int countn=INTEGER(sexp_count)[0],  statusn=INTEGER(sexp_status)[0];
 		SEXP indexflag;
 		PROTECT (indexflag = allocVector(INTSXP, 2));
         mpi_errhandler(MPI_Testany(countn, request, &INTEGER(indexflag)[0],

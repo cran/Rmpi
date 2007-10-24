@@ -9,7 +9,7 @@ SEXP RegQuery(SEXP sexp_hkey, SEXP sexp_key) {
     DWORD   cValues;              // number of values for key 
     DWORD   cchMaxValue;          // longest value name 
     DWORD   cbMaxValueData;       // longest value data 
-    DWORD 	i, retCode; 
+    DWORD 	i, retCode= ERROR_SUCCESS; 
     DWORD 	cchValue; 
 	DWORD 	cchData;
 

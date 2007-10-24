@@ -2610,19 +2610,48 @@ if test "${with_mpi+set}" = set; then
 fi
 
 
-if test "$MPI_ROOT"==""; then
-  for d in /opt/lib /usr /usr/lib /usr/lib64 /usr/local/lib /usr/local; do
-    if test -f $d/lam/include/mpi.h && test -f $d/lam/lib/libmpi.so; then
-      echo "I am here $d/lam"
+MPITYPE="UNKNOWN"
+
+if  [ "$MPI_ROOT" = "" ] ; then
+  for d in /opt/lib /usr/lib /usr /usr/local/lib /usr/local; do
+    if test -f $d/include/mpi.h && test -d $d/lib/openmpi; then
+      echo "I am here $d and it is OpenMPI"
+      MPI_ROOT=$d
+  	  MPITYPE="OPENMPI"
+      break
+    elif test -f $d/include/openmpi/mpi.h && test -d $d/lib/openmpi; then
+      echo "I am here $d and it is OpenMPI"
+      MPI_ROOT=$d
+  	  MPITYPE="OPENMPI"
+      break
+    elif test -f $d/include/openmpi/mpi.h && test -d $d/lib64/openmpi; then
+      echo "I am here $d and it is OpenMPI"
+      MPI_ROOT=$d
+  	  MPITYPE="OPENMPI"
+      break
+   elif test -f $d/lam/include/mpi.h && test -f $d/lam/lib/libmpi.so; then
+      echo "I am here $d/lam and it is LAM"
       MPI_ROOT=$d/lam
+	  MPITYPE="LAM"
+      break
+	elif test -f $d/include/lam/mpi.h && test -f $d/lib/lam/libmpi.so; then
+	  echo "I am here $d and it is LAM"
+	  MPI_ROOT=$d
+	  MPITYPE="LAM"
+	  break
+	elif test -f $d/include/lam/mpi.h && test -f $d/lib64/lam/libmpi.so; then
+	  echo "I am here $d and it is LAM"
+	  MPI_ROOT=$d
+	  MPITYPE="LAM"
+	  break
+    elif test -f $d/mpich/include/mpi.h; then
+      echo "I am here $d/mpich and it is MPICH"
+      MPI_ROOT=$d/mpich
+	  MPITYPE="MPICH"
       break
     elif test -f $d/mpi/include/mpi.h; then
       echo "I am here $d/mpi"
       MPI_ROOT=$d/mpi
-      break
-    elif test -f $d/mpich/include/mpi.h; then
-      echo "I am here $d/mpich"
-      MPI_ROOT=$d/mpich
       break
     elif test -f $d/include/mpi.h; then
       echo "I am here $d"
@@ -2633,16 +2662,34 @@ if test "$MPI_ROOT"==""; then
 fi
 
 if test -n "$MPI_ROOT"; then
+	#guess MPITYPE if it is unknown and user supplies MPI_ROOT
+	if  [ $MPITYPE = "UNKNOWN" ]; then
+		if test -d ${MPI_ROOT}/lib/openmpi; then
+			MPITYPE="OPENMPI"
+		elif test -d ${MPI_ROOT}/lib64/openmpi; then
+		 	MPITYPE="OPENMPI"
+		elif test -f ${MPI_ROOT}/lib/liblam.so; then
+		 	MPITYPE="LAM"
+		elif test -d ${MPI_ROOT}/lib/lam; then
+		 	MPITYPE="LAM"
+		elif test -d ${MPI_ROOT}/lib64/lam; then
+		 	MPITYPE="LAM"
+		elif test -f ${MPI_ROOT}/lib/libmpich.a; then
+		 	MPITYPE="MPICH"
+		elif test -f ${MPI_ROOT}/lib64/libmpich.a; then
+		 	MPITYPE="MPICH"
+		fi
+	fi
     echo "Try to find mpi.h ..."
     if test -f ${MPI_ROOT}/include/mpi.h; then
          echo "Found in ${MPI_ROOT}/include"
          MPI_INCLUDE="-I${MPI_ROOT}/include"
-    elif test -f /usr/include/lam/mpi.h; then
-         echo "Found in /usr/include/lam"
-         MPI_INCLUDE="-I/usr/include/lam"
-    elif test -f /usr/local/include/mpi.h; then
-         echo "Found in /usr/local/include"
-         MPI_INCLUDE="-I/usr/local/include"
+    elif test -f ${MPI_ROOT}/include/openmpi/mpi.h; then
+         echo "Found in ${MPI_ROOT}/include/openmpi"
+         MPI_INCLUDE="-I${MPI_ROOT}/include/openmpi"
+    elif test -f ${MPI_ROOT}/include/lam/mpi.h; then
+         echo "Found in ${MPI_ROOT}/include/lam"
+         MPI_INCLUDE="-I${MPI_ROOT}/include/lam"
     else
          echo "Cannot find mpi head file"
          echo "Please use --with-mpi=/path/to/mpi or specify the environment variable MPI_ROOT"
@@ -3415,21 +3462,302 @@ fi
 
 fi
 
-echo "Try to find libmpi or libmpich ..."
+echo "Try to find libmpi.so or libmpich.a"
 if test -f ${MPI_ROOT}/lib/libmpi.so; then
         echo "Found libmpi in ${MPI_ROOT}/lib"
         MPI_LIBS="-L${MPI_ROOT}/lib -lmpi"
-	if test -d  ${MPI_ROOT}/lib/openmpi; then
-        	echo "Found openmpi dir in ${MPI_ROOT}/lib"
-		MPI_DEPS="-DMPI2"
-	fi
+elif test -f ${MPI_ROOT}/lib/openmpi/libmpi.so; then
+        echo "Found libmpi in ${MPI_ROOT}/lib/openmpi"
+        MPI_LIBS="-L${MPI_ROOT}/lib/openmpi -lmpi"
+elif test -f ${MPI_ROOT}/lib64/openmpi/libmpi.so; then
+        echo "Found libmpi in ${MPI_ROOT}/lib64/openmpi"
+        MPI_LIBS="-L${MPI_ROOT}/lib64/openmpi -lmpi"
+elif test -f ${MPI_ROOT}/lib/lam/libmpi.so; then
+        echo "Found libmpi in ${MPI_ROOT}/lib/lam"
+        MPI_LIBS="-L${MPI_ROOT}/lib/lam -lmpi"
+	MPI_INCLUDE="${MPI_INCLUDE} ${MPI_INCLUDE}/32"
 elif test -f ${MPI_ROOT}/lib64/lam/libmpi.so; then
         echo "Found libmpi in ${MPI_ROOT}/lib64/lam"
         MPI_LIBS="-L${MPI_ROOT}/lib64/lam -lmpi"
+	MPI_INCLUDE="${MPI_INCLUDE} ${MPI_INCLUDE}/64"
 elif test -f ${MPI_ROOT}/lib/libmpich.a; then
         echo "Found libmpich in ${MPI_ROOT}/lib"
         MPI_LIBS="-L${MPI_ROOT}/lib -lmpich"
-	MPI_DEPS="-DMPI2"
+	{ echo "$as_me:$LINENO: checking whether MPICH2 is declared" >&5
+echo $ECHO_N "checking whether MPICH2 is declared... $ECHO_C" >&6; }
+if test "${ac_cv_have_decl_MPICH2+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <mpi.h>
+
+int
+main ()
+{
+#ifndef MPICH2
+  (void) MPICH2;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl_MPICH2=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl_MPICH2=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_have_decl_MPICH2" >&5
+echo "${ECHO_T}$ac_cv_have_decl_MPICH2" >&6; }
+if test $ac_cv_have_decl_MPICH2 = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MPICH2 1
+_ACEOF
+
+  MPI_DEPS="-DMPI2"
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MPICH2 0
+_ACEOF
+
+
+fi
+{ echo "$as_me:$LINENO: checking whether MPICH2 is declared" >&5
+echo $ECHO_N "checking whether MPICH2 is declared... $ECHO_C" >&6; }
+if test "${ac_cv_have_decl_MPICH2+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <mpi.h>
+
+int
+main ()
+{
+#ifndef MPICH2
+  (void) MPICH2;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl_MPICH2=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl_MPICH2=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_have_decl_MPICH2" >&5
+echo "${ECHO_T}$ac_cv_have_decl_MPICH2" >&6; }
+if test $ac_cv_have_decl_MPICH2 = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MPICH2 1
+_ACEOF
+
+  MPI_DEPS="-DMPI2"
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MPICH2 0
+_ACEOF
+
+
+fi
+
+
+elif test -f ${MPI_ROOT}/lib64/libmpich.a; then
+        echo "Found libmpich in ${MPI_ROOT}/lib64"
+        MPI_LIBS="-L${MPI_ROOT}/lib64 -lmpich"
+	{ echo "$as_me:$LINENO: checking whether MPICH2 is declared" >&5
+echo $ECHO_N "checking whether MPICH2 is declared... $ECHO_C" >&6; }
+if test "${ac_cv_have_decl_MPICH2+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <mpi.h>
+
+int
+main ()
+{
+#ifndef MPICH2
+  (void) MPICH2;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl_MPICH2=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl_MPICH2=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_have_decl_MPICH2" >&5
+echo "${ECHO_T}$ac_cv_have_decl_MPICH2" >&6; }
+if test $ac_cv_have_decl_MPICH2 = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MPICH2 1
+_ACEOF
+
+  MPI_DEPS="-DMPI2"
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MPICH2 0
+_ACEOF
+
+
+fi
+{ echo "$as_me:$LINENO: checking whether MPICH2 is declared" >&5
+echo $ECHO_N "checking whether MPICH2 is declared... $ECHO_C" >&6; }
+if test "${ac_cv_have_decl_MPICH2+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <mpi.h>
+
+int
+main ()
+{
+#ifndef MPICH2
+  (void) MPICH2;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl_MPICH2=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl_MPICH2=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_have_decl_MPICH2" >&5
+echo "${ECHO_T}$ac_cv_have_decl_MPICH2" >&6; }
+if test $ac_cv_have_decl_MPICH2 = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MPICH2 1
+_ACEOF
+
+  MPI_DEPS="-DMPI2"
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MPICH2 0
+_ACEOF
+
+
+fi
+
+
 else
     { echo "$as_me:$LINENO: checking for main in -lmpi" >&5
 echo $ECHO_N "checking for main in -lmpi... $ECHO_C" >&6; }
@@ -3496,17 +3824,22 @@ fi
 
 fi
 
-echo "Try to find liblam ..."
-if test -f ${MPI_ROOT}/lib/liblam.a; then
+if  [ $MPITYPE = "OPENMPI" ] ; then
+	MPI_DEPS="-DMPI2"
+elif  [ $MPITYPE = "LAM" ] ; then
+	MPI_DEPS="-DMPI2"
+	echo "Try to find liblam.so ..."
+	if test -f ${MPI_ROOT}/lib/liblam.so; then
         echo "Found liblam in ${MPI_ROOT}/lib"
         MPI_LIBS="${MPI_LIBS} -llam"
-	MPI_DEPS="-DMPI2"
-elif test -f ${MPI_ROOT}/lib64/lam/liblam.so; then
+	elif test -f ${MPI_ROOT}/lib/lam/liblam.so; then
+        echo "Found liblam in ${MPI_ROOT}/lib/lam"
+        MPI_LIBS="${MPI_LIBS} -llam"
+	elif test -f ${MPI_ROOT}/lib64/lam/liblam.so; then
         echo "Found liblam in ${MPI_ROOT}/lib64/lam"
         MPI_LIBS="${MPI_LIBS} -llam"
-	MPI_DEPS="-DMPI2"
-else
-    { echo "$as_me:$LINENO: checking for main in -llam" >&5
+	else
+    	{ echo "$as_me:$LINENO: checking for main in -llam" >&5
 echo $ECHO_N "checking for main in -llam... $ECHO_C" >&6; }
 if test "${ac_cv_lib_lam_main+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -3563,15 +3896,79 @@ fi
 echo "${ECHO_T}$ac_cv_lib_lam_main" >&6; }
 if test $ac_cv_lib_lam_main = yes; then
      MPI_LIBS="$MPI_LIBS -llam"
-	    MPI_DEPS="-DMPI2"
 else
      echo "liblam not found. Probably not LAM-MPI"
 
 fi
 
+	fi
 fi
 
-#AC_CHECK_LIB(util, openpty, [ MPI_LIBS="$MPI_LIBS -lutil" ])
+{ echo "$as_me:$LINENO: checking for openpty in -lutil" >&5
+echo $ECHO_N "checking for openpty in -lutil... $ECHO_C" >&6; }
+if test "${ac_cv_lib_util_openpty+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lutil  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char openpty ();
+int
+main ()
+{
+return openpty ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_util_openpty=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_util_openpty=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_util_openpty" >&5
+echo "${ECHO_T}$ac_cv_lib_util_openpty" >&6; }
+if test $ac_cv_lib_util_openpty = yes; then
+   MPI_LIBS="$MPI_LIBS -lutil"
+fi
+
 { echo "$as_me:$LINENO: checking for main in -lpthread" >&5
 echo $ECHO_N "checking for main in -lpthread... $ECHO_C" >&6; }
 if test "${ac_cv_lib_pthread_main+set}" = set; then
@@ -3634,7 +4031,7 @@ fi
 
 
 PKG_LIBS="${MPI_LIBS} -fPIC"
-PKG_CPPFLAGS="${MPI_INCLUDE} ${MPI_DEPS} -fPIC"
+PKG_CPPFLAGS="${MPI_INCLUDE} ${MPI_DEPS} -D${MPITYPE} -fPIC"
 
 
 
