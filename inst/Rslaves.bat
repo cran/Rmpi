@@ -33,7 +33,7 @@ cd /D %WDir%
 cd /D %TMP%
 
 if %FirstOne%==FALSE goto end 
-%R_HOME%\library\Rmpi\sleep.exe 500
+rem %R_HOME%\library\Rmpi\sleep.exe 500
 net use /delete %WDrive%:
 goto:eof
 

@@ -15,7 +15,7 @@ library(grDevices)
 library(graphics)
 library(methods)
 
-if (!library(Rmpi,logical.return = TRUE)){
+if (!invisible(library(Rmpi,logical.return = TRUE))){
     warning("Rmpi cannot be loaded")
     q(save = "no")
 }
@@ -34,7 +34,9 @@ if (mpi.comm.rank(0) >0){
 	try(eval(mpi.bcast.cmd(rank=0,comm=.comm)),TRUE)
 	#try(eval(mpi.bcast.cmd(rank=0,comm=.comm),env=sys.parent()),TRUE)
     #mpi.barrier(.comm)
-    mpi.comm.free(.comm)
+    if (is.loaded("mpi_comm_disconnect")) 
+        mpi.comm.disconnect(.comm)
+    else mpi.comm.free(.comm)
     mpi.quit()
 }
     

@@ -1,7 +1,7 @@
 Rmpi is an R package providing an interface to MPI (Message-Passing Interface) 
 API calls with interactive R slave functionalities. 
 
-Copyright (C) 2002 Hao Yu <hyu@stats.uwo.ca>
+Copyright (C) 2008 Hao Yu <hyu@stats.uwo.ca>
 
 ******************************************************************************
 Rmpi is free software; you can redistribute it and/or modify it under
@@ -19,15 +19,15 @@ this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 Place, Suite 330, Boston, MA  02111-1307  USA
 ******************************************************************************
 
-Rmpi requires R version 2.0.0 or higher, and LAM-MPI 7.0.2 or higher on unix 
-platform or MPICH2 for Windows on windows platform. Instructions to install and
-run Rmpi on windows platform are given in 
-        http://www.stats.uwo.ca/faculty/yu/Rmpi.
+Rmpi requires R version 2.2.0 or higher, and a MPI distribution on unix 
+platform, MPICH2 or DeinoMPI for Windows on windows platform, and Mac OS X 
+10.5.0 or higher. More information can be found in 
+        http://www.stats.uwo.ca/faculty/yu/Rmpi
 
 
 INSTALLATION INSTRUCTIONS:
 
-1. Install LAM-MPI 7.1.1 (http://www.lam-mpi.org). Follow the installation 
+1. Install LAM-MPI 7.1.4 (http://www.lam-mpi.org). Follow the installation 
    instructions provided by LAM-MPI or simply choose a pre-compiled Linux RPM. 
    Modify the file lam-bhost.def (probably in /etc/lam) to include host names 
    and CPU numbers per host in a cluster. A remote shell program such as 
@@ -61,7 +61,7 @@ NOTE: If your site has a different MPI such as MPICH installed, Rmpi
    a). Save Rprofile in inst (will be in the root directory of Rmpi 
        after installation) as .Rprofile in the working or root directory. 
        Then run, for example,
-	 	mpiexec -n 9 R --no-save -q
+	 	mpirun -n 9 R --no-save -q
        This will create one master and 8 slaves. Those slaves will behave as 
        though mpi.spawn.Rslaves has been used.
    b). To run multiple Rs without using .Rprofile, add the following line

@@ -17,7 +17,7 @@
 
 #include "Rmpi.h"
 
-#ifndef Win32
+#ifdef OPENMPI
 #include <dlfcn.h>
 #endif
 
@@ -29,6 +29,24 @@ static MPI_Request *request;
 static int COMM_MAXSIZE=10;
 static int STATUS_MAXSIZE=5000;
 static int REQUEST_MAXSIZE=10000;
+
+SEXP mpidist(){
+	int i=0;
+
+#ifdef OPENMPI
+	i=1;
+#endif
+
+#ifdef LAM
+        i=2;
+#endif
+
+#ifdef MPICH
+	i=3;
+#endif
+
+	return AsInt(i);	
+}
 
 SEXP mpi_initialize(){
 	int i,flag;
@@ -43,11 +61,11 @@ SEXP mpi_initialize(){
 if (flag)
 	return AsInt(1);
 	else {
-	
+
 #ifdef OPENMPI
 	dlopen("libmpi.so.0", RTLD_GLOBAL);
 #endif
-
+	
 #ifndef MPI2
    	fake_argv[0] = (char *)&fake_argv0;
        	MPI_Init(&fake_argc, (char ***)(void*)&fake_argv);

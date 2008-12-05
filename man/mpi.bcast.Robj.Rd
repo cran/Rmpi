@@ -3,8 +3,8 @@
 \alias{mpi.bcast.Robj}
 \alias{mpi.bcast.Robj2slave}
 \description{
-  \code{mpi.bcast.Robj} and \code{mpi.bcast.Robj2slave} are used to move  
-  a general R object around among master and all slaves. 
+  \code{mpi.bcast.Robj} and \code{mpi.bcast.Robj2slave} are used to move 
+a general R object around among master and all slaves. 
 }
 \usage{
 mpi.bcast.Robj(obj = NULL, rank = 0, comm = 1)
@@ -17,8 +17,7 @@ mpi.bcast.Robj2slave(obj, comm = 1)
 }
 \value{
   \code{mpi.bcast.Robj} returns no value for the sender and the 
-transmitted one for others. \linebreak  \code{mpi.bcast.Robj2slave} 
-returns no value for the master 
+transmitted one for others. \code{mpi.bcast.Robj2slave} returns no value for the master 
 and the transmitted R object along its name on slaves. 
 } 
 \details{

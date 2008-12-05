@@ -44,21 +44,35 @@ mpi.scatterv <- function(x, scounts, type, rdata, root=0, comm=1){
 
 mpi.scatter.Robj <- function(obj=NULL, root=0, comm=1){
     if (mpi.comm.rank(comm) == root){
- 	 size<-mpi.comm.size(comm)
-    	subobj<-sapply(obj,.mpi.serialize)
-	sublen<-sapply(subobj,length)
-    	#newsubobj<-strings.link(subobj,string(sum(sublen)+1))
-	newsubobj<-c(subobj,recursive=TRUE)
-    	strnum<-mpi.scatter(sublen,type=1,rdata=integer(1),root=root,comm=comm)
-   	outobj<-.mpi.unserialize(mpi.scatterv(newsubobj,scounts=sublen,type= 4,
-				rdata=raw(strnum),root=root, comm=comm))
+     size<-mpi.comm.size(comm)
+        subobj<-lapply(obj,.mpi.serialize)
+    sublen<-unlist(lapply(subobj,length))
+        #newsubobj<-strings.link(subobj,string(sum(sublen)+1))
+    newsubobj<-c(subobj,recursive=TRUE)
+        strnum<-mpi.scatter(sublen,type=1,rdata=integer(1),root=root,comm=comm)
+    outobj<-.mpi.unserialize(mpi.scatterv(newsubobj,scounts=sublen,type= 4,
+                rdata=raw(strnum),root=root, comm=comm))
     }
     else {
         strnum<-mpi.scatter(integer(1),type=1,rdata=integer(1),root=root,comm=comm)
         outobj<-.mpi.unserialize(mpi.scatterv(raw(strnum),scounts=0, type=4,
-				rdata=raw(strnum), root=root, comm=comm))
+                rdata=raw(strnum), root=root, comm=comm))
     }
     return(outobj)
+}
+
+mpi.scatter.Robj2slave=function (obj, comm = 1) {
+    if (!is.list(obj))
+        stop("Only list object is allowed to scatter to slaves.")
+    if (length(obj) != (mpi.comm.size(comm)-1)) 
+        stop("Length of your list object is not the same as total number of slaves.")
+    .tmpname <- list(objname=deparse(substitute(obj), width.cutoff = 500))
+    mpi.bcast.Robj2slave(.tmpname)
+    mpi.bcast.cmd(cmd = .tmpRobj <- mpi.scatter.Robj(comm = .comm), 
+        rank = 0, comm = comm)
+    mpi.scatter.Robj(obj=c(list("master"),obj), root = 0, comm = comm)
+    mpi.bcast.cmd(cmd = assign(.tmpname$objname, .tmpRobj, 
+        env = .GlobalEnv), rank = 0, comm = comm)
 }
 
 mpi.gather.Robj <- function(obj=NULL, root=0, comm=1){
@@ -67,14 +81,14 @@ mpi.gather.Robj <- function(obj=NULL, root=0, comm=1){
     if (mpi.comm.rank(comm) == root){
         size<-mpi.comm.size(comm=comm)
         rcounts<-mpi.gather(bilen,type=1,rdata=integer(size),
-			root=root,comm=comm)
+            root=root,comm=comm)
         allbiobj<-mpi.gatherv(biobj,type=4,rdata=raw(sum(rcounts))
                         ,rcounts=rcounts,root=root,comm=comm)
-	pos=c(0,cumsum(rcounts))
-	cutobj=list()
-	for(i in 1:size)
-		cutobj[[i]]=allbiobj[(pos[i]+1):pos[i+1]]
-    	 sapply(cutobj,.mpi.unserialize)
+    pos=c(0,cumsum(rcounts))
+    cutobj=list()
+    for(i in 1:size)
+        cutobj[[i]]=allbiobj[(pos[i]+1):pos[i+1]]
+         sapply(cutobj,.mpi.unserialize)
     }
     else {
          mpi.gather(bilen,type=1,rdata=integer(1),root=root,comm=comm)
@@ -88,7 +102,7 @@ mpi.allgather.Robj <- function(obj=NULL, comm=1){
     size<-mpi.comm.size(comm=comm)
     rcounts<-mpi.allgather(bilen,type=1,rdata=integer(size),comm=comm)
     allbiobj<-mpi.allgatherv(biobj,type=4,rdata=raw(sum(rcounts))
-		,rcounts=rcounts,comm=comm)
+        ,rcounts=rcounts,comm=comm)
     pos=c(0,cumsum(rcounts))
     cutobj=list()
     for(i in 1:size)
@@ -244,7 +258,7 @@ mpi.isend <- function (x, type,  dest, tag, comm=1, request=0){
 mpi.irecv <- function (x, type, source, tag, comm=1, request=0){
     #mpi.realloc.request(request+1)
     if (type==3)
-	stop ("Character receiver is not supported")
+    stop ("Character receiver is not supported")
     invisible(.Call("mpi_irecv", x, as.integer(type), as.integer(source), 
     as.integer(tag), as.integer(comm), as.integer(request),
     PACKAGE = "Rmpi"))
@@ -344,7 +358,7 @@ mpi.request.maxsize <- function()
         as.integer(x),
         as.double(x),
         as.character(x),
-	as.raw(x))
+    as.raw(x))
 }
 .mpi.serialize<- function(obj){
     trans_obj=serialize(obj,NULL)

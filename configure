@@ -2629,6 +2629,11 @@ if  [ "$MPI_ROOT" = "" ] ; then
       MPI_ROOT=$d
   	  MPITYPE="OPENMPI"
       break
+    elif test -f $d/openmpi/include/mpi.h && test -d $d/openmpi/lib; then
+      echo "I am here $d/openmpi and it is OpenMPI"
+      MPI_ROOT=$d/openmpi
+          MPITYPE="OPENMPI"
+      break
    elif test -f $d/lam/include/mpi.h && test -f $d/lam/lib/libmpi.so; then
       echo "I am here $d/lam and it is LAM"
       MPI_ROOT=$d/lam

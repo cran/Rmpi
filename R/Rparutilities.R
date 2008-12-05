@@ -98,7 +98,7 @@ mpi.spawn.Rslaves <-
       #  Rslavecmd<-ifelse(.Platform$OS=="windows","Rslalves.cmd","Rslaves.sh")
     if (.Platform$OS=="windows"){
         workdrive <- unlist(strsplit(getwd(),":"))[1]
-		workdir <- paste(unlist(strsplit(getwd(),"/")),collapse="\\")
+        workdir <- paste(unlist(strsplit(getwd(),"/")),collapse="\\")
         tmpdrive <- unlist(strsplit(tempdir(),":"))[1]
         worktmp <- as.logical(toupper(workdrive)==toupper(tmpdrive))
         tmpdir <- unlist(strsplit(tempdir(),"/Rtmp"))[1]
@@ -230,7 +230,7 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
                 out <- as.list(integer(size-1))
                 names(out) <- paste("slave",1:(size-1), sep="")
                 for (i in 1:(size-1))
-            		out[[i]]<- out1[lowlen[i]:uplen[i]]
+                    out[[i]]<- out1[lowlen[i]:uplen[i]]
         }
     }
 
@@ -354,23 +354,24 @@ tailslave.log <- function(nlines=3,comm=1){
 
 mpi.apply <- function(x, fun, ...,  comm=1){
     n <- length(x)
-    if (mpi.comm.size(comm)-1 < n)
+    nslaves <- mpi.comm.size(comm)-1
+     if (nslaves < n)
         stop("data length must be at most total slave size")
     if (!is.function(fun))
         stop("fun is not a function")
-    if (length(list(...)) > 0) 
-        deparse(list(...))
-    tag <- floor(runif(1,1,1000))
+    length(list(...)) #test for any non existing R objects
+    tag <- floor(runif(1,1,1000))    
     mpi.bcast.cmd(.mpi.slave.apply(),comm=comm)
     mpi.bcast(as.integer(c(tag,n)),type=1,comm=comm)
-    
-    for (i in 1:n)
-        mpi.send.Robj(list(fun=fun, data.arg=c(list(x[[i]]),list(...))),
-            dest=i,tag=tag, comm=comm)
+    mpi.bcast.Robj(list(fun=fun,dot.arg=list(...)),rank=0,comm=comm)
+    if (n < nslaves)
+        x=c(x,as.list(integer( nslaves-n)))
+    mpi.scatter.Robj(c(list("master"),as.list(x)),root=0,comm=comm)
+
     out <- as.list(integer(n))
     for (i in 1:n){
        tmp<- mpi.recv.Robj(mpi.any.source(),tag,comm)
-       src <- mpi.get.sourcetag()[1] 
+       src <- mpi.get.sourcetag()[1]
        out[[src]]<- tmp
     }
     out
@@ -381,14 +382,12 @@ mpi.apply <- function(x, fun, ...,  comm=1){
     tag.n <- mpi.bcast(integer(2), type=1, comm=.comm)
     tag <- tag.n[1]
     n <- tag.n[2]
-
+    tmpfunarg <- mpi.bcast.Robj(rank=0, comm=.comm)
+    .tmpfun <- tmpfunarg$fun
+    dotarg <- tmpfunarg$dot.arg
+    tmpdata.arg <- list(mpi.scatter.Robj(root=0,comm=.comm))
     if (mpi.comm.rank(.comm) <= n){
-        tmpdata <- mpi.recv.Robj(source=0,tag=tag, comm=.comm)
-        .tmpfun <- tmpdata$fun
-        out <- try(do.call(".tmpfun", tmpdata$data.arg),TRUE)
-        #if (.mpi.err)
-        #    print(geterrmessage())
-        
+        out <- try(do.call(".tmpfun", c(tmpdata.arg, dotarg)),TRUE)
         mpi.send.Robj(out,0,tag,.comm)
     }
 }
@@ -549,15 +548,14 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
     slave.num <- mpi.comm.size(comm)-1
     if (slave.num < 1)
         stop("There are no slaves running")
-    if (!is.function(fun))
-        stop("fun is not a function")
-    if (length(list(...)) > 0) 
-        deparse(list(...))
     if (n <= slave.num) {
         if (exists(".mpi.applyLB")) 
             rm(.mpi.applyLB,  envir=.GlobalEnv)
         return (mpi.apply(x,fun,...,comm=comm))
     }    
+    if (!is.function(fun))
+        stop("fun is not a function")
+    length(list(...))
     slave.num <- mpi.comm.size(comm)-1
     if (!is.null(apply.seq))
         if (!is.integer(apply.seq))
@@ -712,13 +710,13 @@ mpi.parApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
     dim(newX) <- c(prod(d.call), d2)
     if(length(d.call) < 2) {
         if (length(dn.call)) dimnames(newX) <- c(dn.call, list(NULL))
-        ans <- mpi.parLapply(1:d2, function(i) FUN(newX[,i], ...), 
-                    job.num = job.num, apply.seq=apply.seq, comm=comm )
+        ans <- mpi.parLapply(1:d2, function(i, ...) FUN(newX[,i], ...), 
+                ..., job.num = job.num, apply.seq=apply.seq, comm=comm )
     } 
     else
         ans <- mpi.parLapply(1:d2,
-            function(i) FUN(array(newX[,i], d.call, dn.call), ...),
-                    job.num = job.num, apply.seq=apply.seq, comm=comm)
+            function(i, ...) FUN(array(newX[,i], d.call, dn.call), ...),
+                ..., job.num = job.num, apply.seq=apply.seq, comm=comm)
                     
     ans.list <- is.recursive(ans[[1]])
     l.ans <- length(ans[[1]])
@@ -746,4 +744,3 @@ mpi.parApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
 }
 
 mpi.parallel.sim <- mpi.parSim
-
