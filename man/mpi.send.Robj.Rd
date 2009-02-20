@@ -30,10 +30,10 @@ mpi.recv.Robj(source, tag, comm = 1, status = 0)
 } 
 \details{
    \code{mpi.send.Robj} and \code{mpi.isend.Robj} use 
-\code{\link[serialize]{serialize}} to encode  an R object into a binary 
+\code{serialize} to encode  an R object into a binary 
 char vector. It sends the message to the destination. The receiver 
 decode the message back into an R object by using  
-\code{\link[serialize]{unserialize}}. 
+\code{unserialize}. 
 
 If \code{mpi.isend.Robj} is used, \code{mpi.wait} or \code{mpi.test} must 
 be used to check the object has been sent.
@@ -49,8 +49,8 @@ Hao Yu
   \code{\link{mpi.send}},
   \code{\link{mpi.recv}},
   \code{\link{mpi.wait}},
-  \code{\link[serialize]{serialize}},
-  \code{\link[serialize]{unserialize}}, 
+  \code{\link{serialize}},
+  \code{\link{unserialize}}, 
 }
 %\examples{
 %}

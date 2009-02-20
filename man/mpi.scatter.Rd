@@ -52,7 +52,8 @@ Hao Yu
   scounts<-c(2,3,1,7)
   mpi.bcast.cmd(strnum<-mpi.scatter(integer(1),type=1,rdata=integer(1),root=0))
   strnum<-mpi.scatter(scounts,type=1,rdata=integer(1),root=0)
-  mpi.bcast.cmd(ans <- mpi.scatterv(string(1),scounts=0,type=3,rdata=string(strnum),root=0))
+  mpi.bcast.cmd(ans <- mpi.scatterv(string(1),scounts=0,type=3,rdata=string(strnum),
+					root=0))
   mpi.scatterv(as.character(num),scounts=scounts,type=3,rdata=string(strnum),root=0)
   mpi.remote.exec(ans)
 }

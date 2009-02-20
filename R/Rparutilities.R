@@ -536,12 +536,19 @@ mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
     structure(split(x, cut(x, intv)), names = NULL)
 }
 
-#mpi.parMM <- function(A, B, comm=1){
-#    splitRows <- function(x, ncl)
-#        lapply(.splitIndices(nrow(x), ncl), function(i) x[i,, drop=F])    
-#    .docall(rbind, mpi.apply(splitRows(A, mpi.comm.size(comm)-1), 
-#        get("%*%"), B, comm=comm))
-#}    
+mpi.parMM <- function(A, B, job.num=mpi.comm.size(comm)-1, comm=1){
+    splitRows <- function(x, ncl)
+        lapply(.splitIndices(nrow(x), ncl), function(i) x[i,, drop=FALSE])    
+    .docall(rbind, mpi.applyLB(splitRows(A, job.num), 
+        get("%*%"), B, comm=comm))
+}
+    
+mpi.iparMM <- function(A, B, comm=1, sleep=0.001){
+    splitRows <- function(x, ncl)
+        lapply(.splitIndices(nrow(x), ncl), function(i) x[i,, drop=FALSE])    
+    .docall(rbind, mpi.iapply(splitRows(A, mpi.comm.size(comm)-1), 
+        get("%*%"), B, comm=comm, sleep=sleep))
+}    
 
 mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
     n <- length(x)
@@ -648,7 +655,7 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
     mpi.anysource <- mpi.any.source()
     mpi.anytag <- mpi.any.tag()
     for (i in 1:slave.num)
-        mpi.send.Robj(list(data.arg=list(x[[i]])), dest=i,tag=i,cmm=comm)
+        mpi.send.Robj(list(data.arg=list(x[[i]])), dest=i,tag=i,comm=comm)
     #for (i in 1:slave.num)
     #    mpi.waitany(slave.num)
 

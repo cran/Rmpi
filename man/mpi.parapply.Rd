@@ -6,6 +6,7 @@
 \alias{mpi.parRapply}
 \alias{mpi.parCapply}
 \alias{mpi.parReplicate}
+\alias{mpi.parMM}
 \title{(Load balancing) parallel apply}
 \description{
 (Load balancing) parallel\code{lapply} and related functions. 
@@ -14,12 +15,17 @@
 mpi.applyLB(x, fun, ..., apply.seq=NULL, comm=1)
 mpi.parApply(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
                     apply.seq=NULL, comm=1)
-mpi.parLapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, comm=1)  
-mpi.parSapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, simplify=TRUE, 
-		USE.NAMES = TRUE, comm=1)  
-mpi.parRapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, comm=1)  
-mpi.parCapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, comm=1)  
-mpi.parReplicate(n, expr, job.num=mpi.comm.size(comm)-1, apply.seq=NULL, simplify = TRUE, comm=1)
+mpi.parLapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
+		comm=1)  
+mpi.parSapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
+		simplify=TRUE, USE.NAMES = TRUE, comm=1)  
+mpi.parRapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
+		comm=1)  
+mpi.parCapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
+		comm=1)  
+mpi.parReplicate(n, expr, job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
+		simplify = TRUE, comm=1)
+mpi.parMM (A, B, job.num=mpi.comm.size(comm)-1, comm=1)
 }
 \arguments{
   \item{x}{an array or matrix.}
@@ -30,6 +36,8 @@ mpi.parReplicate(n, expr, job.num=mpi.comm.size(comm)-1, apply.seq=NULL, simplif
   \item{USE.NAMES}{logical; if \code{TRUE} and if \code{x} is character, use \code{x} as
           \code{names} for the result unless it had names already.}
   \item{n}{number of replications.}
+  \item{A}{a matrix}
+  \item{B}{a matrix}
   \item{expr}{expression to evaluate repeatedly.}
   \item{job.num}{Total job numbers. If job numbers is bigger than total slave numbers (default 
 value), a load balancing approach is used.}
@@ -47,10 +55,10 @@ saved into \code{.mpi.applyLB}. It keeps track which part of results done by whi
 used and the argument \code{apply.seq} is equal to \code{.mpi.applyLB}.
  
 With the default value of argument \code{job.num} which is slave.num, \code{mpi.parApply}, 
-\code{mpi.parLapply}, \code{mpi.parSapply}, \code{mpi.parRapply}, \code{mpi.parCapply}, and 
-\code{mpi.parSapply} are clones of \pkg{snow}'s parApply, parLappy, parSapply, parRapply, parCapply, 
-and parSapply, respectively. When \code{job.num} is bigger than slave.num, a load balancing approach 
-is used.
+\code{mpi.parLapply}, \code{mpi.parSapply}, \code{mpi.parRapply}, \code{mpi.parCapply}, 
+\code{mpi.parSapply}, and \code{mpi.parMM} are clones of \pkg{snow}'s parApply, parLappy, 
+parSapply, parRapply, parCapply, parSapply, and parMM, respectively. When \code{job.num} is 
+bigger than slave.num, a load balancing approach is used.
  }
 \section{Warning}{
 When using the argument \code{apply.seq} with \code{.mpi.applyLB}, be sure all settings are the same 
@@ -86,6 +94,10 @@ mpi.parLapply(mdat, rnorm)
 
 #mpi.parSapply
 mpi.parSapply(mdat, rnorm) 
+
+#mpi.parMM
+A=matrix(1:1000^2,ncol=1000)
+mpi.parMM(A,A)
 }
 }
 \keyword{utilities}

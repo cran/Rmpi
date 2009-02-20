@@ -955,7 +955,7 @@ SEXP mpi_comm_rank(SEXP sexp_comm){
 
 SEXP mpi_comm_dup(SEXP sexp_comm, SEXP sexp_newcomm){
     int commn=INTEGER(sexp_comm)[0], newcommn=INTEGER(sexp_newcomm)[0];
-    if (comm==0)
+    if (commn==0)
         return AsInt(erreturn(mpi_errhandler(MPI_Comm_dup(MPI_COMM_WORLD,
                 &comm[newcommn]))));
     else

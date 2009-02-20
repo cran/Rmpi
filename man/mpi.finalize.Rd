@@ -14,7 +14,7 @@
   Always return 1
 }
 \details{
-  This routines must be called by each slave (master) before it exists. This 
+  This routines must be called by each slave (master) before it exits. This 
   call cleans all MPI state. Once \code{mpi.finalize} has been called, no MPI 
   routine may be called. To be more safe leaving MPI, please use 
   \code{\link{mpi.exit}} which not only calls \code{mpi.finalize} but also 
