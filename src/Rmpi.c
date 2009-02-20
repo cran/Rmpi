@@ -52,6 +52,7 @@ SEXP mpi_initialize(){
 	int i,flag;
 	MPI_Initialized(&flag);
 
+
 #ifndef MPI2
         static int fake_argc = 1;
        	char *fake_argv[1];
@@ -63,15 +64,15 @@ if (flag)
 	else {
 
 #ifdef OPENMPI
-	dlopen("libmpi.so.0", RTLD_GLOBAL);
+	dlopen("libmpi.so.0", RTLD_GLOBAL | RTLD_LAZY);
 #endif
 	
 #ifndef MPI2
    	fake_argv[0] = (char *)&fake_argv0;
        	MPI_Init(&fake_argc, (char ***)(void*)&fake_argv);
-#else
+#else 
 	MPI_Init((void *)0,(void *)0);
-#endif
+#endif 
 
 		MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 		MPI_Errhandler_set(MPI_COMM_SELF, MPI_ERRORS_RETURN);
@@ -86,7 +87,7 @@ if (flag)
 		for (i=1;i < COMM_MAXSIZE; comm[i++]=MPI_COMM_NULL);
 
 		return AsInt(1);
-	}
+	} 
 }
 
 SEXP mpi_finalize(){

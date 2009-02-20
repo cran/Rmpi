@@ -392,6 +392,41 @@ mpi.apply <- function(x, fun, ...,  comm=1){
     }
 }
 
+mpi.iapply <- function(x, fun, ...,  comm=1, sleep=0.001){
+    n <- length(x)
+    nslaves <- mpi.comm.size(comm)-1
+     if (nslaves < n)
+        stop("data length must be at most total slave size")
+    if (!is.function(fun))
+        stop("fun is not a function")
+    length(list(...)) #test for any non existing R objects
+    tag <- floor(runif(1,1,1000))    
+    mpi.bcast.cmd(.mpi.slave.apply(),comm=comm)
+    mpi.bcast(as.integer(c(tag,n)),type=1,comm=comm)
+    mpi.bcast.Robj(list(fun=fun,dot.arg=list(...)),rank=0,comm=comm)
+    if (n < nslaves)
+        x=c(x,as.list(integer( nslaves-n)))
+    mpi.scatter.Robj(c(list("master"),as.list(x)),root=0,comm=comm)
+
+    out <- as.list(integer(n))
+    done=0
+	anysource=mpi.any.source()
+    repeat {
+       if (mpi.iprobe(anysource,tag,comm)){ 
+       srctag <- mpi.get.sourcetag()
+       charlen <- mpi.get.count(type=4)
+           tmp <- .mpi.unserialize(mpi.recv(x = raw(charlen), type = 4, srctag[1], 
+            srctag[2], comm))
+           out[[srctag[1]]]<- tmp
+       done=done+1
+       }
+       if (done < n)
+       Sys.sleep(sleep)
+       else break
+    }
+    out
+}
+
 mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL, 
             statistic, nsim=100, run=1, slaveinfo=FALSE, sim.seq=NULL,
             simplify=TRUE, comm=1, ...){
@@ -501,47 +536,12 @@ mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
     structure(split(x, cut(x, intv)), names = NULL)
 }
 
-#mpi.parLapply <- function(x, fun, ...,comm=1){
-#    splitList <- function(x, ncl)
-#        lapply(.splitIndices(length(x), ncl), function(i) x[i])
-#    .docall(c, mpi.apply(splitList(x, mpi.comm.size(comm)-1), 
-#        lapply, fun, ...,comm=comm))
-#}
-
-#mpi.parRapply <- function(x, fun, ..., comm=1){
-#    splitRows <- function(x, ncl)
-#        lapply(.splitIndices(nrow(x), ncl), function(i) x[i,, drop=F])
-#    .docall(c, mpi.apply(splitRows(x,mpi.comm.size(comm)-1), 
-#        apply, 1, fun, ..., comm=comm))
-#}
-
-#mpi.parCapply <- function(x, fun, ..., comm=1){
-#    splitCols <- function(x, ncl)
-#        lapply(.splitIndices(ncol(x), ncl), function(i) x[,i, drop=F])
-#    .docall(c, mpi.apply(splitCols(x,mpi.comm.size(comm)-1), 
-#        apply, 2, fun, ..., comm=comm))
-#}
-
 #mpi.parMM <- function(A, B, comm=1){
 #    splitRows <- function(x, ncl)
 #        lapply(.splitIndices(nrow(x), ncl), function(i) x[i,, drop=F])    
 #    .docall(rbind, mpi.apply(splitRows(A, mpi.comm.size(comm)-1), 
 #        get("%*%"), B, comm=comm))
 #}    
-
-#mpi.parSapply <- function (x, fun, ..., simplify = TRUE, USE.NAMES = TRUE, comm=1) 
-#{
-#    FUN <- match.fun(fun)
-#    answer <- mpi.parLapply(as.list(x), FUN, ..., comm=comm)
-#    if (USE.NAMES && is.character(x) && is.null(names(answer))) 
-#        names(answer) <- x
-#    .simplify(length(x),answer, simplify)
-#}
-
-#mpi.parReplicate <- function(n, expr, simplify = TRUE, comm=1){
-#    mpi.parSapply(integer(n), eval.parent(substitute(function(...) expr)), 
-#    simplify = simplify, comm=comm)
-#}
 
 mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
     n <- length(x)
@@ -556,7 +556,6 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
     if (!is.function(fun))
         stop("fun is not a function")
     length(list(...))
-    slave.num <- mpi.comm.size(comm)-1
     if (!is.null(apply.seq))
         if (!is.integer(apply.seq))
             stop("apply.seq is not an integer vector")
@@ -620,6 +619,109 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
     }
 }
 
+mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
+    n <- length(x)
+    slave.num <- mpi.comm.size(comm)-1
+    if (slave.num < 1)
+        stop("There are no slaves running")
+    if (n <= slave.num) {
+        if (exists(".mpi.applyLB"))
+            rm(.mpi.applyLB,  envir=.GlobalEnv)
+        return (mpi.iapply(x,fun,...,comm=comm,sleep=sleep))
+    }
+    if (!is.function(fun))
+        stop("fun is not a function")
+    if (slave.num > 10000)
+        stop("Total slaves are more than nonblock send/receive can handle")
+    length(list(...))
+    if (!is.null(apply.seq))
+        if (!is.integer(apply.seq))
+            stop("apply.seq is not an integer vector")
+        else if (min(apply.seq)<1 && max(apply.seq)>slave.num &&
+                length(apply.seq)!=n)
+            stop("apply.seq is not in right order")
+
+    mpi.bcast.cmd(.mpi.slave.applyLB(),comm=comm)
+    mpi.bcast(as.integer(n),type=1,comm=comm)
+    mpi.bcast.Robj(list(fun=fun,dot.arg=list(...)),rank=0,comm=comm)
+    out <- as.list(integer(n))
+    mpi.anysource <- mpi.any.source()
+    mpi.anytag <- mpi.any.tag()
+    for (i in 1:slave.num)
+        mpi.send.Robj(list(data.arg=list(x[[i]])), dest=i,tag=i,cmm=comm)
+    #for (i in 1:slave.num)
+    #    mpi.waitany(slave.num)
+
+    if (!is.null(apply.seq)){
+       i=0
+       repeat {
+        if (mpi.iprobe(apply.seq[i+1],mpi.anytag,comm)){
+            i=i+1
+            j <- i+slave.num
+            if ( j <= n)
+                mpi.send.Robj(list(data.arg=list(x[[j]])), dest=apply.seq[i],tag=j, comm=comm) 
+            else
+                mpi.send.Robj(as.integer(0),dest=apply.seq[i],tag=j,comm=comm)  
+            charlen <- mpi.get.count(type=4)
+            tag <- mpi.get.sourcetag()[2]
+            tmp <- .mpi.unserialize(mpi.recv(x = raw(charlen), type = 4, apply.seq[i], tag, comm))
+            out[[tag]]<- tmp
+            #mpi.wait(0)
+        }
+      if (i < n)
+         Sys.sleep(sleep)
+      else break
+      }
+      return(out)
+    }
+    .mpi.applyLB <<- integer(n)
+    i=0
+    repeat {
+        if (mpi.iprobe(mpi.anysource,mpi.anytag,comm)){
+            i=i+1
+            srctag <- mpi.get.sourcetag()
+            src <- srctag[1]
+            tag <- srctag[2]
+            j <- i+slave.num
+            if ( j <= n)
+                mpi.send.Robj(list(data.arg=list(x[[j]])), dest=src,tag=j, comm=comm)
+            else
+                mpi.send.Robj(as.integer(0),dest=src,tag=j,comm=comm)
+            charlen <- mpi.get.count(type=4)
+            tmp <- .mpi.unserialize(mpi.recv(x = raw(charlen), type = 4, src, tag, comm))
+            out[[tag]]<- tmp
+            .mpi.applyLB[i] <<- src
+            #mpi.wait(src-1)
+        }
+        if (i < n)
+            Sys.sleep(sleep)
+        else
+            break
+    }
+    out
+}
+
+#.mpi.slave.iapplyLB <- function(){
+#    assign(".mpi.err", FALSE,  env = .GlobalEnv)
+#    n <- mpi.bcast(integer(1), type=1, comm=.comm)
+#    tmpfunarg <- mpi.bcast.Robj(rank=0, comm=.comm)
+#    .tmpfun <- tmpfunarg$fun
+#    dotarg <- tmpfunarg$dot.arg
+#    mpi.anytag <- mpi.any.tag()
+#    repeat {
+#        tmpdata.arg <- mpi.recv.Robj(source=0,tag=mpi.anytag, comm=.comm)$data.arg
+#        tag <- mpi.get.sourcetag()[2]
+#        if (tag > n)
+#            break
+#        out <- try(do.call(".tmpfun", c(tmpdata.arg, dotarg)),TRUE)
+#        #if (.mpi.err)
+#        #    print(geterrmessage())
+#        mpi.wait(0)
+#        mpi.isend.Robj(out,0,tag,.comm)
+#    }
+#    mpi.wait(0)
+#}
+
 .simplify <- function(n, answer, simplify, len=1, recursive=FALSE){
     if (simplify && length(answer)&&length(common.len <- unique(unlist(lapply(answer, 
         length)))) == 1 ) {
@@ -643,11 +745,30 @@ mpi.parLapply <- function(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=
         lapply, fun, ..., apply.seq=apply.seq, comm=comm))
 }
 
+mpi.iparLapply <- function(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, comm=1, sleep=0.001){
+    if (job.num < 2)
+        stop("job.num is at least 2.")
+    splitList <- function(x, ncl)
+        lapply(.splitIndices(length(x), ncl), function(i) x[i])
+    .docall(c, mpi.iapplyLB(splitList(x, job.num), 
+        lapply, fun, ..., apply.seq=apply.seq, comm=comm, sleep=sleep))
+}
+
 mpi.parSapply <- function (x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
                 simplify = TRUE, USE.NAMES = TRUE, comm=1) 
 {
     FUN <- match.fun(fun)
     answer <- mpi.parLapply(as.list(x),FUN,...,job.num=job.num,apply.seq=apply.seq,comm=comm)
+    if (USE.NAMES && is.character(x) && is.null(names(answer))) 
+        names(answer) <- x
+    .simplify(length(x),answer, simplify)
+}
+
+mpi.iparSapply <- function (x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
+                simplify = TRUE, USE.NAMES = TRUE, comm=1,sleep=0.001) 
+{
+    FUN <- match.fun(fun)
+    answer <- mpi.iparLapply(as.list(x),FUN,...,job.num=job.num,apply.seq=apply.seq,comm=comm,sleep=sleep)
     if (USE.NAMES && is.character(x) && is.null(names(answer))) 
         names(answer) <- x
     .simplify(length(x),answer, simplify)
@@ -659,6 +780,12 @@ mpi.parReplicate <- function(n,  expr, job.num=mpi.comm.size(comm)-1, apply.seq=
     job.num=job.num, apply.seq=apply.seq, simplify = simplify, comm=comm)
 }
 
+mpi.iparReplicate <- function(n,  expr, job.num=mpi.comm.size(comm)-1, apply.seq=NULL,
+                                simplify = TRUE, comm=1,sleep=0.001){
+    mpi.iparSapply(integer(n), eval.parent(substitute(function(...) expr)), 
+    job.num=job.num, apply.seq=apply.seq, simplify = simplify, comm=comm,sleep=sleep)
+}
+
 mpi.parRapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL,comm=1){
     if (job.num < 2)
         stop("job.num is at least 2.")
@@ -668,6 +795,15 @@ mpi.parRapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL
             apply.seq=apply.seq, comm=comm))
 }
 
+mpi.iparRapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL,comm=1,sleep=0.001){
+    if (job.num < 2)
+        stop("job.num is at least 2.")
+    splitRows <- function(x, ncl)
+        lapply(.splitIndices(nrow(x), ncl), function(i) x[i,, drop=FALSE])
+    .docall(c, mpi.iapplyLB(splitRows(x,job.num), apply, 1, fun, ..., 
+            apply.seq=apply.seq, comm=comm,sleep=sleep))
+}
+
 mpi.parCapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL,comm=1){
     if (job.num < 2)
         stop("job.num is at least 2.")
@@ -675,6 +811,15 @@ mpi.parCapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL
         lapply(.splitIndices(ncol(x), ncl), function(i) x[,i, drop=FALSE])
     .docall(c, mpi.applyLB(splitCols(x,job.num), apply, 2, fun, ..., 
             apply.seq=apply.seq, comm=comm))
+}
+
+mpi.iparCapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL,comm=1,sleep=0.001){
+    if (job.num < 2)
+        stop("job.num is at least 2.")
+    splitCols <- function(x, ncl)
+        lapply(.splitIndices(ncol(x), ncl), function(i) x[,i, drop=FALSE])
+    .docall(c, mpi.iapplyLB(splitCols(x,job.num), apply, 2, fun, ..., 
+            apply.seq=apply.seq, comm=comm,sleep=sleep))
 }
 
 mpi.parApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
@@ -717,6 +862,72 @@ mpi.parApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
         ans <- mpi.parLapply(1:d2,
             function(i, ...) FUN(array(newX[,i], d.call, dn.call), ...),
                 ..., job.num = job.num, apply.seq=apply.seq, comm=comm)
+                    
+    ans.list <- is.recursive(ans[[1]])
+    l.ans <- length(ans[[1]])
+
+    ans.names <- names(ans[[1]])
+    if(!ans.list)
+        ans.list <- any(unlist(lapply(ans, length)) != l.ans)
+    if(!ans.list && length(ans.names)) {
+        all.same <- sapply(ans, function(x) identical(names(x), ans.names))
+        if (!all(all.same)) ans.names <- NULL
+    }
+    len.a <- if(ans.list) d2 else length(ans <- unlist(ans, recursive = FALSE))
+    if(length(MARGIN) == 1 && len.a == d2) {
+        names(ans) <- if(length(dn.ans[[1]])) dn.ans[[1]]
+        return(ans)
+    }
+    if(len.a == d2)
+        return(array(ans, d.ans, dn.ans))
+    if(len.a > 0 && len.a %% d2 == 0)
+        return(array(ans, c(len.a %/% d2, d.ans),
+                     if(is.null(dn.ans)) {
+                         if(!is.null(ans.names)) list(ans.names,NULL)
+                     } else c(list(ans.names), dn.ans)))
+    return(ans)
+}
+
+mpi.iparApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
+                    apply.seq=NULL, comm=1,sleep=0.001)
+{
+    FUN <- match.fun(fun)
+    d <- dim(x)
+    dl <- length(d)
+    if(dl == 0)
+    stop("dim(x) must have a positive length")
+    ds <- 1:dl
+
+    if(length(oldClass(x)) > 0)
+    x <- if(dl == 2) as.matrix(x) else as.array(x)
+    dn <- dimnames(x)
+
+    s.call <- ds[-MARGIN]
+    s.ans  <- ds[MARGIN]
+    d.call <- d[-MARGIN]
+    d.ans  <- d[MARGIN]
+    dn.call<- dn[-MARGIN]
+    dn.ans <- dn[MARGIN]
+
+    d2 <- prod(d.ans)
+    if(d2 == 0) {
+        newX <- array(vector(typeof(x), 1), dim = c(prod(d.call), 1))
+        ans <- FUN(if(length(d.call) < 2) newX[,1] else
+                   array(newX[,1], d.call, dn.call), ...)
+        return(if(is.null(ans)) ans else if(length(d.call) < 2) ans[1][-1]
+               else array(ans, d.ans, dn.ans))
+    }
+    newX <- aperm(x, c(s.call, s.ans))
+    dim(newX) <- c(prod(d.call), d2)
+    if(length(d.call) < 2) {
+        if (length(dn.call)) dimnames(newX) <- c(dn.call, list(NULL))
+        ans <- mpi.iparLapply(1:d2, function(i, ...) FUN(newX[,i], ...), 
+                ..., job.num = job.num, apply.seq=apply.seq, comm=comm, sleep=sleep )
+    } 
+    else
+        ans <- mpi.iparLapply(1:d2,
+            function(i, ...) FUN(array(newX[,i], d.call, dn.call), ...),
+                ..., job.num = job.num, apply.seq=apply.seq, comm=comm, sleep=sleep)
                     
     ans.list <- is.recursive(ans[[1]])
     l.ans <- length(ans[[1]])
