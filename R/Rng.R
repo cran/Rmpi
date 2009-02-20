@@ -57,7 +57,7 @@ mpi.setup.rngstream <- function(seed=c(runif(3,0,2^32-210),runif(3,0,2^32-22854)
         stop("Can be run only on master")
     .lec.init()
     .lec.SetPackageSeed(seed)
-    names <- as.character(1:(commsize-1))
+    names <- as.character(0:(commsize-1))
     .lec.CreateStream(names)
     states <- lapply(names, .lec.GetStateList)
     
@@ -85,7 +85,8 @@ mpi.setup.rngstream <- function(seed=c(runif(3,0,2^32-210),runif(3,0,2^32-22854)
 
         .lec.CurrentStream(stream$name)
     }
-    invisible(mpi.apply(states, initRNGstreamNode,comm=comm))
+	initRNGstreamNode(states[[1]])
+    invisible(mpi.apply(states[-1], initRNGstreamNode,comm=comm))
 }
 
 mpi.setup.sprng <- function (seed = runif(1, 1, 2^31-1),

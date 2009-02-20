@@ -43,6 +43,13 @@ xx <- list("master",rnorm(3),letters[2],1:10)
 mpi.scatter.Robj(obj=xx)
 
 mpi.remote.exec(x)
+
+#scatter a matrix to slaves
+dat=matrix(1:24,ncol=3)
+splitmatrix = function(x, ncl) lapply(.splitIndices(nrow(x), ncl), function(i) x[i,])
+dat2=splitmatrix(dat,3)
+mpi.scatter.Robj2slave(dat2)
+mpi.remote.exec(dat2)
 }
 }
 \keyword{utilities}

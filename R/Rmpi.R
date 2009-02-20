@@ -76,18 +76,10 @@ mpi.universe.size <- function(){
 	    else {
 			if (.Platform$OS=="windows") {
 		    	out <- length(mpichhosts())-1
-				if  (out==0)
-					repeat {
-						out <- out+1
-						cpus=length(.Call("RegQuery", as.integer(3), 
-						paste("HARDWARE\\DESCRIPTION\\System\\CentralProcessor", out,sep="\\"), PACKAGE="Rmpi") )
-						if (cpus==0)
-							break
-					}
 			}
 	    }		
 	}
-	if (.Platform$OS!="windows")
+	if (.Call("mpidist",PACKAGE="Rmpi") == 2)
 	    out <- out-length(grep("no_schedule",system("lamnodes",TRUE,ignore.stderr=TRUE)))
 	out
 }

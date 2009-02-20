@@ -45,6 +45,10 @@ SEXP mpidist(){
 	i=3;
 #endif
 
+#ifdef MPICH2
+	i=4;
+#endif
+
 	return AsInt(i);	
 }
 

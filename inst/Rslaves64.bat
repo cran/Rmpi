@@ -17,7 +17,7 @@ if not errorlevel 0 set FirstOne=FALSE
 
 :next
 cd /D %WDir%
-%R_HOME%\bin\Rterm.exe --no-init-file --no-save --slave < %Rscript%
+%R_HOME%\bin\x64\Rterm.exe --no-init-file --no-save --slave < %Rscript%
 
 if %FirstOne%==FALSE goto end 
 net use /delete %WDrive%:
@@ -25,11 +25,11 @@ goto:eof
 
 :last
 if %Master% == %COMPUTERNAME% (
-%R_HOME%\bin\Rterm.exe --no-init-file --no-save --slave < %Rscript%
+%R_HOME%\bin\x64\Rterm.exe --no-init-file --no-save --slave < %Rscript%
 goto:eof 
 )
 
 cd /D %TMP%
-%R_HOME%\bin\Rterm.exe --no-init-file --no-save --slave < %Rscript%
+%R_HOME%\bin\x64\Rterm.exe --no-init-file --no-save --slave < %Rscript%
 
 :end

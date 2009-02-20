@@ -77,7 +77,8 @@ AC_PROG_CC
 
 
 if test -z "$MPI_ROOT" ; then
-  for d in /opt/lib /usr/lib /usr /usr/local/lib /usr/local; do
+  for d in /opt/lib /usr/lib /usr /usr/local/lib /usr/local \
+          /usr/lib64/mpi/gcc/openmpi; do
     if test -f $d/include/mpi.h && test -d $d/lib/openmpi; then
       echo "I am here $d and it is OpenMPI"
       MPI_ROOT=$d
@@ -100,6 +101,12 @@ if test -z "$MPI_ROOT" ; then
       MPI_ROOT=$d/openmpi
       MPITYPE="OPENMPI"
       MPI_INCLUDE_PATH=$d/include/openmpi
+      break
+    elif test -f $d/include/mpi.h && test -d $d/lib64; then
+      echo "I am here $d and it is OpenMPI"
+      MPI_ROOT=$d
+      MPITYPE="OPENMPI"
+      MPI_INCLUDE_PATH=$d/include
       break
    elif test -f $d/lam/include/mpi.h && test -f $d/lam/lib/libmpi.so; then
       echo "I am here $d/lam and it is LAM"
@@ -192,6 +199,9 @@ elif test -f ${MPI_ROOT}/lib/openmpi/libmpi.so; then
 elif test -f ${MPI_ROOT}/lib64/openmpi/libmpi.so; then
         echo "Found libmpi in ${MPI_ROOT}/lib64/openmpi"
         MPI_LIBPATH="${MPI_ROOT}/lib64/openmpi"
+elif test -f ${MPI_ROOT}/lib64/libmpi.so; then
+        echo "Found libmpi in ${MPI_ROOT}/lib64"
+        MPI_LIBPATH="${MPI_ROOT}/lib64"		
 elif test -f ${MPI_ROOT}/lib/lam/libmpi.so; then
         echo "Found libmpi in ${MPI_ROOT}/lib/lam"
         MPI_LIBPATH="${MPI_ROOT}/lib/lam"
@@ -200,7 +210,7 @@ elif test -f ${MPI_ROOT}/lib64/lam/libmpi.so; then
         echo "Found libmpi in ${MPI_ROOT}/lib64/lam"
         MPI_LIBPATH="${MPI_ROOT}/lib64/lam"
 	MPI_INCL2="-I${MPI_INCLUDE_PATH}/64"
-elif test -f ${MPI_ROOT}/lib/libmpich.a; then
+elif test -f ${MPI_ROOT}/lib/libmpich.so; then
         echo "Found libmpich in ${MPI_ROOT}/lib"
         MPI_LIBPATH="${MPI_ROOT}/lib"
 	AC_CHECK_DECLS([MPICH2, MPICH2],[  MPI_DEFS="-DMPI2" ],, 
@@ -242,7 +252,7 @@ fi dnl end of 'paths not specified'
 AC_CHECK_LIB(util, openpty, [ MPI_LIBS="$MPI_LIBS -lutil" ])
 AC_CHECK_LIB(pthread, main, [ MPI_LIBS="$MPI_LIBS -lpthread" ])
 
-if test "$MPITYPE" = "OPENMPI" -o "$MPITYPE" = "LAM" ; then
+if test "$MPITYPE" = "OPENMPI" -o "$MPITYPE" = "LAM" -o "$MPITYPE" = "MPICH2"; then
   MPI_DEFS="-DMPI2"
 fi
 
@@ -255,6 +265,9 @@ case "$MPITYPE" in
     PKG_LIBS="-L${MPI_LIBPATH} -lmpi -llam ${MPI_LIBS}"
     ;;
   MPICH)
+    PKG_LIBS="-L${MPI_LIBPATH} -lmpich ${MPI_LIBS}"
+    ;;
+  MPICH2)
     PKG_LIBS="-L${MPI_LIBPATH} -lmpich ${MPI_LIBS}"
     ;;
   *)

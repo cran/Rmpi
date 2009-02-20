@@ -12,7 +12,7 @@ mpi.hostinfo <- function(comm=1){
         "on comm", comm, "\n")
 }
 
-slave.hostinfo <- function(comm=1){
+slave.hostinfo <- function(comm=1, short=TRUE){
     if (!mpi.is.master())
     stop("cannot run slavehostinfo on slaves")
     size <- mpi.comm.size(comm)
@@ -37,10 +37,23 @@ slave.hostinfo <- function(comm=1){
         cat(rank0, "of size", size, "is running on:",master, "\n")
         slavename <- paste("slave", ranks,sep="")
         ranks <- paste("(rank ",ranks, ", comm ",slavecomm,")", sep="")
-        for (i in 1:(size-1)){
+		if (short && size > 8){
+          for (i in 1:3) {
             cat(slavename[i], ranks[i], "of size",size, 
-        "is running on:",slavehost[i], "\n")
-        }
+          "is running on:",slavehost[i], "\n")	
+		  }
+		  cat("... ... ...\n")
+		  for (i in (size-2):(size-1)){
+		    cat(slavename[i], ranks[i], "of size",size, 
+          "is running on:",slavehost[i], "\n")
+		  }
+		}
+		else {
+          for (i in 1:(size-1)){
+            cat(slavename[i], ranks[i], "of size",size, 
+          "is running on:",slavehost[i], "\n")
+          }
+		}
     }
 }
 
@@ -55,29 +68,45 @@ lamhosts <- function(){
 }
 
 mpichhosts <- function(){
-    if (.Platform$OS!="windows")
-        stop("mpichhosts runs only under MPICH2 for Windows")    
-    hosts <- .Call("RegQuery",as.integer(3), "SOFTWARE\\MPICH\\SMPD", PACKAGE="Rmpi")
-    if (!is.null(hosts)){
-        hosts <- hosts[which(hosts=="hosts")+1] 
-        hosts <- unlist(strsplit(hosts," "))
-        hosts <- hosts[which(hosts != "")]
-        hostnames <- NULL
-        for (host in hosts){
-            hostsmp <-unlist(strsplit(host,":"))
-            smp <- ifelse(is.na(hostsmp[2]),1,as.integer(hostsmp[2]))
-            hostbase <- unlist(strsplit(hostsmp[1],"\\."))[1]
-            hostnames <- c(hostnames, rep(hostbase, smp))
-        }                
-    }
-    else 
-        hostnames <- "localhost"
+    if (.Platform$OS != "windows") 
+        stop("mpichhosts runs only under MPICH2 for Windows")
+    hosts <- system("smpd -get hosts", intern=TRUE)
+    
+    if (length(hosts) == 0) 
+	  hostnames <- "localhost"
+	else {
+		if (hosts=="default")
+		    hostnames <- "localhost"
+    	else	{ 
+        	hosts <- unlist(strsplit(hosts, " "))
+        	hosts <- hosts[which(hosts != "")]
+        	hostnames <- NULL
+        	for (host in hosts) {
+            	hostsmp <- unlist(strsplit(host, ":"))
+            	smp <- ifelse(is.na(hostsmp[2]), 1, as.integer(hostsmp[2]))
+            	hostbase <- unlist(strsplit(hostsmp[1], "\\."))[1]
+            	hostnames <- c(hostnames, rep(hostbase, smp))
+        	}
+    	}
+	}
     base <- "master"
-    if (length(hostnames) > 1)
-        base <- c(base,paste("slave",1:(length(hostnames)-1),sep=""))
-
+    if (length(hostnames) == 1) {
+	  out=0
+	  repeat {
+        	out <- out + 1
+            cpus = length(.Call("RegQuery", as.integer(3), 
+            paste("HARDWARE\\DESCRIPTION\\System\\CentralProcessor", 
+                   out, sep = "\\"), PACKAGE = "Rmpi"))
+            if (cpus == 0) 
+                break
+        }
+	  hostnames=c(hostnames,rep("localhost",out))
+    }
+    else
+	  hostnames = c("localhost", hostnames)
+    base <- c(base, paste("slave", 1:(length(hostnames)-1), sep = ""))
     names(hostnames) <- base
-    hostnames   
+    hostnames
 }
 
 mpi.spawn.Rslaves <- 
@@ -98,23 +127,25 @@ mpi.spawn.Rslaves <-
       #  Rslavecmd<-ifelse(.Platform$OS=="windows","Rslalves.cmd","Rslaves.sh")
     if (.Platform$OS=="windows"){
         workdrive <- unlist(strsplit(getwd(),":"))[1]
-        workdir <- paste(unlist(strsplit(getwd(),"/")),collapse="\\")
-        tmpdrive <- unlist(strsplit(tempdir(),":"))[1]
-        worktmp <- as.logical(toupper(workdrive)==toupper(tmpdrive))
-        tmpdir <- unlist(strsplit(tempdir(),"/Rtmp"))[1]
+		workdir <- unlist(strsplit(getwd(),"/"))
+		if (length(workdir) > 1)
+			workdir <-paste(workdir, collapse="\\")
+		else
+        	workdir <- paste(workdir,"\\")
         localhost <- Sys.getenv("COMPUTERNAME")
         networkdrive <-.Call("RegQuery", as.integer(2),paste("NETWORK\\",workdrive,sep=""), 
                         PACKAGE="Rmpi")
         remotepath <-networkdrive[which(networkdrive=="RemotePath")+1]
         mapdrive <- as.logical(mapdrive && !is.null(remotepath))
-        arg <- c(Rscript, R.home(), workdrive, workdir, worktmp, tmpdir, 
-                    localhost, mapdrive, remotepath)
-        realns<-mpi.comm.spawn(slave=system.file("Rslaves.bat", package="Rmpi"),
-        slavearg=arg,
-        nslaves=nslaves,
-        info=0,
-        root=root,
-        intercomm=intercomm)
+        arg <- c(Rscript, R.home(), workdrive, workdir, localhost, mapdrive, remotepath)
+		if (getRversion() >= "2.12.0")
+          realns <- mpi.comm.spawn(slave = system.file("Rslaves32.bat", 
+            package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
+            info = 0, root = root, intercomm = intercomm)
+		else 
+	  	  realns <- mpi.comm.spawn(slave = system.file("Rslaves.bat", 
+            package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
+            info = 0, root = root, intercomm = intercomm)
     }
     else{
         tmp <- paste(Sys.getpid(), "+", comm, sep="")   
@@ -325,10 +356,10 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
     }
     mpi.bcast.cmd(break, rank=0, comm=comm)
     if (.Platform$OS!="windows"){
-        if (dellog){
+        if (dellog && mpi.comm.size(0) < mpi.comm.size(comm)){
         tmp <- paste(Sys.getpid(),"+",comm,sep="")  
         logfile <- paste("*.",tmp,".*.log", sep="")
-        if (length(system(paste("ls", logfile),TRUE,ignore.stderr=TRUE))>=1)
+        if (length(system(paste("ls", logfile),TRUE,ignore.stderr=TRUE) )>=1)
             system(paste("rm", logfile))
         }
     }

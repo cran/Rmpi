@@ -24,11 +24,12 @@ host information in a comm.
 lamhosts()
 mpi.is.master()
 mpi.hostinfo(comm = 1)
-slave.hostinfo(comm = 1) 
+slave.hostinfo(comm = 1, short=TRUE) 
 mpichhosts()
 }
 \arguments{
  \item{comm}{a communicator number}
+ \item{short}{if true, a short form is printed}
 }
 \value{
   \code{lamhosts} returns CPUs nodes numbers with their host names.
@@ -38,7 +39,8 @@ mpichhosts()
   \code{mpi.hostinfo} sends to stdio a host name, rank, size and comm.
 
   \code{slave.hostname} sends to stdio a list of host, rank, size, and comm 
-information for all master and slaves.
+information for all master and slaves. With short=TRUE and 8 slaves or more, 
+the first 3 and last 2 slaves are shown.
 
   \code{mpichhosts} returns hostnames including multiple same hostname if a host 
 has multiple CPUs. The first host is labeled as "master", the rest is labeled as 

@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <mpi.h>
 #include <R.h>
 #include <Rdefines.h>
