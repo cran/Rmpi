@@ -67,7 +67,6 @@ mpi.exit		Call MPI_Finalize and detach Rmpi library
 mpi.gather.Robj		Gather any type of object to  a root process
 mpi.get.sourcetag	Get the source and tag for a given status
 mpi.hostinfo		Get the host information that the process is running
-mpi.init.sprng		MPI wrapper to initialize SPRNG in rsprng library
 mpi.is.master		TRUE if it is a master otherwise FALSE (slave)
 mpi.isend.Robj		Nonblocking send an R object to a specific process
 mpi.proc.null		Dummy source and destination
@@ -100,7 +99,6 @@ mpi.parSim		(Load balancing) parallel Monte Carlo simulation
 mpi.remote.exec		Run a command remotely on slaves and return 
 			results back to the master 
 mpi.setup.rngstream	Setup RNDstream (package rlecuyer) on all slaves
-mpi.setup.sprng		Setup SPRNG (package rsprng) on all slaves
 slave.hostinfo		Show all slave rank, comm, host information
 tailslave.log		Tail (view) last lines of slave log files
 *****************************************************************************

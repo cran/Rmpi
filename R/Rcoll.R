@@ -72,10 +72,10 @@ mpi.scatter.Robj2slave=function (obj, comm = 1) {
         rank = 0, comm = comm)
     mpi.scatter.Robj(obj=c(list("master"),obj), root = 0, comm = comm)
     mpi.bcast.cmd(cmd = assign(.tmpname$objname, .tmpRobj, 
-        env = .GlobalEnv), rank = 0, comm = comm)
+        envir = .GlobalEnv), rank = 0, comm = comm)
 }
 
-mpi.gather.Robj <- function(obj=NULL, root=0, comm=1){
+mpi.gather.Robj <- function(obj=NULL, root=0, comm=1, ...){
     biobj<-.mpi.serialize(obj)
     bilen<-length(biobj)
     if (mpi.comm.rank(comm) == root){
@@ -88,7 +88,7 @@ mpi.gather.Robj <- function(obj=NULL, root=0, comm=1){
     cutobj=list()
     for(i in 1:size)
         cutobj[[i]]=allbiobj[(pos[i]+1):pos[i+1]]
-         sapply(cutobj,.mpi.unserialize)
+         sapply(cutobj,.mpi.unserialize, ...)
     }
     else {
          mpi.gather(bilen,type=1,rdata=integer(1),root=root,comm=comm)
@@ -179,7 +179,7 @@ mpi.bcast.Robj2slave <- function(obj, comm=1){
                     rank=0, comm=comm)
     mpi.bcast.Robj(obj, rank=0, comm=comm)
     mpi.bcast.cmd(cmd=assign(.tmpRobj$objname,.tmpRobj$obj, 
-            env = .GlobalEnv), rank=0, comm=comm)
+            envir = .GlobalEnv), rank=0, comm=comm)
     #mpi.bcast.cmd(rm(.tmpRobj,envir = .GlobalEnv), rank=0, comm=comm) 
 }
 

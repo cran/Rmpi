@@ -117,7 +117,8 @@ mpi.spawn.Rslaves <-
     comm=1,
     hosts=NULL,
     needlog=TRUE,
-    mapdrive=TRUE) {
+    mapdrive=TRUE,
+	quiet=FALSE) {
     if (!is.loaded("mpi_comm_spawn"))
         stop("You cannot use MPI_Comm_spawn API")   
     if (mpi.comm.size(comm) > 0){
@@ -138,10 +139,16 @@ mpi.spawn.Rslaves <-
         remotepath <-networkdrive[which(networkdrive=="RemotePath")+1]
         mapdrive <- as.logical(mapdrive && !is.null(remotepath))
         arg <- c(Rscript, R.home(), workdrive, workdir, localhost, mapdrive, remotepath)
-		if (getRversion() >= "2.12.0")
-          realns <- mpi.comm.spawn(slave = system.file("Rslaves32.bat", 
+		if (getRversion() >= "2.12.0"){
+			if (.Platform$r_arch == "i386") 
+            realns <- mpi.comm.spawn(slave = system.file("Rslaves32.bat", 
             package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
-            info = 0, root = root, intercomm = intercomm)
+            info = 0, root = root, intercomm = intercomm, quiet = quiet)
+			else 
+			realns <- mpi.comm.spawn(slave = system.file("Rslaves64.bat", 
+			            package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
+            info = 0, root = root, intercomm = intercomm, quiet = quiet)
+			}
 		else 
 	  	  realns <- mpi.comm.spawn(slave = system.file("Rslaves.bat", 
             package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
@@ -177,7 +184,7 @@ mpi.spawn.Rslaves <-
         nslaves=nslaves,
         info=0,
         root=root,
-        intercomm=intercomm)
+        intercomm=intercomm, quiet = quiet)
     }
     if (!is.null(hosts)){
         unlink(tmpfile)
@@ -188,13 +195,13 @@ mpi.spawn.Rslaves <-
     if (mpi.intercomm.merge(intercomm,0,comm)) {
         mpi.comm.set.errhandler(comm)
         mpi.comm.disconnect(intercomm)
-        slave.hostinfo(comm)
+        if (!quiet) slave.hostinfo(comm)
     }
     else
         stop("Fail to merge the comm for master and slaves.")
 }   
 
-mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
+mpi.remote.exec <- function(cmd, ...,  simplify=TRUE, comm=1, ret=TRUE){
     if (mpi.comm.size(comm) < 2)
     stop("It seems no slaves running.")
     tag <- floor(runif(1,1,1000))
@@ -202,7 +209,7 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
     arg <-list(...)
     if (length(arg) > 0) 
         deparse(arg)
-    tag.ret <- c(tag, ret)
+    tag.ret <- c(tag, ret, simplify)
     mpi.bcast.cmd(.mpi.slave.exec(), comm = comm)
     mpi.bcast(as.integer(tag.ret), type=1, comm=comm)
     mpi.bcast.Robj(list(scmd=scmd, arg=arg), comm=comm)
@@ -214,7 +221,7 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
     len <- allcode[seq(4,2*size,2)]
     eqlen <- all(len==len[1])
     if (all(type==1)){
-        if (eqlen){
+        if (eqlen && simplify){
             out <- mpi.gather(integer(len[1]),1,integer(size*len[1]),0,comm)
             out <- out[(len[1]+1):(size*len[1])]
         dim(out) <- c(len[1], size-1)
@@ -231,7 +238,7 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
         }
     }
     else if (all(type==2)){
-        if (eqlen){
+        if (eqlen && simplify){
                 out <- mpi.gather(double(len[1]),2,double(size*len[1]),0,comm)
                 out <- out[(len[1]+1):(size*len[1])]
                 dim(out) <- c(len[1], size-1)
@@ -248,7 +255,7 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
         }
     }
  else if (all(type==4)){
-        if (eqlen){
+        if (eqlen && simplify){
                 out <- mpi.gather(raw(len[1]),4,raw(size*len[1]),0,comm)
                 out <- out[(len[1]+1):(size*len[1])]
                 dim(out) <- c(len[1], size-1)
@@ -291,10 +298,11 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
 }
 
 .mpi.slave.exec <- function(){
-    assign(".mpi.err", FALSE,  env = .GlobalEnv)
-    tag.ret <- mpi.bcast(integer(2), type=1, comm=.comm)
+    assign(".mpi.err", FALSE,  envir = .GlobalEnv)
+    tag.ret <- mpi.bcast(integer(3), type=1, comm=.comm)
     tag <- tag.ret[1]
     ret <- as.logical(tag.ret[2])
+    simplify <- as.logical(tag.ret[3])
     scmd.arg <- mpi.bcast.Robj(comm=.comm)
 
     if (ret){
@@ -319,19 +327,19 @@ mpi.remote.exec <- function(cmd, ...,  comm=1, ret=TRUE){
         len <- allcode[seq(4,2*size,2)]
         eqlen <- all(len==len[1])
         if (all(type==1)) {
-            if (eqlen)
+            if (eqlen && simplify)
                 mpi.gather(out, 1, integer(1), 0, .comm)
         else
         mpi.gatherv(out, 1, integer(1), integer(1), 0 ,.comm)
     }
     else if (all(type==2)) {
-            if (eqlen)
+            if (eqlen && simplify)
                 mpi.gather(out, 2, double(1), 0, .comm)
         else
                 mpi.gatherv(out, 2, double(1), integer(1), 0, .comm)
         }
      else if (all(type==4)) {
-            if (eqlen)
+            if (eqlen && simplify)
                 mpi.gather(out, 4, raw(1), 0, .comm)
         else
                 mpi.gatherv(out, 4, raw(1), integer(1), 0, .comm)
@@ -409,7 +417,7 @@ mpi.apply <- function(x, fun, ...,  comm=1){
 }
 
 .mpi.slave.apply <- function(){
-    assign(".mpi.err", FALSE,  env = .GlobalEnv)
+    assign(".mpi.err", FALSE,  envir = .GlobalEnv)
     tag.n <- mpi.bcast(integer(2), type=1, comm=.comm)
     tag <- tag.n[1]
     n <- tag.n[2]
@@ -549,7 +557,7 @@ mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
 #from snow
 .docall <- function(fun, args) {
     if ((is.character(fun) && length(fun) == 1) || is.name(fun))
-        fun <- get(as.character(fun), env = .GlobalEnv, mode = "function")
+        fun <- get(as.character(fun), envir = .GlobalEnv, mode = "function")
     enquote <- function(x) as.call(list(as.name("quote"), x))
     do.call("fun", lapply(args, enquote))
 }
@@ -639,7 +647,7 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
 }
 
 .mpi.slave.applyLB <- function(){
-    assign(".mpi.err", FALSE,  env = .GlobalEnv)
+    assign(".mpi.err", FALSE,  envir = .GlobalEnv)
     n <- mpi.bcast(integer(1), type=1, comm=.comm)
     tmpfunarg <- mpi.bcast.Robj(rank=0, comm=.comm)
     .tmpfun <- tmpfunarg$fun
@@ -664,7 +672,7 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
         stop("There are no slaves running")
     if (n <= slave.num) {
         if (exists(".mpi.applyLB"))
-            rm(.mpi.applyLB,  envir=.GlobalEnv)
+            rm(.mpi.applyLB,  envir =.GlobalEnv)
         return (mpi.iapply(x,fun,...,comm=comm,sleep=sleep))
     }
     if (!is.function(fun))
@@ -740,7 +748,7 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
 }
 
 #.mpi.slave.iapplyLB <- function(){
-#    assign(".mpi.err", FALSE,  env = .GlobalEnv)
+#    assign(".mpi.err", FALSE,  envir = .GlobalEnv)
 #    n <- mpi.bcast(integer(1), type=1, comm=.comm)
 #    tmpfunarg <- mpi.bcast.Robj(rank=0, comm=.comm)
 #    .tmpfun <- tmpfunarg$fun

@@ -112,8 +112,7 @@ NOTE: If your site has a different MPI such as MPICH installed, Rmpi
 	>mpi.remote.exec(double(n)) #will not work if n does not exit on slaves
 	>n <- 10
  	>mpi.remote.exec(double, n) #the arg n is passed to double
-   If package rlecuyer or rsprng has been installed, try to use 
-	mpi.setup.rngstream or mpisetup.sprng
+   If package rlecuyer has been installed, try to use mpi.setup.rngstream
    initialize one (not two).
 
    There are a few demo examples from Rmpi. Use

@@ -6,13 +6,14 @@
  and return all executed results back to master. 
 } 
 \usage{
-mpi.remote.exec(cmd, ..., comm = 1, ret = TRUE)  
+mpi.remote.exec(cmd, ..., simplify = TRUE, comm = 1, ret = TRUE)  
 }
 \arguments{
   \item{cmd}{the command to be executed on R slaves}
   \item{...}{used as arguments to cmd (function command) for passing their 
   (master) values to R slaves, i.e., if `myfun(x)' will be executed on R slaves 
 with `x' as master variable, use mpi.remote.exec(cmd=myfun, x).}
+  \item{simplify}{logical; should the result be simplified to a data.frame if possible?}
   \item{comm}{a communicator number.}
   \item{ret}{return executed results from R slaves if TRUE.}
 }

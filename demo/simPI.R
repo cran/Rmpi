@@ -1,4 +1,3 @@
-#require rsprng package and use mpi.init.sprng to initialize SPRNG.
  simslave <- function (){
     request <-1
     result <-2

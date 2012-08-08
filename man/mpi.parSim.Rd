@@ -78,9 +78,8 @@ See the warning section before you use \code{mpi.parSim}.
 }
 
 \section{Warning}{
-It is assumed that a parallel RNG is used on all slaves. Either the package 
-\pkg{rsprng} or \pkg{rlecuyer} can be used. To set either of them, use
-\code{mpi.setup.rngstream} or \code{mpi.setup.sprng}. Though \code{mpi.parSim} 
+It is assumed that a parallel RNG is used on all slaves. Run
+\code{mpi.setup.rngstream} on the master to set up a parallel RNG. Though \code{mpi.parSim} 
 works without a parallel RNG, the quality of simulation is not guarantied. 
 
 \code{mpi.parSim} will automatically transfer \code{rand.gen} 
@@ -97,7 +96,6 @@ slave.num*run is returned.}
 
 \seealso{
   \code{\link{mpi.setup.rngstream}}
-  \code{\link{mpi.setup.sprng}}
   \code{\link{mpi.bcast.cmd}}
   \code{\link{mpi.bcast.Robj2slave}}
 }

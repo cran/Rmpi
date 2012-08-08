@@ -68,9 +68,12 @@ if (flag)
 	else {
 
 #ifdef OPENMPI
-	dlopen("libmpi.so.0", RTLD_GLOBAL | RTLD_LAZY);
+    if (!dlopen("libmpi.so.0", RTLD_GLOBAL | RTLD_LAZY) && !dlopen("libmpi.so", RTLD_GLOBAL | RTLD_LAZY)) {
+        Rprintf("%s\n",dlerror());
+        return AsInt(0);
+    }
 #endif
-	
+
 #ifndef MPI2
    	fake_argv[0] = (char *)&fake_argv0;
        	MPI_Init(&fake_argc, (char ***)(void*)&fake_argv);
@@ -999,10 +1002,12 @@ SEXP mpi_comm_spawn (SEXP sexp_slave,
 					 SEXP sexp_nslave,
 					 SEXP sexp_info,
 					 SEXP sexp_root,
-					 SEXP sexp_intercomm){
+					 SEXP sexp_intercomm,
+					 SEXP sexp_quiet){
     int i, nslave = INTEGER (sexp_nslave)[0], len = LENGTH (sexp_argv);
 	int infon=INTEGER(sexp_info)[0], root=INTEGER(sexp_root)[0];
 	int intercommn=INTEGER(sexp_intercomm)[0], *slaverrcode, realns;
+    int quiet = INTEGER(sexp_quiet)[0];
 
 	slaverrcode = (int *)Calloc(nslave, int);
 	if (len==0)
@@ -1024,8 +1029,8 @@ SEXP mpi_comm_spawn (SEXP sexp_slave,
 		for (i=0; i < nslave; mpi_errhandler(slaverrcode[i++]));
 
 	Free(slaverrcode);
-	
-	Rprintf("\t%d slaves are spawned successfully. %d failed.\n", realns, nslave-realns);
+	if (!quiet || realns < nslave)
+		Rprintf("\t%d slaves are spawned successfully. %d failed.\n", realns, nslave-realns);
     return AsInt(realns);
 }
 

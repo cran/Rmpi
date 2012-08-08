@@ -19,7 +19,7 @@ in one working directory).
 \usage{
 mpi.spawn.Rslaves(Rscript=system.file("slavedaemon.R", package="Rmpi"),
         nslaves=mpi.universe.size(), root = 0, intercomm = 2,
-        comm = 1, hosts = NULL, needlog = TRUE, mapdrive=TRUE)
+        comm = 1, hosts = NULL, needlog = TRUE, mapdrive=TRUE, quiet = FALSE)
 
 mpi.close.Rslaves(dellog = TRUE, comm = 1)
 tailslave.log(nlines = 3, comm = 1)
@@ -36,12 +36,13 @@ spawned.}
   If FALSE, the outputs will send to /dev/null.}
   \item{mapdrive}{a logical. If TRUE and master's working dir is on a network, mapping network drive 
 is attemped on remote nodes under windows platform.}
+  \item{quiet}{a logical. If TRUE, do not print anything unless an error occurs.}
   \item{dellog}{a logical specifying if R slave's log files are deleted or 
 not.}
   \item{nlines}{number of lines to view from tail in R slave's log files.}
 }
 \value{
-  \code{mpi.spawn.Rslaves} prints to stdio  how many 
+ Unless \code{quiet = TRUE}, \code{mpi.spawn.Rslaves} prints to stdio how many 
 slaves are successfully spawned and where they are running.
 
  \code{mpi.close.Rslaves} return 1 if success and 0 otherwise.

@@ -14,7 +14,7 @@ possible among master and slaves, all slaves should use
 \usage{
  mpi.comm.spawn(slave, slavearg = character(0),
                 nslaves = mpi.universe.size(), info = 0,
-                root = 0, intercomm = 2)
+                root = 0, intercomm = 2, quiet = FALSE)
 }
 \arguments{
   \item{slave}{a file name to an executable program.}
@@ -23,9 +23,10 @@ possible among master and slaves, all slaves should use
   \item{info}{an info number.}
   \item{root}{the root member who spawns slaves.}
   \item{intercomm}{an intercomm number.}
+  \item{quiet}{a logical. If TRUE, do not print anything unless an error occurs.}
 }
 \value{
-A message is printed to indicate how many slaves are successfully 
+Unless \code{quiet = TRUE}, a message is printed to indicate how many slaves are successfully 
 spawned and how many failed.
 }
 \seealso{

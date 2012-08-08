@@ -74,7 +74,10 @@ AC_ARG_WITH(mpi,
 CC=`"${R_HOME}/bin/R" CMD config CC`
 CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
 AC_PROG_CC
-
+if test "X$CC" = "X" ; then
+# Our best guess...
+CC="gcc -std=gnu99"
+fi
 
 if test -z "$MPI_ROOT" ; then
   for d in /opt/lib /usr/lib /usr /usr/local/lib /usr/local \
@@ -265,10 +268,10 @@ case "$MPITYPE" in
     PKG_LIBS="-L${MPI_LIBPATH} -lmpi -llam ${MPI_LIBS}"
     ;;
   MPICH)
-    PKG_LIBS="-L${MPI_LIBPATH} -lmpich ${MPI_LIBS}"
+    PKG_LIBS="-L${MPI_LIBPATH} -lmpich -lmpl -lopa ${MPI_LIBS}"
     ;;
   MPICH2)
-    PKG_LIBS="-L${MPI_LIBPATH} -lmpich ${MPI_LIBS}"
+    PKG_LIBS="-L${MPI_LIBPATH} -lmpich -lmpl -lopa ${MPI_LIBS}"
     ;;
   *)
     AC_MSG_ERROR([Unknown type of mpi: use --with-Rmpi-type or RMPI_TYPE to specify it])

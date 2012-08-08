@@ -10,7 +10,7 @@ specified by the argument \code{root}.
  except that all members receive the result instead of just the root.
 }
 \usage{
-mpi.gather.Robj(obj=NULL, root = 0, comm = 1)
+mpi.gather.Robj(obj=NULL, root = 0, comm = 1, ...)
 
 mpi.allgather.Robj(obj=NULL, comm = 1)
 }
@@ -18,6 +18,13 @@ mpi.allgather.Robj(obj=NULL, comm = 1)
   \item{obj}{data to be gathered. Could be different type.}
   \item{root}{rank of the gather}
   \item{comm}{a communicator number}
+  \item{...}{optional arugments to \code{sapply}.}
+}
+\details{
+Since sapply is used to gather all results, its default option 
+"simplify=TRUE" is to simplify outputs. In some situations, this option 
+is not desirable. Using "simplify=FALSE" as in the place of ... will tell
+sapply not to simplify and a list of outputs will be returned.
 }
 \value{
   For \code{mpi.gather.Robj}, it returns a list, the gathered message 
