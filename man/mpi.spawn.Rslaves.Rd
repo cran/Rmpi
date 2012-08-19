@@ -19,7 +19,8 @@ in one working directory).
 \usage{
 mpi.spawn.Rslaves(Rscript=system.file("slavedaemon.R", package="Rmpi"),
         nslaves=mpi.universe.size(), root = 0, intercomm = 2,
-        comm = 1, hosts = NULL, needlog = TRUE, mapdrive=TRUE, quiet = FALSE)
+        comm = 1, hosts = NULL, needlog = TRUE, mapdrive=TRUE, quiet = FALSE, 
+		nonblock=TRUE, sleep=0.1)
 
 mpi.close.Rslaves(dellog = TRUE, comm = 1)
 tailslave.log(nlines = 3, comm = 1)
@@ -37,6 +38,10 @@ spawned.}
   \item{mapdrive}{a logical. If TRUE and master's working dir is on a network, mapping network drive 
 is attemped on remote nodes under windows platform.}
   \item{quiet}{a logical. If TRUE, do not print anything unless an error occurs.}
+  \item{nonblock}{a logical. If TRUE, a nonblock procedure is used on all slaves so that
+they will consume none or little CPUs while waiting.}
+  \item{sleep}{a sleep interval, used when nonblock=TRUE. Smaller sleep is, more response slaves are, 
+  more CPUs consume.}
   \item{dellog}{a logical specifying if R slave's log files are deleted or 
 not.}
   \item{nlines}{number of lines to view from tail in R slave's log files.}
@@ -52,10 +57,9 @@ slaves are successfully spawned and where they are running.
 \details{
 The R slaves that \code{mpi.spawn.Rslaves} spawns are really running a shell 
 program which can be found in \code{system.file("Rslaves.sh",package="Rmpi")} 
-which takes a Rscript 
-file as one of its arguments. Other arguments are used to see if a log 
-file (R output) is needed and how to name it. The master process id and 
-the comm number, along with host names where R slaves are running  are 
+which takes a Rscript file as one of its arguments. Other arguments are 
+used to see if a log file (R output) is needed and how to name it. The master 
+process id and the comm number, along with host names where R slaves are running  are 
 used to name these log files. 
 
 Once R slaves are successfully spawned, the 
@@ -65,8 +69,7 @@ if the default Rscript is replaced). If additional sets of R slaves are
 needed, please use `comm = 3', `comm = 4', etc to spawn them. At most a 
 comm number up to 10 can be used. Notice that the default comm number for 
 R slaves (using slavedaemon.R) is always 1 which is saved as .comm.  
-
-
+  
 To spawn R slaves to specific hosts, please use the argument \code{hosts} 
 with a list of those node numbers (an integer vector). Total node numbers 
 along their host names can be found by using \code{\link{lamhosts}}.

@@ -12,20 +12,20 @@
 (Load balancing) parallel\code{lapply} and related functions. 
 }
 \usage{
-mpi.iapplyLB(x, fun, ..., apply.seq=NULL, comm=1, sleep=0.001)
+mpi.iapplyLB(x, fun, ..., apply.seq=NULL, comm=1, sleep=0.01)
 mpi.iparApply(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
-                    apply.seq=NULL, comm=1, sleep=0.001)
+                    apply.seq=NULL, comm=1, sleep=0.01)
 mpi.iparLapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
-		    comm=1,sleep=0.001)  
+		    comm=1,sleep=0.01)  
 mpi.iparSapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
-		simplify=TRUE, USE.NAMES = TRUE, comm=1, sleep=0.001)  
+		simplify=TRUE, USE.NAMES = TRUE, comm=1, sleep=0.01)  
 mpi.iparRapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
-		comm=1, sleep=0.001)  
+		comm=1, sleep=0.01)  
 mpi.iparCapply(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
-		comm=1,sleep=0.001)  
+		comm=1,sleep=0.01)  
 mpi.iparReplicate(n, expr, job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
-		simplify = TRUE, comm=1,sleep=0.001)
-mpi.iparMM(A, B, comm=1, sleep=0.001)
+		simplify = TRUE, comm=1,sleep=0.01)
+mpi.iparMM(A, B, comm=1, sleep=0.01)
 }
 \arguments{
   \item{x}{an array or matrix.}

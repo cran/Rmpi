@@ -9,7 +9,7 @@ calls with arguments \code{x[[2]]} and \code{...}, and so on. \code{mpi.iapply} 
 nonblocking version of \code{mpi.apply} so that it will not consume CPU on master node.} 
 \usage{
 mpi.apply(x, fun, ..., comm=1)  
-mpi.iapply(x, fun, ..., comm=1, sleep=0.001)  
+mpi.iapply(x, fun, ..., comm=1, sleep=0.01)  
 }
 \arguments{
   \item{x}{an array}

@@ -1,5 +1,4 @@
 \name{mpi.parSim}
-\alias{mpi.parallel.sim}
 \alias{mpi.parSim}
 \title{Parallel Monte Carlo Simulation}
 \description{

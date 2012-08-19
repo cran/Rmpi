@@ -59,7 +59,7 @@ mpi.info.set <- function(info=0, key, value){
 
 mpi.info.get <- function(info=0, key, valuelen){
     .Call("mpi_info_get",as.integer(info), as.character(key), 
-	as.integer(valulen), .as.integer(valuelen),PACKAGE = "Rmpi")
+	as.integer(valuelen), as.integer(valuelen),PACKAGE = "Rmpi")
 }
 
 mpi.info.free <- function(info=0){
@@ -71,16 +71,23 @@ mpi.universe.size <- function(){
         stop("This function is not supported under MPI 1.2")
 	out <-.Call("mpi_universe_size",PACKAGE = "Rmpi")
 	if (out==0){
-	    if (exists(".mpi.universe.size"))
-		out<-.mpi.universe.size
-	    else {
+	   # if (exists(".mpi.universe.size"))
+		#out<-.mpi.universe.size
+	    #else {
 			if (.Platform$OS=="windows") {
 		    	out <- length(mpichhosts())-1
 			}
-	    }		
+	    #}		
 	}
 	if (.Call("mpidist",PACKAGE="Rmpi") == 2)
 	    out <- out-length(grep("no_schedule",system("lamnodes",TRUE,ignore.stderr=TRUE)))
+	if (.Call("mpidist",PACKAGE="Rmpi") == 1 && out == 1){
+		if (length(unlist(strsplit(.Platform$pkgType,"mac"))) ==2)
+			out <- as.integer(unlist(strsplit(system("sysctl -a|grep cores_per_package",TRUE,ignore.stderr=TRUE),":"))[2])
+	}
+	#if (.Call("mpidist",PACKAGE="Rmpi") == 1 && out > 1)
+	#	if (.Platform$OS!="windows")
+	#		out <- out-1
 	out
 }
 

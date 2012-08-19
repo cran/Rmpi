@@ -27,8 +27,8 @@ static MPI_Datatype *datatype;
 static MPI_Info *info;
 static MPI_Request *request;
 static int COMM_MAXSIZE=10;
-static int STATUS_MAXSIZE=5000;
-static int REQUEST_MAXSIZE=10000;
+static int STATUS_MAXSIZE=2000;
+static int REQUEST_MAXSIZE=2000;
 
 SEXP mpidist(){
 	int i=0;
@@ -68,7 +68,9 @@ if (flag)
 	else {
 
 #ifdef OPENMPI
-    if (!dlopen("libmpi.so.0", RTLD_GLOBAL | RTLD_LAZY) && !dlopen("libmpi.so", RTLD_GLOBAL | RTLD_LAZY)) {
+    if (!dlopen("libmpi.so.0", RTLD_GLOBAL | RTLD_LAZY) 
+	&& !dlopen("libmpi.so", RTLD_GLOBAL | RTLD_LAZY) 
+	&& !dlopen("libmpi.dylib", RTLD_GLOBAL | RTLD_LAZY)) {
         Rprintf("%s\n",dlerror());
         return AsInt(0);
     }
@@ -121,9 +123,11 @@ SEXP mpi_get_processor_name (){
 	return sexp_name;
 }
 
+/*
 SEXP bin_nchar(SEXP sexp_data){
 	return AsInt(LENGTH(STRING_ELT(sexp_data,0)));
 }
+*/
 
 #ifdef MPI2
 SEXP mpi_universe_size(){

@@ -80,21 +80,29 @@ mpi.scatter.Robj	Scatter an list to every number
 mpi.send.Robj		Send an R object to a specific process
 mpi.spawn.Rslaves	Spawn R slaves. The default R script is slavedaemon.R
 mpi.status.maxsize	Find the length of status array
-mpichosts		finds host names from master Windows registery database 
+mpichhosts		finds host names from master Windows registery database 
 *****************************************************************************
 MPI Extensions specifically to slavedaemon.R Script (interactive R slaves). 
 
 mpi.apply		Scatter an array to slaves and then apply a fun
+mpi.iapply		Nonblocking scatter an array to slaves and then apply a fun
 mpi.applyLB		Load balancing version of mpi.apply
+mpi.iapplyLB		Nonblocking load balancing version of mpi.apply
 mpi.bcast.Robj2slave	Master sends an Robj to all slaves
-mpi.bcast.cmd		Broadcast a commond to every process
+mpi.bcast.cmd		Broadcast a command to every process
 mpi.close.Rslaves	Close all slaves launched by mpi.spawn.Rslaves()
 mpi.parApply		(Load balancing) parallel apply
+mpi.iparApply		(Nonblocking and load balancing) parallel apply
 mpi.parCapply		(Load balancing) parallel column apply
+mpi.iparCapply		(Nonblocking and load balancing) parallel column apply
 mpi.parLapply		(Load balancing) parallel lapply
+mpi.iparLapply		(Nonblocking and load balancing) parallel lapply
 mpi.parRapply		(Load balancing) parallel row apply
-mpi.parReplicate	A wrapper to mpi.parSapply for repeated eval of an expr
+mpi.iparRapply		(Nonblocking and load balancing) parallel row apply
+mpi.parReplicate	 A wrapper to mpi.parSapply for repeated eval of an expr
+mpi.iparReplicate	 A nonblocking wrapper to mpi.iparSapply for repeated eval of an expr
 mpi.parSapply		(Load balancing) parallel sapply
+mpi.iparSapply		(Nonblocking and load balancing) parallel sapply
 mpi.parSim		(Load balancing) parallel Monte Carlo simulation
 mpi.remote.exec		Run a command remotely on slaves and return 
 			results back to the master 
@@ -104,11 +112,6 @@ tailslave.log		Tail (view) last lines of slave log files
 *****************************************************************************
 Some Internal Functions used by Other MPI Functions
 
-bin.nchar		Find the length of a binary string
 mpi.comm.is.null	Test if a comm is NULL (no members)
 string			Create a string (empty space character) buffer
-****************************************************************************
-Deprecated functions
-
-mpi.parallel.sim	It is renamed to mpi.parSim. Still available.
 

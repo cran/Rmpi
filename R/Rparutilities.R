@@ -25,7 +25,7 @@ slave.hostinfo <- function(comm=1, short=TRUE){
     else { 
         master <-mpi.get.processor.name() 
         slavehost <- unlist(mpi.remote.exec(mpi.get.processor.name(),comm=comm))
-        slavecomm <- as.integer(mpi.remote.exec(.comm,comm=comm))
+        slavecomm <- 1 #as.integer(mpi.remote.exec(.comm,comm=comm))
         ranks <- 1:(size-1)
         commm <- paste(comm, ")",sep="")
         if (size > 10){
@@ -118,14 +118,15 @@ mpi.spawn.Rslaves <-
     hosts=NULL,
     needlog=TRUE,
     mapdrive=TRUE,
-	quiet=FALSE) {
+	quiet=FALSE,
+	nonblock=TRUE,
+	sleep=0.1) {
     if (!is.loaded("mpi_comm_spawn"))
         stop("You cannot use MPI_Comm_spawn API")   
     if (mpi.comm.size(comm) > 0){
          err <-paste("It seems there are some slaves running on comm ", comm)
          stop(err)
     }
-      #  Rslavecmd<-ifelse(.Platform$OS=="windows","Rslalves.cmd","Rslaves.sh")
     if (.Platform$OS=="windows"){
         workdrive <- unlist(strsplit(getwd(),":"))[1]
 		workdir <- unlist(strsplit(getwd(),"/"))
@@ -139,20 +140,14 @@ mpi.spawn.Rslaves <-
         remotepath <-networkdrive[which(networkdrive=="RemotePath")+1]
         mapdrive <- as.logical(mapdrive && !is.null(remotepath))
         arg <- c(Rscript, R.home(), workdrive, workdir, localhost, mapdrive, remotepath)
-		if (getRversion() >= "2.12.0"){
-			if (.Platform$r_arch == "i386") 
-            realns <- mpi.comm.spawn(slave = system.file("Rslaves32.bat", 
-            package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
-            info = 0, root = root, intercomm = intercomm, quiet = quiet)
-			else 
-			realns <- mpi.comm.spawn(slave = system.file("Rslaves64.bat", 
-			            package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
-            info = 0, root = root, intercomm = intercomm, quiet = quiet)
-			}
+		if (.Platform$r_arch == "i386") 
+            realns <- mpi.comm.spawn(slave = system.file("Rslaves32.cmd", 
+				package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
+				info = 0, root = root, intercomm = intercomm, quiet = quiet)
 		else 
-	  	  realns <- mpi.comm.spawn(slave = system.file("Rslaves.bat", 
-            package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
-            info = 0, root = root, intercomm = intercomm)
+			realns <- mpi.comm.spawn(slave = system.file("Rslaves64.cmd", 
+			            package = "Rmpi"), slavearg = arg, nslaves = nslaves, 
+				info = 0, root = root, intercomm = intercomm, quiet = quiet)
     }
     else{
         tmp <- paste(Sys.getpid(), "+", comm, sep="")   
@@ -195,6 +190,8 @@ mpi.spawn.Rslaves <-
     if (mpi.intercomm.merge(intercomm,0,comm)) {
         mpi.comm.set.errhandler(comm)
         mpi.comm.disconnect(intercomm)
+		mpi.bcast(nonblock,type=1, rank=0, comm=comm)
+		mpi.bcast(sleep,type=2, rank=0, comm=comm)
         if (!quiet) slave.hostinfo(comm)
     }
     else
@@ -299,6 +296,7 @@ mpi.remote.exec <- function(cmd, ...,  simplify=TRUE, comm=1, ret=TRUE){
 
 .mpi.slave.exec <- function(){
     assign(".mpi.err", FALSE,  envir = .GlobalEnv)
+	.comm <- 1
     tag.ret <- mpi.bcast(integer(3), type=1, comm=.comm)
     tag <- tag.ret[1]
     ret <- as.logical(tag.ret[2])
@@ -313,7 +311,7 @@ mpi.remote.exec <- function(cmd, ...,  simplify=TRUE, comm=1, ret=TRUE){
     else
         out <- try(eval(scmd.arg$scmd), TRUE)
     
-    if (.mpi.err){
+    if (get(".mpi.err")){
         print(geterrmessage())
         type <- integer(2)
     }
@@ -418,6 +416,7 @@ mpi.apply <- function(x, fun, ...,  comm=1){
 
 .mpi.slave.apply <- function(){
     assign(".mpi.err", FALSE,  envir = .GlobalEnv)
+	.comm <- 1
     tag.n <- mpi.bcast(integer(2), type=1, comm=.comm)
     tag <- tag.n[1]
     n <- tag.n[2]
@@ -431,7 +430,7 @@ mpi.apply <- function(x, fun, ...,  comm=1){
     }
 }
 
-mpi.iapply <- function(x, fun, ...,  comm=1, sleep=0.001){
+mpi.iapply <- function(x, fun, ...,  comm=1, sleep=0.01){
     n <- length(x)
     nslaves <- mpi.comm.size(comm)-1
      if (nslaves < n)
@@ -454,7 +453,7 @@ mpi.iapply <- function(x, fun, ...,  comm=1, sleep=0.001){
        if (mpi.iprobe(anysource,tag,comm)){ 
        srctag <- mpi.get.sourcetag()
        charlen <- mpi.get.count(type=4)
-           tmp <- .mpi.unserialize(mpi.recv(x = raw(charlen), type = 4, srctag[1], 
+           tmp <- unserialize(mpi.recv(x = raw(charlen), type = 4, srctag[1], 
             srctag[2], comm))
            out[[srctag[1]]]<- tmp
        done=done+1
@@ -508,30 +507,30 @@ mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
     i <- 0
     anysrc <- mpi.any.source()
     anytag <- mpi.any.tag()
-    
-    .mpi.parSim <<- integer(slave.num*run)
-
+    mpi.parSim.tmp <- integer(slave.num*run)
     while (i < slave.num*run){
         i <- i+1
         result[[i]] <- mpi.recv.Robj(source=anysrc, tag=8, comm=comm)
         src <- mpi.get.sourcetag()[1]
         mpi.send(as.integer(i), type=1, dest=src, tag=88, comm=comm)
-        .mpi.parSim[i] <<- src
+        mpi.parSim.tmp[i] <- src
     }
     if (slaveinfo){
         slavename <- paste("slave",1:slave.num, sep="")
         cat("Finished slave jobs summary:\n")
         for (i in 1:slave.num){
             if (i < 10)
-                cat(slavename[i], " finished",sum(.mpi.parSim==i), "job(s)\n")
+                cat(slavename[i], " finished",sum(mpi.parSim==i), "job(s)\n")
             else
-                cat(slavename[i], "finished",sum(.mpi.parSim==i), "job(s)\n")
+                cat(slavename[i], "finished",sum(mpi.parSim==i), "job(s)\n")
         }
     }
+	assign(".mpi.parSim", mpi.parSim.tmp,  envir = .GlobalEnv)
     .simplify(slave.num*run, result, simplify, nsim)
 }
 
 .mpi.slave.sim <- function(){
+	.comm <- 1
     tmpdata <- mpi.bcast.Robj(comm=.comm)
     rand.arg <- tmpdata$rand.arg
     stat.arg <- tmpdata$stat.arg
@@ -582,7 +581,7 @@ mpi.parMM <- function(A, B, job.num=mpi.comm.size(comm)-1, comm=1){
         get("%*%"), B, comm=comm))
 }
     
-mpi.iparMM <- function(A, B, comm=1, sleep=0.001){
+mpi.iparMM <- function(A, B, comm=1, sleep=0.01){
     splitRows <- function(x, ncl)
         lapply(.splitIndices(nrow(x), ncl), function(i) x[i,, drop=FALSE])    
     .docall(rbind, mpi.iapply(splitRows(A, mpi.comm.size(comm)-1), 
@@ -596,7 +595,7 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
         stop("There are no slaves running")
     if (n <= slave.num) {
         if (exists(".mpi.applyLB")) 
-            rm(.mpi.applyLB,  envir=.GlobalEnv)
+			rm(".mpi.applyLB",  envir=.GlobalEnv)
         return (mpi.apply(x,fun,...,comm=comm))
     }    
     if (!is.function(fun))
@@ -631,23 +630,26 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
         }
         return(out)
     }
-    .mpi.applyLB <<- integer(n)
+    #.mpi.applyLB <<- integer(n)
+	mpi.seq.tmp <- integer(n)
     for (i in 1:n){
        tmp<- mpi.recv.Robj(mpi.anysource,mpi.anytag,comm)
        srctag <- mpi.get.sourcetag()
        out[[srctag[2]]]<- tmp
-       .mpi.applyLB[i] <<- srctag[1]
+       mpi.seq.tmp[i] <- srctag[1]
        j <- i+slave.num
        if (j <= n)
             mpi.send.Robj(list(data.arg=list(x[[j]])), dest=srctag[1],tag=j, comm=comm)
        else
             mpi.send.Robj(as.integer(0),dest=srctag[1],tag=j,comm=comm)
     }
+ 	assign(".mpi.applyLB",mpi.seq.tmp, envir = .GlobalEnv)
     out
 }
 
 .mpi.slave.applyLB <- function(){
     assign(".mpi.err", FALSE,  envir = .GlobalEnv)
+	.comm <- 1
     n <- mpi.bcast(integer(1), type=1, comm=.comm)
     tmpfunarg <- mpi.bcast.Robj(rank=0, comm=.comm)
     .tmpfun <- tmpfunarg$fun
@@ -665,19 +667,19 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
     }
 }
 
-mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
+mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.01){
     n <- length(x)
     slave.num <- mpi.comm.size(comm)-1
     if (slave.num < 1)
         stop("There are no slaves running")
     if (n <= slave.num) {
         if (exists(".mpi.applyLB"))
-            rm(.mpi.applyLB,  envir =.GlobalEnv)
+            rm(".mpi.applyLB",  envir =.GlobalEnv)
         return (mpi.iapply(x,fun,...,comm=comm,sleep=sleep))
     }
     if (!is.function(fun))
         stop("fun is not a function")
-    if (slave.num > 10000)
+    if (slave.num > 2000)
         stop("Total slaves are more than nonblock send/receive can handle")
     length(list(...))
     if (!is.null(apply.seq))
@@ -710,7 +712,7 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
                 mpi.send.Robj(as.integer(0),dest=apply.seq[i],tag=j,comm=comm)  
             charlen <- mpi.get.count(type=4)
             tag <- mpi.get.sourcetag()[2]
-            tmp <- .mpi.unserialize(mpi.recv(x = raw(charlen), type = 4, apply.seq[i], tag, comm))
+            tmp <- unserialize(mpi.recv(x = raw(charlen), type = 4, apply.seq[i], tag, comm))
             out[[tag]]<- tmp
             #mpi.wait(0)
         }
@@ -720,7 +722,7 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
       }
       return(out)
     }
-    .mpi.applyLB <<- integer(n)
+    mpi.seq.tmp <- integer(n)
     i=0
     repeat {
         if (mpi.iprobe(mpi.anysource,mpi.anytag,comm)){
@@ -734,9 +736,9 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
             else
                 mpi.send.Robj(as.integer(0),dest=src,tag=j,comm=comm)
             charlen <- mpi.get.count(type=4)
-            tmp <- .mpi.unserialize(mpi.recv(x = raw(charlen), type = 4, src, tag, comm))
+            tmp <- unserialize(mpi.recv(x = raw(charlen), type = 4, src, tag, comm))
             out[[tag]]<- tmp
-            .mpi.applyLB[i] <<- src
+            mpi.seq.tmp[i] <- src
             #mpi.wait(src-1)
         }
         if (i < n)
@@ -744,6 +746,7 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.001){
         else
             break
     }
+  	assign(".mpi.applyLB",mpi.seq.tmp, envir = .GlobalEnv)
     out
 }
 
@@ -791,7 +794,7 @@ mpi.parLapply <- function(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=
         lapply, fun, ..., apply.seq=apply.seq, comm=comm))
 }
 
-mpi.iparLapply <- function(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, comm=1, sleep=0.001){
+mpi.iparLapply <- function(x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, comm=1, sleep=0.01){
     if (job.num < 2)
         stop("job.num is at least 2.")
     splitList <- function(x, ncl)
@@ -811,7 +814,7 @@ mpi.parSapply <- function (x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq
 }
 
 mpi.iparSapply <- function (x, fun, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
-                simplify = TRUE, USE.NAMES = TRUE, comm=1,sleep=0.001) 
+                simplify = TRUE, USE.NAMES = TRUE, comm=1,sleep=0.01) 
 {
     FUN <- match.fun(fun)
     answer <- mpi.iparLapply(as.list(x),FUN,...,job.num=job.num,apply.seq=apply.seq,comm=comm,sleep=sleep)
@@ -827,7 +830,7 @@ mpi.parReplicate <- function(n,  expr, job.num=mpi.comm.size(comm)-1, apply.seq=
 }
 
 mpi.iparReplicate <- function(n,  expr, job.num=mpi.comm.size(comm)-1, apply.seq=NULL,
-                                simplify = TRUE, comm=1,sleep=0.001){
+                                simplify = TRUE, comm=1,sleep=0.01){
     mpi.iparSapply(integer(n), eval.parent(substitute(function(...) expr)), 
     job.num=job.num, apply.seq=apply.seq, simplify = simplify, comm=comm,sleep=sleep)
 }
@@ -841,7 +844,7 @@ mpi.parRapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL
             apply.seq=apply.seq, comm=comm))
 }
 
-mpi.iparRapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL,comm=1,sleep=0.001){
+mpi.iparRapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL,comm=1,sleep=0.01){
     if (job.num < 2)
         stop("job.num is at least 2.")
     splitRows <- function(x, ncl)
@@ -859,7 +862,7 @@ mpi.parCapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL
             apply.seq=apply.seq, comm=comm))
 }
 
-mpi.iparCapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL,comm=1,sleep=0.001){
+mpi.iparCapply <- function(x,fun,...,job.num=mpi.comm.size(comm)-1,apply.seq=NULL,comm=1,sleep=0.01){
     if (job.num < 2)
         stop("job.num is at least 2.")
     splitCols <- function(x, ncl)
@@ -935,7 +938,7 @@ mpi.parApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
 }
 
 mpi.iparApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
-                    apply.seq=NULL, comm=1,sleep=0.001)
+                    apply.seq=NULL, comm=1,sleep=0.01)
 {
     FUN <- match.fun(fun)
     d <- dim(x)
@@ -1000,4 +1003,4 @@ mpi.iparApply <- function(x, MARGIN, fun, ..., job.num = mpi.comm.size(comm)-1,
     return(ans)
 }
 
-mpi.parallel.sim <- mpi.parSim
+#mpi.parallel.sim <- mpi.parSim

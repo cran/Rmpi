@@ -16,7 +16,7 @@ mpi.setup.rngstream <- function(seed=c(runif(3,0,2^32-210),runif(3,0,2^32-22854)
     if (sum(mpi.remote.exec(as.integer(require(rlecuyer, quietly=TRUE)),comm=comm))
             < commsize-1)
         stop("It seems rlecuyer is not installed properly on slave machines.")
-    .Rngstream.seed <<- seed
+    #.Rngstream.seed <<- seed
     #adapted from snow
     initRNGstreamNode <- function (stream) {
         if (length(.lec.Random.seed.table$name) > 0) {
