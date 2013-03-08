@@ -15,6 +15,7 @@ mpi.cart.rank		Translate a Cartesian topology coordinate to the rank
 mpi.cart.shift		Shift Cartesian topology in displacement and direction
 mpi.comm.disconnect	Disconeect and free a comm
 mpi.comm.dup		Duplicate a comm to a new comm
+mpi.comm.c2f		Convert a comm into an integer used by extern Fortran
 mpi.comm.free		Free a comm
 mpi.comm.get.parent	Get the parent intercomm
 mpi.comm.rank		Find the rank (process id) of master and slaves

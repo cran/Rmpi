@@ -174,13 +174,13 @@ mpi.spawn.Rslaves <-
             mpi.info.create(0)
             mpi.info.set(0,"file",tmpfile)
         }
-        realns<-mpi.comm.spawn(slave=system.file("Rslaves.sh", package="Rmpi"),
-        slavearg=arg,
-        nslaves=nslaves,
-        info=0,
-        root=root,
-        intercomm=intercomm, quiet = quiet)
-    }
+		if (length(unlist(strsplit(.Platform$pkgType,"mac"))) ==2 && .Platform$r_arch =="x86_64")
+			realns<-mpi.comm.spawn(slave=system.file("MacR64slaves.sh", package="Rmpi"),
+			slavearg=arg, nslaves=nslaves, info=0, root=root, intercomm=intercomm, quiet = quiet)
+		else 
+			realns<-mpi.comm.spawn(slave=system.file("Rslaves.sh", package="Rmpi"),
+			slavearg=arg, nslaves=nslaves, info=0, root=root, intercomm=intercomm, quiet = quiet)
+	}
     if (!is.null(hosts)){
         unlink(tmpfile)
         mpi.info.free(0)
@@ -201,14 +201,14 @@ mpi.spawn.Rslaves <-
 mpi.remote.exec <- function(cmd, ...,  simplify=TRUE, comm=1, ret=TRUE){
     if (mpi.comm.size(comm) < 2)
     stop("It seems no slaves running.")
-    tag <- floor(runif(1,1,1000))
+    tag <- floor(runif(1,20000,30000))
     scmd <- substitute(cmd)
     arg <-list(...)
-    if (length(arg) > 0) 
-        deparse(arg)
-    tag.ret <- c(tag, ret, simplify)
-    mpi.bcast.cmd(.mpi.slave.exec(), comm = comm)
-    mpi.bcast(as.integer(tag.ret), type=1, comm=comm)
+    #if (length(arg) > 0) 
+    #    deparse(arg)
+    #tag.ret <- c(tag, ret, simplify)
+    mpi.bcast.cmd(.mpi.worker.exec, tag=tag, ret=ret, simplify=simplify, comm = comm)
+    #mpi.bcast(as.integer(tag.ret), type=1, comm=comm)
     mpi.bcast.Robj(list(scmd=scmd, arg=arg), comm=comm)
 
     if (ret){
@@ -294,22 +294,23 @@ mpi.remote.exec <- function(cmd, ...,  simplify=TRUE, comm=1, ret=TRUE){
             as.integer(-1)
 }
 
-.mpi.slave.exec <- function(){
-    assign(".mpi.err", FALSE,  envir = .GlobalEnv)
+.mpi.worker.exec <- function(tag, ret, simplify){
+    #assign(".mpi.err", FALSE,  envir = .GlobalEnv)
+    assign(".mpi.err", FALSE)
 	.comm <- 1
-    tag.ret <- mpi.bcast(integer(3), type=1, comm=.comm)
-    tag <- tag.ret[1]
-    ret <- as.logical(tag.ret[2])
-    simplify <- as.logical(tag.ret[3])
+    #tag.ret <- mpi.bcast(integer(3), type=1, comm=.comm)
+    #tag <- tag.ret[1]
+    #ret <- as.logical(tag.ret[2])
+    #simplify <- as.logical(tag.ret[3])
     scmd.arg <- mpi.bcast.Robj(comm=.comm)
 
     if (ret){
     size <- mpi.comm.size(.comm)
     myerrcode <- as.integer(0)
     if (length(scmd.arg$arg)>0)
-        out <- try(do.call(as.character(scmd.arg$scmd), scmd.arg$arg),TRUE)
+        out <- try(do.call(as.character(scmd.arg$scmd), scmd.arg$arg, envir=.GlobalEnv),TRUE)
     else
-        out <- try(eval(scmd.arg$scmd), TRUE)
+        out <- try(eval(scmd.arg$scmd, envir=sys.parent()), TRUE)
     
     if (get(".mpi.err")){
         print(geterrmessage())
@@ -360,7 +361,7 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
     err <-paste("It seems no slaves running on comm", comm)
     stop(err)
     }
-    mpi.bcast.cmd(break, rank=0, comm=comm)
+    mpi.bcast.cmd(cmd=break, rank=0, comm=comm)
     if (.Platform$OS!="windows"){
         if (dellog && mpi.comm.size(0) < mpi.comm.size(comm)){
         tmp <- paste(Sys.getpid(),"+",comm,sep="")  
@@ -398,8 +399,8 @@ mpi.apply <- function(x, fun, ...,  comm=1){
         stop("fun is not a function")
     length(list(...)) #test for any non existing R objects
     tag <- floor(runif(1,1,1000))    
-    mpi.bcast.cmd(.mpi.slave.apply(),comm=comm)
-    mpi.bcast(as.integer(c(tag,n)),type=1,comm=comm)
+    mpi.bcast.cmd(.mpi.worker.apply, n=n, tag=tag, comm=comm)
+    #mpi.bcast(as.integer(c(tag,n)),type=1,comm=comm)
     mpi.bcast.Robj(list(fun=fun,dot.arg=list(...)),rank=0,comm=comm)
     if (n < nslaves)
         x=c(x,as.list(integer( nslaves-n)))
@@ -414,12 +415,12 @@ mpi.apply <- function(x, fun, ...,  comm=1){
     out
 }
 
-.mpi.slave.apply <- function(){
-    assign(".mpi.err", FALSE,  envir = .GlobalEnv)
+.mpi.worker.apply <- function(n, tag){
+    #assign(".mpi.err", FALSE,  envir = .GlobalEnv)
 	.comm <- 1
-    tag.n <- mpi.bcast(integer(2), type=1, comm=.comm)
-    tag <- tag.n[1]
-    n <- tag.n[2]
+    #tag.n <- mpi.bcast(integer(2), type=1, comm=.comm)
+    #tag <- tag.n[1]
+    #n <- tag.n[2]
     tmpfunarg <- mpi.bcast.Robj(rank=0, comm=.comm)
     .tmpfun <- tmpfunarg$fun
     dotarg <- tmpfunarg$dot.arg
@@ -439,8 +440,8 @@ mpi.iapply <- function(x, fun, ...,  comm=1, sleep=0.01){
         stop("fun is not a function")
     length(list(...)) #test for any non existing R objects
     tag <- floor(runif(1,1,1000))    
-    mpi.bcast.cmd(.mpi.slave.apply(),comm=comm)
-    mpi.bcast(as.integer(c(tag,n)),type=1,comm=comm)
+    mpi.bcast.cmd(.mpi.worker.apply, n=n, tag=tag,comm=comm)
+    #mpi.bcast(as.integer(c(tag,n)),type=1,comm=comm)
     mpi.bcast.Robj(list(fun=fun,dot.arg=list(...)),rank=0,comm=comm)
     if (n < nslaves)
         x=c(x,as.list(integer( nslaves-n)))
@@ -468,6 +469,7 @@ mpi.iapply <- function(x, fun, ...,  comm=1, sleep=0.01){
 mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL, 
             statistic, nsim=100, run=1, slaveinfo=FALSE, sim.seq=NULL,
             simplify=TRUE, comm=1, ...){
+	sim.seq=NULL
     if (mpi.comm.size(comm) < 2)
         stop("It seems no slaves running.")
     if (!is.function(rand.gen))
@@ -488,12 +490,12 @@ mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
                 length(sim.seq)!=slave.num*run)
             stop("sim.seq is not in right order")
 
-    mpi.bcast.cmd(.mpi.slave.sim(),comm=comm)  
+    mpi.bcast.cmd(.mpi.worker.sim, n=n, nsim=nsim, run=run, comm=comm)  
     mpi.bcast.Robj(list(rand.gen=rand.gen, rand.arg=rand.arg,
                         stat=statistic, stat.arg=list(...)), comm=comm)
 
-    nnr <- c(n,nsim,run)
-    mpi.bcast(as.integer(nnr),type=1, comm=comm)
+    #nnr <- c(n,nsim,run)
+    #mpi.bcast(as.integer(nnr),type=1, comm=comm)
     result <- as.list(integer(slave.num*run))
 
     if (!is.null(sim.seq)){
@@ -525,11 +527,11 @@ mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
                 cat(slavename[i], "finished",sum(mpi.parSim==i), "job(s)\n")
         }
     }
-	assign(".mpi.parSim", mpi.parSim.tmp,  envir = .GlobalEnv)
+	#assign(".mpi.parSim", mpi.parSim.tmp,  envir = .GlobalEnv)
     .simplify(slave.num*run, result, simplify, nsim)
 }
 
-.mpi.slave.sim <- function(){
+.mpi.worker.sim <- function(n, nsim, run){
 	.comm <- 1
     tmpdata <- mpi.bcast.Robj(comm=.comm)
     rand.arg <- tmpdata$rand.arg
@@ -538,8 +540,8 @@ mpi.parSim <- function(n=100,rand.gen=rnorm, rand.arg=NULL,
     .tmp.rand.gen <- tmpdata$rand.gen
     .tmp.statistic <- tmpdata$stat
     
-    nnr <- mpi.bcast(integer(3), type=1, comm=.comm)
-    n <- nnr[1];  nsim <- nnr[2];  run <- nnr[3]
+    #nnr <- mpi.bcast(integer(3), type=1, comm=.comm)
+    #n <- nnr[1];  nsim <- nnr[2];  run <- nnr[3]
 
     i <- 0
     slave.num <- mpi.comm.size(.comm)-1
@@ -589,6 +591,7 @@ mpi.iparMM <- function(A, B, comm=1, sleep=0.01){
 }    
 
 mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
+	apply.seq=NULL
     n <- length(x)
     slave.num <- mpi.comm.size(comm)-1
     if (slave.num < 1)
@@ -608,8 +611,8 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
                 length(apply.seq)!=n)
             stop("apply.seq is not in right order")
             
-    mpi.bcast.cmd(.mpi.slave.applyLB(),comm=comm)
-    mpi.bcast(as.integer(n),type=1,comm=comm)
+    mpi.bcast.cmd(.mpi.worker.applyLB, n=n, comm=comm)
+    #mpi.bcast(as.integer(n),type=1,comm=comm)
     mpi.bcast.Robj(list(fun=fun,dot.arg=list(...)),rank=0,comm=comm)
     out <- as.list(integer(n))
     mpi.anysource <- mpi.any.source()
@@ -643,14 +646,14 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
        else
             mpi.send.Robj(as.integer(0),dest=srctag[1],tag=j,comm=comm)
     }
- 	assign(".mpi.applyLB",mpi.seq.tmp, envir = .GlobalEnv)
-    out
+ 	#assign(".mpi.applyLB",mpi.seq.tmp, envir = .GlobalEnv)
+	out
 }
 
-.mpi.slave.applyLB <- function(){
-    assign(".mpi.err", FALSE,  envir = .GlobalEnv)
+.mpi.worker.applyLB <- function(n){
+    #assign(".mpi.err", FALSE,  envir = .GlobalEnv)
 	.comm <- 1
-    n <- mpi.bcast(integer(1), type=1, comm=.comm)
+    #n <- mpi.bcast(integer(1), type=1, comm=.comm)
     tmpfunarg <- mpi.bcast.Robj(rank=0, comm=.comm)
     .tmpfun <- tmpfunarg$fun
     dotarg <- tmpfunarg$dot.arg
@@ -668,6 +671,7 @@ mpi.applyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1){
 }
 
 mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.01){
+	apply.seq=NULL
     n <- length(x)
     slave.num <- mpi.comm.size(comm)-1
     if (slave.num < 1)
@@ -689,8 +693,8 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.01){
                 length(apply.seq)!=n)
             stop("apply.seq is not in right order")
 
-    mpi.bcast.cmd(.mpi.slave.applyLB(),comm=comm)
-    mpi.bcast(as.integer(n),type=1,comm=comm)
+    mpi.bcast.cmd(.mpi.worker.applyLB, n=n, comm=comm)
+    #mpi.bcast(as.integer(n),type=1,comm=comm)
     mpi.bcast.Robj(list(fun=fun,dot.arg=list(...)),rank=0,comm=comm)
     out <- as.list(integer(n))
     mpi.anysource <- mpi.any.source()
@@ -746,11 +750,11 @@ mpi.iapplyLB <- function(x, fun, ...,  apply.seq=NULL, comm=1, sleep=0.01){
         else
             break
     }
-  	assign(".mpi.applyLB",mpi.seq.tmp, envir = .GlobalEnv)
+  	#assign(".mpi.applyLB",mpi.seq.tmp, envir = .GlobalEnv)
     out
 }
 
-#.mpi.slave.iapplyLB <- function(){
+#.mpi.worker.iapplyLB <- function(){
 #    assign(".mpi.err", FALSE,  envir = .GlobalEnv)
 #    n <- mpi.bcast(integer(1), type=1, comm=.comm)
 #    tmpfunarg <- mpi.bcast.Robj(rank=0, comm=.comm)

@@ -44,13 +44,15 @@ mpi.scatterv <- function(x, scounts, type, rdata, root=0, comm=1){
 
 mpi.scatter.Robj <- function(obj=NULL, root=0, comm=1){
     if (mpi.comm.rank(comm) == root){
-     size<-mpi.comm.size(comm)
-        subobj<-lapply(obj,serialize, connection=NULL)
-    sublen<-unlist(lapply(subobj,length))
+		size<-mpi.comm.size(comm)
+        #subobj<-lapply(obj,serialize, connection=NULL)
+		subobj<-lapply(1:size, function(i) serialize(obj[[i]], NULL))
+
+		sublen<-unlist(lapply(subobj,length))
         #newsubobj<-strings.link(subobj,string(sum(sublen)+1))
-    newsubobj<-c(subobj,recursive=TRUE)
+		newsubobj<-c(subobj,recursive=TRUE)
         strnum<-mpi.scatter(sublen,type=1,rdata=integer(1),root=root,comm=comm)
-    outobj<-unserialize(mpi.scatterv(newsubobj,scounts=sublen,type= 4,
+		outobj<-unserialize(mpi.scatterv(newsubobj,scounts=sublen,type= 4,
                 rdata=raw(strnum),root=root, comm=comm))
     }
     else {
@@ -71,8 +73,7 @@ mpi.scatter.Robj2slave=function (obj, comm = 1) {
     mpi.bcast.cmd(cmd = .tmpRobj <- mpi.scatter.Robj(comm = 1), 
         rank = 0, comm = comm)
     mpi.scatter.Robj(obj=c(list("master"),obj), root = 0, comm = comm)
-    mpi.bcast.cmd(cmd = assign(.tmpname$objname, .tmpRobj, 
-        envir = .GlobalEnv), rank = 0, comm = comm)
+    mpi.bcast.cmd(cmd = assign(.tmpname$objname, .tmpRobj), rank = 0, comm = comm)
 }
 
 mpi.gather.Robj <- function(obj=NULL, root=0, comm=1, ...){
@@ -137,17 +138,23 @@ mpi.bcast <- function (x, type, rank = 0, comm = 1) {
 #    .Call("bin_nchar", x[1],PACKAGE = "Rmpi")
 #}
 
-mpi.bcast.cmd <- function (cmd=NULL, rank=0, comm=1, nonblock=FALSE, sleep=0.1){
+mpi.bcast.cmd <- function (cmd=NULL, ..., rank=0, comm=1, nonblock=FALSE, sleep=0.1){
 	myrank=mpi.comm.rank(comm)
     if(myrank == rank){
-        cmd <- deparse(substitute(cmd), width.cutoff=500)
-		cmd <- serialize(cmd, NULL)
+        #cmd <- deparse(substitute(cmd), width.cutoff=500)
+		#cmd <- serialize(cmd, NULL)
+
+		scmd <- substitute(cmd)
+		arg <-list(...)
 		commsize <- mpi.comm.size(comm=comm)
+
+		scmd.arg <-serialize(list(scmd=scmd, arg=arg), NULL)
 		#mpi.bcast(x=length(cmd), type=1, rank=rank, comm=comm)
 		#invisible(mpi.bcast(x=cmd, type=4, rank=rank, comm=comm))
+		
 		for (i in 0:commsize) {
 			if (i != rank)
-				invisible(mpi.send(x=cmd, type=4, dest=i, tag=i, comm=comm))
+				invisible(mpi.send(x=scmd.arg, type=4, dest=i, tag=50000+i, comm=comm))
 			}
     } 
     else {
@@ -159,22 +166,29 @@ mpi.bcast.cmd <- function (cmd=NULL, rank=0, comm=1, nonblock=FALSE, sleep=0.1){
         #parse(text=out) 
         #}
 		if (!nonblock){
-			mpi.probe(mpi.any.source(), tag=myrank, comm)
+			mpi.probe(mpi.any.source(), tag=50000+myrank, comm)
 			srctag <- mpi.get.sourcetag(0)
 			charlen <- mpi.get.count(type=4, 0)
-			out <- unserialize(mpi.recv(x=raw(charlen), type=4,srctag[1],myrank, comm))
+			#out <- unserialize(mpi.recv(x=raw(charlen), type=4,srctag[1],srctag[2], comm))
+			scmd.arg <- unserialize(mpi.recv(x=raw(charlen), type=4,srctag[1],srctag[2], comm))
+
 		} else {
 			repeat {
-				if (mpi.iprobe(mpi.any.source(),tag=myrank,comm)){ 
+				if (mpi.iprobe(mpi.any.source(),tag=50000+myrank,comm)){ 
 					srctag <- mpi.get.sourcetag()
 					charlen <- mpi.get.count(type=4)
-					out <- unserialize(mpi.recv(x = raw(charlen), type = 4, srctag[1],myrank, comm))
+					#out <- unserialize(mpi.recv(x = raw(charlen), type = 4, srctag[1],srctag[2], comm))
+					scmd.arg <- unserialize(mpi.recv(x = raw(charlen), type = 4, srctag[1],srctag[2], comm))
 					break
 				}
 				Sys.sleep(sleep)
 			}
 		}			
-		parse(text=out)
+		#parse(text=out)
+		if (length(scmd.arg$arg)>0)
+			enquote(do.call(as.character(scmd.arg$scmd), scmd.arg$arg, envir=.GlobalEnv))
+		else 
+			scmd.arg$scmd
 	}
 }
 
@@ -190,15 +204,42 @@ mpi.bcast.Robj <- function(obj=NULL, rank=0, comm=1){
     }
 }
 
-mpi.bcast.Robj2slave <- function(obj, comm=1){
-    objname <- deparse(substitute(obj),width.cutoff=500)
-    obj <- list(objname=objname,obj=obj)
-    mpi.bcast.cmd(cmd=.tmpRobj <- mpi.bcast.Robj(comm=1),
+mpi.bcast.Robj2slave <- function(obj, comm=1, all=FALSE){
+    if (!all){
+		objname <- deparse(substitute(obj),width.cutoff=500)
+		obj <- list(objname=objname,obj=obj)
+		mpi.bcast.cmd(cmd=.tmpRobj <- mpi.bcast.Robj(comm=1),
                     rank=0, comm=comm)
-    mpi.bcast.Robj(obj, rank=0, comm=comm)
-    mpi.bcast.cmd(cmd=assign(.tmpRobj$objname,.tmpRobj$obj, 
-            envir = .GlobalEnv), rank=0, comm=comm)
-    #mpi.bcast.cmd(rm(.tmpRobj,envir = .GlobalEnv), rank=0, comm=comm) 
+		mpi.bcast.Robj(obj, rank=0, comm=comm)
+		mpi.bcast.cmd(cmd=assign(.tmpRobj$objname,.tmpRobj$obj), rank=0, comm=comm)
+		#mpi.bcast.cmd(rm(.tmpRobj,envir = .GlobalEnv), rank=0, comm=comm) 
+	}
+	else {
+		master.objects <-objects(envir=.GlobalEnv)
+		obj.num=length(master.objects)
+		if (obj.num)
+			for (i in 1:obj.num){
+				mpi.bcast.cmd(cmd=.tmpRobj <- mpi.bcast.Robj(comm=1),
+                    rank=0, comm=comm)
+				mpi.bcast.Robj(list(objname=master.objects[i], obj=get(master.objects[i])), 
+					rank=0, comm=comm)
+				mpi.bcast.cmd(cmd=assign(.tmpRobj$objname,.tmpRobj$obj), rank=0, comm=comm)
+			}
+	}
+}
+
+mpi.bcast.Rfun2slave <- function(comm=1){
+	master.fun <-objects(envir=.GlobalEnv)
+	sync.index <- which(lapply(lapply(master.fun, get), is.function)==1)
+	obj.num=length(sync.index)
+	if (obj.num)
+		for (i in sync.index){
+			mpi.bcast.cmd(cmd=.tmpRobj <- mpi.bcast.Robj(comm=1),
+                   rank=0, comm=comm)
+			mpi.bcast.Robj(list(objname=master.fun[i], obj=get(master.fun[i])), 
+				rank=0, comm=comm)
+			mpi.bcast.cmd(cmd=assign(.tmpRobj$objname,.tmpRobj$obj), rank=0, comm=comm)
+		}
 }
 
 mpi.send <- function (x, type,  dest, tag, comm=1){

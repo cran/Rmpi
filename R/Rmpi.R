@@ -83,7 +83,7 @@ mpi.universe.size <- function(){
 	    out <- out-length(grep("no_schedule",system("lamnodes",TRUE,ignore.stderr=TRUE)))
 	if (.Call("mpidist",PACKAGE="Rmpi") == 1 && out == 1){
 		if (length(unlist(strsplit(.Platform$pkgType,"mac"))) ==2)
-			out <- as.integer(unlist(strsplit(system("sysctl -a|grep cores_per_package",TRUE,ignore.stderr=TRUE),":"))[2])
+			out <- as.integer(unlist(strsplit(system("sysctl hw.ncpu",TRUE,ignore.stderr=TRUE),":"))[2])
 	}
 	#if (.Call("mpidist",PACKAGE="Rmpi") == 1 && out > 1)
 	#	if (.Platform$OS!="windows")

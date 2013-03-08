@@ -974,6 +974,11 @@ SEXP mpi_comm_dup(SEXP sexp_comm, SEXP sexp_newcomm){
                 &comm[newcommn]))));
 }
 
+SEXP mpi_comm_c2f(SEXP sexp_comm){
+  int c = INTEGER(sexp_comm)[0];
+  return AsInt(MPI_Comm_c2f(comm[c]));
+}
+
 SEXP mpi_comm_free(SEXP sexp_comm){
 	return AsInt(erreturn(mpi_errhandler(MPI_Comm_free(&comm[INTEGER(sexp_comm)[0]]))));
 }
@@ -1519,3 +1524,4 @@ SEXP mpi_request_get_status(SEXP sexp_request,  SEXP sexp_status){
         return AsInt(flag);
 }
 */
+

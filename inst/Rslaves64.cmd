@@ -9,27 +9,21 @@ set MapDrive=%6%
 set RemotePath=%7%
 
 if %MapDrive%==FALSE goto last 
-set FirstOne=FALSE
-if exist %WDrive%:\NUL goto next
-set FirstOne=TRUE
 net use %WDrive%: %RemotePath%
-if not errorlevel 0 set FirstOne=FALSE
+if not errorlevel 0 goto last
 
-:next
 cd /D %WDir%
-%R_HOME%\bin\x64\Rterm.exe --no-init-file --no-save --slave < %Rscript%
-
-if %FirstOne%==FALSE goto end 
-net use /delete %WDrive%:
-goto:eof
+%R_HOME%\bin\x64\Rscript.exe --vanilla %Rscript%
+goto :EOF
 
 :last
 if %Master% == %COMPUTERNAME% (
-%R_HOME%\bin\x64\Rterm.exe --no-init-file --no-save --slave < %Rscript%
+cd /D %WDir%
+if not errorlevel 0 cd /D e:\
+%R_HOME%\bin\x64\Rscript.exe --vanilla %Rscript%
 goto:eof 
 )
 
-cd /D %TMP%
-%R_HOME%\bin\x64\Rterm.exe --no-init-file --no-save --slave < %Rscript%
-
-:end
+:home
+cd /D e:\
+%R_HOME%\bin\x64\Rscript.exe --vanilla %Rscript%

@@ -107,3 +107,7 @@ mpi.intercomm.merge <- function(intercomm=2,high=0,comm=1){
                      as.integer(high),
                      as.integer(comm),PACKAGE = "Rmpi")
 }
+
+mpi.comm.c2f <- function(comm=1){
+    .Call("mpi_comm_c2f", as.integer(comm),PACKAGE = "Rmpi")
+}

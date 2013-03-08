@@ -230,6 +230,13 @@ else
 )
 fi
 
+if test "$MPITYPE" = "OPENMPI" ; then
+   AC_CHECK_PROG(ORTED, orted, yes, no)
+   if test "$ORTED" = no ; then
+       AC_MSG_ERROR(Cannot find orted. Rmpi needs orted to run.)
+   fi
+fi
+
 if test "$MPITYPE" = "LAM" ; then
 	echo "Try to find liblam.so ..."
 	if test -f ${MPI_ROOT}/lib/liblam.so; then
