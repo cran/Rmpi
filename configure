@@ -2046,6 +2046,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+OSTYPE="`uname`"
+
 ## One way is to specify both include and lib paths
 
 # Check whether --with-Rmpi-include was given.
@@ -3739,7 +3741,12 @@ if test "$MPITYPE" = "OPENMPI" -o "$MPITYPE" = "LAM" -o "$MPITYPE" = "MPICH2"; t
   MPI_DEFS="-DMPI2"
 fi
 
-PKG_CPPFLAGS="-I${MPI_INCLUDE_PATH} ${MPI_INCL2} ${MPI_DEFS} -D${MPITYPE}"
+if test "$OSTYPE" = "Darwin"; then
+  PKG_CPPFLAGS="-I${MPI_INCLUDE_PATH} ${MPI_INCL2} ${MPI_DEFS} -D${MPITYPE} -DMAC"
+else
+  PKG_CPPFLAGS="-I${MPI_INCLUDE_PATH} ${MPI_INCL2} ${MPI_DEFS} -D${MPITYPE}"
+fi
+
 case "$MPITYPE" in
   OPENMPI)
     PKG_LIBS="-L${MPI_LIBPATH} -lmpi ${MPI_LIBS}"

@@ -2,6 +2,8 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(DESCRIPTION)
 
+OSTYPE="`uname`"
+
 ## One way is to specify both include and lib paths
 AC_ARG_WITH([Rmpi-include],
             AC_HELP_STRING([--with-Rmpi-include=INCLUDE_PATH],
@@ -266,7 +268,12 @@ if test "$MPITYPE" = "OPENMPI" -o "$MPITYPE" = "LAM" -o "$MPITYPE" = "MPICH2"; t
   MPI_DEFS="-DMPI2"
 fi
 
-PKG_CPPFLAGS="-I${MPI_INCLUDE_PATH} ${MPI_INCL2} ${MPI_DEFS} -D${MPITYPE}"
+if test "$OSTYPE" = "Darwin"; then
+  PKG_CPPFLAGS="-I${MPI_INCLUDE_PATH} ${MPI_INCL2} ${MPI_DEFS} -D${MPITYPE} -DMAC"
+else
+  PKG_CPPFLAGS="-I${MPI_INCLUDE_PATH} ${MPI_INCL2} ${MPI_DEFS} -D${MPITYPE}"
+fi
+
 case "$MPITYPE" in
   OPENMPI)
     PKG_LIBS="-L${MPI_LIBPATH} -lmpi ${MPI_LIBS}"

@@ -1,5 +1,5 @@
 02682eda4e1865d29d46fbf8be19a7bb *ChangeLog
-216befa4d4f500617e4aeb6f7089b3ea *DESCRIPTION
+c1e4adb6fd70654db0b1ee055c413850 *DESCRIPTION
 53e26d09b496f1afff055369081a2624 *INDEX
 9fdfeb11f7ddba6f3aab9aaa6b1ac5dd *NAMESPACE
 000f8d01ee8eae441c88c2a678b8854c *R/Rcoll.R
@@ -10,8 +10,8 @@ fcb144ff832adca60bbfb85aa6ab5659 *R/Rmpi.R
 5e0fcffd90571f5fc6be1513d2485f29 *R/zzz.R
 c5354caf1b287789f72e4b692738283f *README
 b4171176126cb22423979d090c424ed3 *cleanup
-80f4d46637629698dd2ec07526b0bb01 *configure
-266daff322bdea55dd840223c454aa89 *configure.ac
+0695e04927e75132101bf757facdef45 *configure
+365e0096ac8c5b47370ebb749776eb7d *configure.ac
 b3c69f9ab90e2beb0330e86a05ec1ba4 *demo/00Index
 b1afa3600c5de842e0eaba1a342a544f *demo/cslavePI.R
 dfd1daaaf76dfff565d6e217e53d43e2 *demo/masterslavePI.R
@@ -70,14 +70,14 @@ c5db653a5ab377bfc7cfa4db4ab9c4d9 *man/mpi.remote.exec.Rd
 65cdb911e6542a93106b8b3be194793a *man/mpi.send.Rd
 f1ced254a8365675a50f76f8199b40ae *man/mpi.send.Robj.Rd
 6e708a8eb58e73ee3d9f7046cc2a850e *man/mpi.sendrecv.Rd
-aaba29de5e468daf055a2cd717148d71 *man/mpi.setup.rng.Rd
+c1f9ee7a74e349500979a1513962a84d *man/mpi.setup.rng.Rd
 d523ca8e21eae59862b59d9c1916a3fc *man/mpi.spawn.Rslaves.Rd
 5a1780b7d22a7e02463c843698b248b7 *man/mpi.universe.size.Rd
 c1574de5df7f60098fcfb0d6ca2a8d5f *man/mpi.wait.Rd
 49b3b4f4c92b8436d2b9b218a76696d3 *src/Makevars.in
 2731d7717e34360b0bf38b5721ead33e *src/Makevars.win
 1461ce514e6f496f64df876d04e48e14 *src/RegQuery.c
-25185f611eb196b74c5977fab88b0c2a *src/Rmpi.c
+14806957725f6cdf89211eba7a12365d *src/Rmpi.c
 3ea2f33dd2534ea6ce75f2887e30220f *src/Rmpi.h
 ded21a3dfaa785898ff038db9b476020 *src/conversion.c
 44d4d7a07215b4a1c302388e9b14e9dd *src/internal.c

@@ -67,13 +67,16 @@ if (flag)
 	return AsInt(1);
 	else {
 
+#ifndef MAC
 #ifdef OPENMPI
     if (!dlopen("libmpi.so.0", RTLD_GLOBAL | RTLD_LAZY) 
-	&& !dlopen("libmpi.so", RTLD_GLOBAL | RTLD_LAZY) 
-	&& !dlopen("libmpi.dylib", RTLD_GLOBAL | RTLD_LAZY)) {
-        Rprintf("%s\n",dlerror());
+	&& !dlopen("libmpi.so", RTLD_GLOBAL | RTLD_LAZY)){
+	//&& !dlopen("libmpi.dylib", RTLD_GLOBAL | RTLD_LAZY)
+ 	//&& !dlopen("libmpi.1.dylib", RTLD_GLOBAL | RTLD_LAZY)) {
+       Rprintf("%s\n",dlerror());
         return AsInt(0);
     }
+#endif
 #endif
 
 #ifndef MPI2
