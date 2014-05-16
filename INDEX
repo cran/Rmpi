@@ -81,7 +81,6 @@ mpi.scatter.Robj	Scatter an list to every number
 mpi.send.Robj		Send an R object to a specific process
 mpi.spawn.Rslaves	Spawn R slaves. The default R script is slavedaemon.R
 mpi.status.maxsize	Find the length of status array
-mpichhosts		finds host names from master Windows registery database 
 *****************************************************************************
 MPI Extensions specifically to slavedaemon.R Script (interactive R slaves). 
 
@@ -90,6 +89,8 @@ mpi.iapply		Nonblocking scatter an array to slaves and then apply a fun
 mpi.applyLB		Load balancing version of mpi.apply
 mpi.iapplyLB		Nonblocking load balancing version of mpi.apply
 mpi.bcast.Robj2slave	Master sends an Robj to all slaves
+mpi.bcast.Rfun2slave	Master sends all user functions to all slaves
+mpi.bcast.Rdata2slave	Master sends an vector or matrix to all slaves without serialization 
 mpi.bcast.cmd		Broadcast a command to every process
 mpi.close.Rslaves	Close all slaves launched by mpi.spawn.Rslaves()
 mpi.parApply		(Load balancing) parallel apply
@@ -111,8 +112,7 @@ mpi.setup.rngstream	Setup RNDstream (package rlecuyer) on all slaves
 slave.hostinfo		Show all slave rank, comm, host information
 tailslave.log		Tail (view) last lines of slave log files
 *****************************************************************************
-Some Internal Functions used by Other MPI Functions
+Some Internal Functions used by other MPI Functions
 
 mpi.comm.is.null	Test if a comm is NULL (no members)
 string			Create a string (empty space character) buffer
-
