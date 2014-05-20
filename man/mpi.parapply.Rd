@@ -69,7 +69,7 @@ Notice that \code{apply.seq} is useful only if \code{job.num} is bigger than sla
 \code{\link{mpi.apply}}
 }
 \examples{
-\dontrun{
+\donttest{
 #Assume that there are some slaves running
 
 #mpi.applyLB

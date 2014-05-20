@@ -217,7 +217,7 @@ mpi.bcast.Robj2slave <- function(obj, comm=1, all=FALSE){
     if (!all){
 		objname <- deparse(substitute(obj),width.cutoff=500)
 		obj <- list(objname=objname,obj=obj)
-		mpi.bcast.cmd(cmd=.tmpRobj <- mpi.bcast.Robj(comm=comm),
+		mpi.bcast.cmd(cmd=.tmpRobj <- mpi.bcast.Robj(comm=1),
                     rank=0, comm=comm)
 		mpi.bcast.Robj(obj, rank=0, comm=comm)
 		mpi.bcast.cmd(cmd=assign(.tmpRobj$objname,.tmpRobj$obj), rank=0, comm=comm)
@@ -273,7 +273,7 @@ mpi.bcast.data2slave <- function(obj, comm=1, buffunit=100){
 		obj.info[4]=0
 	}
 	
-	mpi.bcast.cmd(.tinfo <- mpi.bcast(integer(4),type=1),rank=0,comm=comm)
+	mpi.bcast.cmd(.tinfo <- mpi.bcast(integer(4),type=1),rank=0,comm=1)
 	mpi.bcast(obj.info,type=1,rank=0,comm=comm)
 	
 	mpi.bcast.cmd(.tname<-unserialize(mpi.bcast(raw(.tinfo[1]),type=4)), rank=0, comm=comm)

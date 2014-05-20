@@ -19,6 +19,8 @@
 }
 
 .onUnload <- function(libpath){
+    if (mpi.comm.size(1)>0)
+		mpi.close.Rslaves()
 	mpi.finalize()
 	library.dynam.unload("Rmpi", libpath)
 }
