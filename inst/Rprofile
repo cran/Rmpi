@@ -64,6 +64,7 @@ if (mpi.comm.rank(0)==0) {
             mpi.close.Rslaves(comm=1)
     	}
     }
-    print("Please use mpi.quit() to quit R")
-    mpi.quit()
+    #print("Please use mpi.quit() to quit R")
+	if (is.loaded("mpi_initialize"))
+       .Call("mpi_finalize",PACKAGE = "Rmpi")
 }

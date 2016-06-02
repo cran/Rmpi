@@ -3,3 +3,5 @@
 
 # Export all names
 exportPattern(".")
+import(stats)
+import(parallel)

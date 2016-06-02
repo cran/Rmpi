@@ -87,7 +87,7 @@ mpi.spawn.Rslaves <-
          stop(err)
     }
     if (.Platform$OS=="windows"){
-		stop("Spawning is not implemented. Please use mpiexec with Rprofile.")
+		#stop("Spawning is not implemented. Please use mpiexec with Rprofile.")
         workdrive <- unlist(strsplit(getwd(),":"))[1]
 		workdir <- unlist(strsplit(getwd(),"/"))
 		if (length(workdir) > 1)

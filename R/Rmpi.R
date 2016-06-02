@@ -1,7 +1,7 @@
 ### Copyright (C) 2002 Hao Yu 
 mpi.finalize <- function(){
-    if(mpi.is.master())
-        print("Exiting Rmpi. Rmpi cannot be used unless relaunching R.")
+    #if(interactive() && mpi.is.master())
+     #   print("Exiting Rmpi. Rmpi cannot be used unless relaunching R.")
     .Call("mpi_finalize",PACKAGE = "Rmpi")
 }
 
@@ -75,7 +75,7 @@ mpi.universe.size <- function(){
 		#out<-.mpi.universe.size
 	    #else {
 			if (.Platform$OS=="windows") {
-				require(parallel)
+				#require(parallel)
 		    	out <- detectCores()
 			}
 	    #}		

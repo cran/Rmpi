@@ -1,4 +1,4 @@
-### Copyright (C) 2002 Hao Yu 
+### Copyright (C) 2014 Hao Yu 
 .onLoad <- function (lib, pkg) {
     library.dynam("Rmpi", pkg, lib)
     if (!TRUE)
@@ -15,12 +15,16 @@
     }
 	
     if(!.Call("mpi_initialize",PACKAGE = "Rmpi"))
-	stop("Cannot start MPI_Init(). Exit")
+		stop("Cannot start MPI_Init(). Exit")
+	#e <- environment() 
+	#f <- function(e){
+	#	if (mpi.comm.size(1)>0)
+	#		mpi.close.Rslaves()
+	#}
+	#reg.finalizer(e, f, onexit=TRUE)
 }
 
 .onUnload <- function(libpath){
-    if (mpi.comm.size(1)>0)
-		mpi.close.Rslaves()
 	mpi.finalize()
 	library.dynam.unload("Rmpi", libpath)
 }
