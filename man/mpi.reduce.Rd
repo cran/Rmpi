@@ -44,8 +44,7 @@ mpi.allreduce(x, type=2, op=c("sum","prod","max","min","maxloc","minloc"),
   Hao Yu
 }
 \references{
-  \url{http://www.lam-mpi.org/},  
-  \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
+  \url{http://www.openmpi.org/}
 }
 \seealso{
   \code{\link{mpi.gather}}.

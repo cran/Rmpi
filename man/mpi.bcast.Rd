@@ -39,8 +39,7 @@ mpi.bcast(x, type, rank = 0, comm = 1, buffunit=100)
   chunk may not have full length of data due to rounding. Special care is needed.
   }
 \references{
-  \url{http://www.lam-mpi.org/}, 
-  \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
+  \url{http://www.openmpi.org/}
 }
 \seealso{
   \code{\link{mpi.bcast.Robj}},

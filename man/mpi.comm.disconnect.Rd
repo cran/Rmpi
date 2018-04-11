@@ -25,8 +25,7 @@ mpi.comm.disconnect(comm=1)
 Hao Yu
 }
 \references{
-  \url{http://www.lam-mpi.org/}, 
-  \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
+  \url{http://www.openmpi.org/}
 }
 \seealso{
  \code{\link{mpi.comm.free}}

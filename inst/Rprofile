@@ -42,11 +42,16 @@ if (mpi.comm.rank(0) >0){
     options(echo=FALSE)
     .comm <- 1
     mpi.barrier(0)
-    repeat 
-		try(eval(mpi.bcast.cmd(rank=0,comm=.comm, nonblock=FALSE, sleep=0.1)),TRUE)
-	if (is.loaded("mpi_comm_disconnect")) 
-        mpi.comm.disconnect(.comm)
-    else mpi.comm.free(.comm)
+    repeat {
+		tmp.message=mpi.bcast.cmd(rank=0,comm=.comm, nonblock=.nonblock, sleep=.sleep)
+		if (is.character(tmp.message) && tmp.message=="kaerb")
+			break
+    	try(eval(tmp.message,envir=.GlobalEnv),TRUE)
+	}
+	#if (is.loaded("mpi_comm_disconnect")) 
+    #    mpi.comm.disconnect(.comm)
+    #else 
+	mpi.comm.free(.comm)
     mpi.quit()
 }
     

@@ -49,8 +49,7 @@ integer(sum(rcounts)) or double(sum(rcounts)).
 Hao Yu
 }
 \references{
-  \url{http://www.lam-mpi.org/},
-  \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
+  \url{http://www.openmpi.org/}
 }
 \seealso{
   \code{\link{mpi.scatter}}, \code{\link{mpi.scatterv}}.

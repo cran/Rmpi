@@ -23,8 +23,7 @@ Alek Hunchak and Hao Yu
 \code{\link{mpi.cart.get}}
 }
 \references{
-  \url{http://www.lam-mpi.org/},
-  \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
+  \url{http://www.openmpi.org/}
 }
 \examples{
 \donttest{

@@ -27,8 +27,7 @@ tag.
 Hao Yu
 }
 \references{
-  \url{http://www.lam-mpi.org/}, 
-  \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
+  \url{http://www.openmpi.org/}
 }
 \seealso{
  \code{\link{mpi.send}}, \code{\link{mpi.recv}}, \code{\link{mpi.probe}},

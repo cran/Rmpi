@@ -55,8 +55,7 @@ can receive a message sent by a regular send.
 Kris Chen
 }
 \references{
-  \url{http://www.lam-mpi.org/}, 
-  \url{http://www-unix.mcs.anl.gov/mpi/www/www3/}
+  \url{http://www.openmpi.org/}
 }
 \seealso{
   \code{\link{mpi.send.Robj}},

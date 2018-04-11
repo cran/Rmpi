@@ -321,7 +321,8 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
     err <-paste("It seems no slaves running on comm", comm)
     stop(err)
     }
-    mpi.bcast.cmd(cmd=break, rank=0, comm=comm)
+	#mpi.break=delay(do.call("break",  list(), envir=.GlobalEnv))
+    mpi.bcast.cmd(cmd="kaerb", rank=0, comm=comm)
     if (.Platform$OS!="windows"){
         if (dellog && mpi.comm.size(0) < mpi.comm.size(comm)){
         tmp <- paste(Sys.getpid(),"+",comm,sep="")  
@@ -332,9 +333,9 @@ mpi.close.Rslaves <- function(dellog=TRUE, comm=1){
     }
 #     mpi.barrier(comm)
     if (comm >0){
-        if (is.loaded("mpi_comm_disconnect"))
-            mpi.comm.disconnect(comm) 
-        else
+        #if (is.loaded("mpi_comm_disconnect"))
+            #mpi.comm.disconnect(comm) 
+        #else
             mpi.comm.free(comm)
     }
 #   mpi.comm.set.errhandler(0)
@@ -590,7 +591,7 @@ mpi.applyLB <- function(X, FUN, ...,  apply.seq=NULL, comm=1){
             if (j <= n)
                 mpi.send.Robj(list(data.arg=list(X[[j]])), dest=apply.seq[i],tag=j, comm=comm)
             else
-                mpi.send.Robj(as.integer(0),dest=apply.seq[i],tag=j,comm=comm)
+                mpi.send.Robj(list(data.arg=list(n)),dest=apply.seq[i],tag=j,comm=comm)
         }
         return(out)
     }
@@ -605,7 +606,7 @@ mpi.applyLB <- function(X, FUN, ...,  apply.seq=NULL, comm=1){
        if (j <= n)
             mpi.send.Robj(list(data.arg=list(X[[j]])), dest=srctag[1],tag=j, comm=comm)
        else
-            mpi.send.Robj(as.integer(0),dest=srctag[1],tag=j,comm=comm)
+            mpi.send.Robj(list(data.arg=list(n)),dest=srctag[1],tag=j,comm=comm)
     }
  	#assign(".mpi.applyLB",mpi.seq.tmp, envir = .GlobalEnv)
 	out
