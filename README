@@ -22,5 +22,5 @@ Place, Suite 330, Boston, MA  02111-1307  USA
 Rmpi requires R version 2.14.0 or higher, and a MPI distribution on unix 
 platform, Microsoft MPI on windows platform, and OpenMPI on Mac OS. 
 More information can be found at 
-http://www.stats.uwo.ca/faculty/yu/Rmpi
+http://fisher.stats.uwo.ca/faculty/yu/Rmpi
 

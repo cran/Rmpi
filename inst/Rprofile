@@ -14,6 +14,8 @@
 
 # If no CPU consumptions of slaves while waiting are desirable, change 
 # nonblocak=FALSE to nonblock=TRUE and change sleep time accordingly
+.nonblock=TRUE
+.sleep=0.1
 
 # Following system libraries are not loaded automatically. So manual loads are 
 # needed.

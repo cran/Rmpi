@@ -1,5 +1,5 @@
-2c1a52cf93f0eaccdf279c49178e01c5 *ChangeLog
-ff49ba0436ca00e94cdfb55ae99b9743 *DESCRIPTION
+48d9165eff0f157e98fe871cdc77f6e8 *ChangeLog
+9e8c97c296650162f787162062d02130 *DESCRIPTION
 26cd4ba8a505043c41e6a157440c1f91 *INDEX
 a2b075414ee02b4d08bfee11bdb77743 *NAMESPACE
 31958d10c5ef9ec943b5bb81230b5d73 *R/Rcoll.R
@@ -8,7 +8,7 @@ a2b075414ee02b4d08bfee11bdb77743 *NAMESPACE
 abc8bf1859b8644c495af3a89ac7801e *R/Rng.R
 f0a55da7d1cbac75893da8fb1dec2f7e *R/Rparutilities.R
 50ce25c2959c5239685fec62cabb3a15 *R/zzz.R
-7b94376ee6365bb3a5d419dab065dd94 *README
+54229097ac0d8f1af7e8658607401f05 *README
 cb311b30ce8eb7b9a6805b8286eb0911 *cleanup
 5a84eaf284404c13c5da60ce73246bef *configure
 ef1cb437e92eb786fbbc4fecae95ab82 *configure.ac
@@ -22,7 +22,7 @@ a88040efd8871365286c242eb1038a73 *demo/slave1PI.R
 8f744c42621ce97c2ea511f129a72270 *demo/slave2PI.R
 a1337e731642b8bc504d2ebcc1ee8913 *inst/CITATION
 4569255257bf552a5acafd1151e14570 *inst/MacR64slaves.sh
-a1923b11077b7ec8d7bb43929fef1b5a *inst/Rprofile
+c23a23abf5b0a0afc08883c681ec467f *inst/Rprofile
 cf25051b76102776342a3e9a2ebb78b7 *inst/Rslaves.sh
 42926ded1dd77477a3925af67fa6d928 *inst/Rslaves32.cmd
 c1de4670770465fe025c0fba8129700b *inst/Rslaves64.cmd
@@ -80,5 +80,5 @@ cd2b3396214f58838c411a508b97676c *src/Makevars.win
 1d06c8bdead74ba978e1815c1870af93 *src/Rmpi.c
 5d3bdc99adb8d134e2305ca461bc5232 *src/Rmpi.h
 ded21a3dfaa785898ff038db9b476020 *src/conversion.c
-b9945e48895ac00c4e34b10e80e3f3de *src/internal.c
+646c8ca543539f998e7e657f0e20c610 *src/internal.c
 60517da86e8d9ece7e6464eb1b129c86 *src/msmpi.def

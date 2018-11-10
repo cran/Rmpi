@@ -14,6 +14,8 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#include <R.h>
+#include <R_ext/Rdynload.h>
    
 #include "Rmpi.h"
 
@@ -116,7 +118,7 @@ static const R_CallMethodDef callMethods[] = {
 	{"mpi_info_create", (DL_FUNC) &mpi_info_create, 1},
 	{"mpi_info_set", (DL_FUNC) &mpi_info_set, 3},
 	{"mpi_info_get", (DL_FUNC) &mpi_info_get, 3},
-	{"mpi_info_free", (DL_FUNC) &mpi_info_free, 0},
+	{"mpi_info_free", (DL_FUNC) &mpi_info_free, 1},
 	{"mpi_realloc_comm", (DL_FUNC) &mpi_realloc_comm, 1},	
 	{"mpi_comm_maxsize", (DL_FUNC) &mpi_comm_maxsize, 0},
 	{"mpi_realloc_status", (DL_FUNC) &mpi_realloc_status, 1},
@@ -143,7 +145,7 @@ static const R_CallMethodDef callMethods[] = {
 	{"mpi_comm_is_null", (DL_FUNC) &mpi_comm_is_null, 1},
 	{"mpi_comm_size", (DL_FUNC) &mpi_comm_size, 1},
 	{"mpi_comm_rank", (DL_FUNC) &mpi_comm_rank, 1},
-	{"mpi_comm_dup", (DL_FUNC) &mpi_comm_dup, 1},
+	{"mpi_comm_dup", (DL_FUNC) &mpi_comm_dup, 2},
 	{"mpi_comm_c2f", (DL_FUNC) &mpi_comm_c2f, 1},
 	{"mpi_comm_free", (DL_FUNC) &mpi_comm_free, 1},
 	{"mpi_abort", (DL_FUNC) &mpi_abort, 1},
