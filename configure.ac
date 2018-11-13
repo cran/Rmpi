@@ -280,8 +280,9 @@ fi dnl end of 'paths not specified'
 
 ## now we have found the include and lib paths and may know the type
 
-AC_CHECK_LIB(util, openpty, [ MPI_LIBS="$MPI_LIBS -lutil" ])
-AC_CHECK_LIB(pthread, main, [ MPI_LIBS="$MPI_LIBS -lpthread" ])
+## AC_CHECK_LIB(util, openpty, [ MPI_LIBS="$MPI_LIBS -lutil" ])
+## AC_CHECK_LIB(pthread, main, [ MPI_LIBS="$MPI_LIBS -lpthread" ])
+## MPI_LIBS="$MPI_LIBS -pthread"
 
 if test "$MPITYPE" = "OPENMPI" -o "$MPITYPE" = "LAM" -o "$MPITYPE" = "MPICH2" -o "$MPITYPE" = "INTELMPI" -o "$MPITYPE" = "CRAY"; then
   MPI_DEFS="-DMPI2"
