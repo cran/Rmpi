@@ -34,7 +34,7 @@ spawned and how many failed.
   \code{\link{mpi.intercomm.merge}}.
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 
 \author{

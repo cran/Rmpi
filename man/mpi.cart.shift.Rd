@@ -31,7 +31,7 @@ Alek Hunchak and Hao Yu
 \code{\link{mpi.cart.create}},\code{\link{mpi.proc.null}}
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 \examples{
 \donttest{

@@ -15,7 +15,7 @@ cluster. Some MPI implements may not have this MPI call available.
 Hao Yu
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 %\examples{
 %}

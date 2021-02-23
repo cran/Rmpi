@@ -29,6 +29,6 @@ Different implementation of MPI may use different
   \code{\link{mpi.send}}, \code{\link{mpi.recv}}.
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 \keyword{utilities}

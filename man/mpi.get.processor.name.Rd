@@ -18,7 +18,7 @@ a base host name if \code{short = TRUE} and a full host name otherwise.
 Hao Yu
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 %\examples{
 %}

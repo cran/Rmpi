@@ -105,7 +105,7 @@ enabled requests.
 \code{\link{mpi.get.sourcetag}}.
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 %\examples{
 %}

@@ -27,7 +27,7 @@ tag.
 Hao Yu
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 \seealso{
  \code{\link{mpi.send}}, \code{\link{mpi.recv}}, \code{\link{mpi.probe}},

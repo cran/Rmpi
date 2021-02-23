@@ -30,7 +30,7 @@
 Alek Hunchak and Hao Yu
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 \examples{
 \donttest{

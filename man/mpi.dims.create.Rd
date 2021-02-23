@@ -30,7 +30,7 @@ Hao Yu
 \code{\link{mpi.cart.create}}
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 \examples{
 \donttest{

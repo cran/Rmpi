@@ -26,7 +26,7 @@ Alek Hunchak and Hao Yu
 \code{\link{mpi.cart.create},\link{mpi.cartdim.get}}
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 \examples{
 \donttest{

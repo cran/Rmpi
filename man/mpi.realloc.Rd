@@ -33,12 +33,12 @@ When \pkg{Rmpi} is loaded, Rmpi allocs comm array with size 10, request
 array with 10,000 and status array with 5,000. They should be enough in 
 most cases. They use less than 150KB system memory. In rare case, one can 
 use \code{mpi.realloc.comm}, \code{mpi.realloc.request} and
-\code{mpi.realloc.status} to increase them to bigger arrayes.} 
+\code{mpi.realloc.status} to increase them to bigger arrays.} 
 \author{
   Hao Yu
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 %\examples{
 %}

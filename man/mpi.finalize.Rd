@@ -27,7 +27,7 @@ Hao Yu
   \code{\link{mpi.exit}}
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 %\examples{ 
 %}

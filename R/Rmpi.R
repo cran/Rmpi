@@ -1,4 +1,4 @@
-### Copyright (C) 2002 Hao Yu 
+### Copyright (C) 2002 Hao Yu
 mpi.finalize <- function(){
     #if(interactive() && mpi.is.master())
      #   print("Exiting Rmpi. Rmpi cannot be used unless relaunching R.")
@@ -17,7 +17,7 @@ mpi.quit <- function(save="no"){
     q(save=save,runLast=FALSE)
 }
 
-mpi.is.master <- function () 
+mpi.is.master <- function ()
 {
     if (is.loaded("mpi_comm_get_parent"))
 	as.logical(.Call("mpi_is_master",PACKAGE = "Rmpi"))
@@ -53,12 +53,12 @@ mpi.info.create <- function(info=0){
 }
 
 mpi.info.set <- function(info=0, key, value){
-    .Call("mpi_info_set", as.integer(info), as.character(key), 
+    .Call("mpi_info_set", as.integer(info), as.character(key),
 	as.character(value),PACKAGE = "Rmpi")
 }
 
 mpi.info.get <- function(info=0, key, valuelen){
-    .Call("mpi_info_get",as.integer(info), as.character(key), 
+    .Call("mpi_info_get",as.integer(info), as.character(key),
 	as.integer(valuelen), as.integer(valuelen),PACKAGE = "Rmpi")
 }
 
@@ -67,7 +67,7 @@ mpi.info.free <- function(info=0){
 }
 
 mpi.universe.size <- function(){
-	if (!is.loaded("mpi_universe_size")) 
+	if (!is.loaded("mpi_universe_size"))
         stop("This function is not supported under MPI 1.2")
 	out <-.Call("mpi_universe_size",PACKAGE = "Rmpi")
 	if (out==0){
@@ -78,13 +78,13 @@ mpi.universe.size <- function(){
 				#require(parallel)
 		    	out <- detectCores()
 			}
-	    #}		
+	    #}
 	}
 	if (.Call("mpidist",PACKAGE="Rmpi") == 2)
 	    out <- out-length(grep("no_schedule",system("lamnodes",TRUE,ignore.stderr=TRUE)))
 	if (.Call("mpidist",PACKAGE="Rmpi") == 1 && out == 1){
-		if (length(unlist(strsplit(.Platform$pkgType,"mac"))) ==2)
-			out <- as.integer(unlist(strsplit(system("sysctl hw.ncpu",TRUE,ignore.stderr=TRUE),":"))[2])
+            if (grepl("darwin",  R.version$os))
+                out <- as.integer(unlist(strsplit(system("/usr/sbin/sysctl hw.ncpu",TRUE,ignore.stderr=TRUE),":"))[2])
 	}
 	#if (.Call("mpidist",PACKAGE="Rmpi") == 1 && out > 1)
 	#	if (.Platform$OS!="windows")
@@ -99,27 +99,27 @@ mpi.get.processor.name <- function(short=TRUE){
     name
 }
 
-mpi.sendrecv <-  function(senddata, sendtype, dest, sendtag, recvdata, 
-			recvtype, source, recvtag, 
-         		comm = 1, status = 0) 
+mpi.sendrecv <-  function(senddata, sendtype, dest, sendtag, recvdata,
+			recvtype, source, recvtag,
+         		comm = 1, status = 0)
  {
-   .Call("mpi_sendrecv", senddata, as.integer(sendtype), 
-	  as.integer(dest), 
-          as.integer(sendtag), recvdata, as.integer(recvtype), 
+   .Call("mpi_sendrecv", senddata, as.integer(sendtype),
+	  as.integer(dest),
+          as.integer(sendtag), recvdata, as.integer(recvtype),
           as.integer(source), as.integer(recvtag), as.integer(comm),
           as.integer(status), PACKAGE="Rmpi")
 }
 
-mpi.sendrecv.replace <- function(x, type, dest, sendtag, source, recvtag,  
+mpi.sendrecv.replace <- function(x, type, dest, sendtag, source, recvtag,
          comm = 1, status = 0)
  {
    .Call("mpi_sendrecv_replace", x, as.integer(type), as.integer(dest),
-          as.integer(sendtag), as.integer(source), as.integer(recvtag), 
+          as.integer(sendtag), as.integer(source), as.integer(recvtag),
           as.integer(comm), as.integer(status), PACKAGE="Rmpi")
 }
 
 mpi.cart.create <- function(commold=1, dims, periods, reorder=FALSE, commcart=3) {
-        .Call("mpi_cart_create", as.integer(commold), as.integer(dims), 
+        .Call("mpi_cart_create", as.integer(commold), as.integer(dims),
         as.integer(periods), as.integer(reorder), as.integer(commcart), PACKAGE="Rmpi")
 }
 
@@ -141,12 +141,12 @@ mpi.cart.rank <- function(comm=3, coords) {
 }
 
 mpi.cart.coords <- function(comm=3, rank, maxdims) {
-        .Call("mpi_cart_coords",as.integer(comm), as.integer(rank), as.integer(maxdims), 
+        .Call("mpi_cart_coords",as.integer(comm), as.integer(rank), as.integer(maxdims),
 	PACKAGE="Rmpi")
 }
 
 mpi.cart.shift <- function(comm=3, direction, disp){
-	.Call("mpi_cart_shift",   as.integer(comm), as.integer(direction-1), 
+	.Call("mpi_cart_shift",   as.integer(comm), as.integer(direction-1),
 		as.integer(disp), PACKAGE="Rmpi")
 }
 

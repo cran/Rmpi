@@ -42,7 +42,7 @@ be used to check the object has been sent.
 Hao Yu
 }
 \references{
-  \url{http://www.openmpi.org/}
+  \url{https://www.open-mpi.org/}
 }
 \seealso{
   \code{\link{mpi.send}},
