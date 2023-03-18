@@ -1,7 +1,7 @@
 citHeader("To cite Rmpi in a publication use:")
 
-citEntry(
-  entry = "Article",
+bibentry(
+  bibtype = "Article",
   title = "Rmpi: Parallel Statistical Computing in R",
   author = "Hao Yu",
   journal = "R News",

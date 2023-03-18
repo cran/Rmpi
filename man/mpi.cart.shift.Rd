@@ -1,5 +1,5 @@
 \name{mpi.cart.shift}
-\title{MPI\_Cart\_shift}
+\title{MPI_Cart_shift}
 \alias{mpi.cart.shift}
 \description{
  \code{mpi.cart.shift} shifts the Cartesian topology in both manners, displacement
@@ -36,10 +36,10 @@ Alek Hunchak and Hao Yu
 \examples{
 \donttest{
 #Need at least 9 slaves
-mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
-mpi.cart.create(1,c(3,3),c(F,T))
-mpi.remote.exec(mpi.cart.shift(3,2,1))#get neighbor ranks
-mpi.remote.exec(mpi.cart.shift(3,1,1))
+#mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
+#mpi.cart.create(1,c(3,3),c(F,T))
+#mpi.remote.exec(mpi.cart.shift(3,2,1))#get neighbor ranks
+#mpi.remote.exec(mpi.cart.shift(3,1,1))
 }
 } 
 \keyword{interface}

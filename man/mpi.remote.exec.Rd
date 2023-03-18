@@ -43,9 +43,9 @@ Hao Yu
 }
 \examples{
 \donttest{
-mpi.remote.exec(mpi.comm.rank())
- x=5
-mpi.remote.exec(rnorm,x)
+#mpi.remote.exec(mpi.comm.rank())
+# x=5
+#mpi.remote.exec(rnorm,x)
 }
 }
 

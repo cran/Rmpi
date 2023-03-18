@@ -31,24 +31,24 @@ struct Dblint {
 // extern void *R_chk_calloc2(size_t, size_t);
 
 /* from Rmpi.c */
-SEXP mpi_initialize();
-SEXP mpi_finalize();
-SEXP mpi_get_processor_name();
-SEXP mpi_universe_size();
-SEXP mpi_any_source();
-SEXP mpi_any_tag();
-SEXP mpi_undefined();
-SEXP mpi_proc_null();
+SEXP mpi_initialize(void);
+SEXP mpi_finalize(void);
+SEXP mpi_get_processor_name(void);
+SEXP mpi_universe_size(void);
+SEXP mpi_any_source(void);
+SEXP mpi_any_tag(void);
+SEXP mpi_undefined(void);
+SEXP mpi_proc_null(void);
 SEXP mpi_info_create(SEXP sexp_info);
 SEXP mpi_info_set(SEXP sexp_info, SEXP sexp_key, SEXP sexp_value);
 SEXP mpi_info_get(SEXP sexp_info, SEXP sexp_key, SEXP sexp_valuelen);
 SEXP mpi_info_free(SEXP sexp_info);
 SEXP mpi_realloc_comm(SEXP sexp_newncomm);
-SEXP mpi_comm_maxsize();
+SEXP mpi_comm_maxsize(void);
 SEXP mpi_realloc_status(SEXP sexp_newnstatus);
-SEXP mpi_status_maxsize();
+SEXP mpi_status_maxsize(void);
 SEXP mpi_realloc_request(SEXP sexp_newnrequest);
-SEXP mpi_request_maxsize();
+SEXP mpi_request_maxsize(void);
 SEXP mpi_realloc_datatype(SEXP sexp_newndatatype);
 SEXP mpi_gather(SEXP sexp_sdata, SEXP sexp_type, SEXP sexp_rdata, 
 					SEXP sexp_root, SEXP sexp_comm);
@@ -86,7 +86,7 @@ SEXP mpi_comm_test_inter(SEXP sexp_comm);
 SEXP mpi_comm_spawn (SEXP sexp_slave, SEXP sexp_argv, SEXP sexp_nslave, SEXP sexp_info,
 					 SEXP sexp_root, SEXP sexp_intercomm, SEXP sexp_quiet);
 SEXP mpi_comm_get_parent(SEXP sexp_comm);
-SEXP mpi_is_master();
+SEXP mpi_is_master(void);
 SEXP mpi_comm_disconnect(SEXP sexp_comm);
 SEXP mpi_intercomm_merge(SEXP sexp_intercomm, SEXP sexp_high, SEXP sexp_comm);
 SEXP mpi_comm_remote_size(SEXP sexp_comm);

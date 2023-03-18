@@ -1,5 +1,5 @@
 \name{mpi.cart.get}
-\title{MPI\_Cart\_get}
+\title{MPI_Cart_get}
 \alias{mpi.cart.get}
 \description{
  \code{mpi.cart.get} provides the user with information on the Cartesian topology
@@ -31,9 +31,9 @@ Alek Hunchak and Hao Yu
 \examples{
 \donttest{
 #Need at least 9 slaves
-mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
-mpi.cart.create(1,c(3,3),c(F,T))
-mpi.remote.exec(mpi.cart.get(3,2))
+#mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
+#mpi.cart.create(1,c(3,3),c(F,T))
+#mpi.remote.exec(mpi.cart.get(3,2))
 }
 }
  

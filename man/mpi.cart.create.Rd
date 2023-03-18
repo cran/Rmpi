@@ -1,5 +1,5 @@
 \name{mpi.cart.create}
-\title{MPI\_Cart\_create}
+\title{MPI_Cart_create}
 \alias{mpi.cart.create}
 \description{
  \code{mpi.cart.create} creates a Cartesian structure of arbitrary dimension.
@@ -35,8 +35,8 @@ Alek Hunchak and Hao Yu
 \examples{
 \donttest{
 #Need at least 9 slaves
-mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
-mpi.cart.create(1,c(3,3),c(F,T))
+#mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
+#mpi.cart.create(1,c(3,3),c(F,T))
 }
 }
  

@@ -1,5 +1,5 @@
 \name{mpi.cart.coords}
-\title{MPI\_Cart\_coords}
+\title{MPI_Cart_coords}
 \alias{mpi.cart.coords}
 \description{
  \code{mpi.cart.coords} translates a rank to its Cartesian topology coordinate.
@@ -32,9 +32,9 @@ Alek Hunchak and Hao Yu
 \examples{
 \donttest{
 #Need at least 9 slaves
-mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
-mpi.cart.create(1,c(3,3),c(F,T))
-mpi.cart.coords(3,4,2)
+#mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
+#mpi.cart.create(1,c(3,3),c(F,T))
+#mpi.cart.coords(3,4,2)
 }
 
 } 

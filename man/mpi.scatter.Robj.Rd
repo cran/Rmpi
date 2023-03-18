@@ -1,5 +1,5 @@
 \name{mpi.scatter.Robj}
-\title{Extensions of MPI\_ SCATTER and MPI\_SCATTERV }
+\title{Extensions of MPI_ SCATTER and MPI_SCATTERV }
 \alias{mpi.scatter.Robj}
 \alias{mpi.scatter.Robj2slave}
 \description{
@@ -37,19 +37,19 @@ Hao Yu  and   Wei Xia
 \examples{
 \donttest{
 #assume that there are three slaves running
-mpi.bcast.cmd(x<-mpi.scatter.Robj())
+#mpi.bcast.cmd(x<-mpi.scatter.Robj())
 
-xx <- list("master",rnorm(3),letters[2],1:10)
-mpi.scatter.Robj(obj=xx)
+#xx <- list("master",rnorm(3),letters[2],1:10)
+#mpi.scatter.Robj(obj=xx)
 
-mpi.remote.exec(x)
+#mpi.remote.exec(x)
 
 #scatter a matrix to slaves
-dat=matrix(1:24,ncol=3)
-splitmatrix = function(x, ncl) lapply(.splitIndices(nrow(x), ncl), function(i) x[i,])
-dat2=splitmatrix(dat,3)
-mpi.scatter.Robj2slave(dat2)
-mpi.remote.exec(dat2)
+#dat=matrix(1:24,ncol=3)
+#splitmatrix = function(x, ncl) lapply(.splitIndices(nrow(x), ncl), function(i) x[i,])
+#dat2=splitmatrix(dat,3)
+#mpi.scatter.Robj2slave(dat2)
+#mpi.remote.exec(dat2)
 }
 }
 \keyword{utilities}

@@ -1,5 +1,5 @@
 \name{mpi.send}
-\title{MPI\_Send, MPI\_Isend, MPI\_Recv, and MPI\_Irecv APIs}
+\title{MPI_Send, MPI_Isend, MPI_Recv, and MPI_Irecv APIs}
 \alias{mpi.send}
 \alias{mpi.isend}
 \alias{mpi.recv}
@@ -86,14 +86,14 @@ Hao Yu
 \examples{ 
 \donttest{
 #on a slave
-mpi.send(1:10,1,0,0)
+#mpi.send(1:10,1,0,0)
 
 #on master
-x <- integer(10)
-mpi.irecv(x,1,1,0)
-x	
-mpi.wait()
-x
+#x <- integer(10)
+#mpi.irecv(x,1,1,0)
+#x	
+#mpi.wait()
+#x
 }
 } 
 \keyword{interface}

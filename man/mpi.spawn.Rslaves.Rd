@@ -85,10 +85,10 @@ Hao Yu
 }
 \examples{
 \donttest{
-mpi.spawn.Rslaves(nslaves=2)
-tailslave.log()
-mpi.remote.exec(rnorm(10))
-mpi.close.Rslaves()
+#mpi.spawn.Rslaves(nslaves=2)
+#tailslave.log()
+#mpi.remote.exec(rnorm(10))
+#mpi.close.Rslaves()
 }
 }
 \keyword{utilities}

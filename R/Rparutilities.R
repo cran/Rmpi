@@ -243,11 +243,11 @@ mpi.remote.exec <- function(cmd, ...,  simplify=TRUE, comm=1, ret=TRUE){
 }
 
 .typeindex <- function (x) {
-    if(class(x)=="integer")
+    if(is.integer(x))
             as.integer(c(1,length(x)))
-    else if (class(x)=="numeric")
+    else if (is.numeric(x))
             as.integer(c(2,length(x)))
-    else if (class(x)=="raw")
+    else if (is.raw(x))
             as.integer(c(4,length(x)))
 
     else

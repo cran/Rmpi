@@ -35,7 +35,7 @@ static MPI_Datatype *xdouble;
 #define XLENGTH LENGTH
 #endif
 
-SEXP mpidist(){
+SEXP mpidist(void){
 	int i=0;
 
 #ifdef OPENMPI
@@ -57,7 +57,7 @@ SEXP mpidist(){
 	return AsInt(i);	
 }
 
-SEXP mpi_initialize(){
+SEXP mpi_initialize(void){
 	int i,flag;
 	MPI_Initialized(&flag);
 
@@ -107,7 +107,7 @@ if (flag)
 	} 
 }
 
-SEXP mpi_finalize(){
+SEXP mpi_finalize(void){
 	MPI_Finalize();
 	Free(comm);
 	Free(status);
@@ -118,7 +118,7 @@ SEXP mpi_finalize(){
 	return AsInt(1);
 }
 
-SEXP mpi_get_processor_name (){
+SEXP mpi_get_processor_name (void){
 	int resultlen;
 	char *name;
 	SEXP sexp_name;
@@ -139,7 +139,7 @@ SEXP bin_nchar(SEXP sexp_data){
 */
 
 #ifdef MPI2
-SEXP mpi_universe_size(){
+SEXP mpi_universe_size(void){
 	int *MPI_Universe_Size;
 	int univ_flag;
 	MPI_Comm_get_attr(comm[0], MPI_UNIVERSE_SIZE, &MPI_Universe_Size, &univ_flag);
@@ -150,19 +150,19 @@ SEXP mpi_universe_size(){
 }
 #endif
 
-SEXP mpi_any_source(){
+SEXP mpi_any_source(void){
 	return AsInt(MPI_ANY_SOURCE);
 }
 
-SEXP mpi_any_tag(){
+SEXP mpi_any_tag(void){
 	return AsInt(MPI_ANY_TAG);
 }
 
-SEXP mpi_undefined(){
+SEXP mpi_undefined(void){
 	return AsInt(MPI_UNDEFINED);
 }
 
-SEXP mpi_proc_null(){
+SEXP mpi_proc_null(void){
 	return AsInt(MPI_PROC_NULL);
 }
 
@@ -205,7 +205,7 @@ SEXP mpi_realloc_comm(SEXP sexp_newncomm){
 	return AsInt(1);
 }
 
-SEXP mpi_comm_maxsize(){
+SEXP mpi_comm_maxsize(void){
 	return AsInt(COMM_MAXSIZE);
 }
 
@@ -218,7 +218,7 @@ SEXP mpi_realloc_status(SEXP sexp_newnstatus){
 	return AsInt(1);
 }
 
-SEXP mpi_status_maxsize(){
+SEXP mpi_status_maxsize(void){
 	return AsInt(STATUS_MAXSIZE);
 }
 
@@ -232,7 +232,7 @@ SEXP mpi_realloc_request(SEXP sexp_newnrequest){
 	return AsInt(1);
 }
 
-SEXP mpi_request_maxsize(){
+SEXP mpi_request_maxsize(void){
 	return AsInt(REQUEST_MAXSIZE);
 }
 
@@ -1065,7 +1065,7 @@ SEXP mpi_comm_get_parent(SEXP sexp_comm){
 	return AsInt(erreturn(mpi_errhandler(MPI_Comm_get_parent(&comm[INTEGER(sexp_comm)[0]]))));
 }
 
-SEXP mpi_is_master(){
+SEXP mpi_is_master(void){
 	int check;
 	MPI_Comm master;
 	MPI_Comm_get_parent(&master);

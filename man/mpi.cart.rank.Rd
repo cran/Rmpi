@@ -1,5 +1,5 @@
 \name{mpi.cart.rank}
-\title{MPI\_Cart\_rank}
+\title{MPI_Cart_rank}
 \alias{mpi.cart.rank}
 \description{
  \code{mpi.cart.rank} translates a Cartesian topology coordinate to its rank.
@@ -30,9 +30,9 @@ Alek Hunchak and Hao Yu
 \examples{
 \donttest{
 #Need at least 9 slaves
-mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
-mpi.cart.create(1,c(3,3),c(F,T))
-mpi.cart.rank(3,c(1,0))
+#mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
+#mpi.cart.create(1,c(3,3),c(F,T))
+#mpi.cart.rank(3,c(1,0))
 }
 } 
 \keyword{interface}

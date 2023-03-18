@@ -1,5 +1,5 @@
 \name{mpi.gather.Robj}
-\title{Extentions of MPI\_Gather and MPI\_Allgather APIs}
+\title{Extentions of MPI_Gather and MPI_Allgather APIs}
 \alias{mpi.gather.Robj}
 \alias{mpi.allgather.Robj}
 \description{
@@ -44,17 +44,17 @@ Hao Yu and Wei Xia
 \examples{
 \donttest{
 #Assume that there are some slaves running
-mpi.bcast.cmd(id<-mpi.comm.rank())
-mpi.bcast.cmd(x<-rnorm(id))
-mpi.bcast.cmd(mpi.gather.Robj(x))
-x<-"test mpi.gather.Robj"
-mpi.gather.Robj(x)
+#mpi.bcast.cmd(id<-mpi.comm.rank())
+#mpi.bcast.cmd(x<-rnorm(id))
+#mpi.bcast.cmd(mpi.gather.Robj(x))
+#x<-"test mpi.gather.Robj"
+#mpi.gather.Robj(x)
 
-mpi.bcast.cmd(obj<-rnorm(id+10))
-mpi.bcast.cmd(nn<-mpi.allgather.Robj(obj))
-obj<-rnorm(5)
-mpi.allgather.Robj(obj)
-mpi.remote.exec(nn)
+#mpi.bcast.cmd(obj<-rnorm(id+10))
+#mpi.bcast.cmd(nn<-mpi.allgather.Robj(obj))
+#obj<-rnorm(5)
+#mpi.allgather.Robj(obj)
+#mpi.remote.exec(nn)
 }
 }
 \keyword{interface}

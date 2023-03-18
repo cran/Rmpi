@@ -1,6 +1,5 @@
 ### Copyright (C) 2002 Hao Yu
 mpi.finalize <- function(){
-    #if(interactive() && mpi.is.master())
      #   print("Exiting Rmpi. Rmpi cannot be used unless relaunching R.")
     .Call("mpi_finalize",PACKAGE = "Rmpi")
 }

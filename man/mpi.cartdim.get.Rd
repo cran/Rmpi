@@ -1,5 +1,5 @@
 \name{mpi.cartdim.get}
-\title{MPI\_Cartdim\_get}
+\title{MPI_Cartdim_get}
 \alias{mpi.cartdim.get}
 \description{
  \code{mpi.cartdim.get} gets dim information about a Cartesian topology. 
@@ -28,9 +28,9 @@ Alek Hunchak and Hao Yu
 \examples{
 \donttest{
 #Need at least 9 slaves
-mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
-mpi.cart.create(1,c(3,3),c(F,T))
-mpi.cartdim.get(comm=3)
+#mpi.bcast.cmd(mpi.cart.create(1,c(3,3),c(F,T)))
+#mpi.cart.create(1,c(3,3),c(F,T))
+#mpi.cartdim.get(comm=3)
 }
 }
 \keyword{interface} 

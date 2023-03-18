@@ -1,5 +1,5 @@
 \name{mpi.dims.create}
-\title{MPI\_Dims\_create}
+\title{MPI_Dims_create}
 \alias{mpi.dims.create}
 \description{
  \code{mpi.dims.create} Create a Cartesian dimension used by \code{mpi.cart.create}.
@@ -35,9 +35,10 @@ Hao Yu
 \examples{
 \donttest{
 #What is the dim numbers of 2 dim Cartersian topology under a grid of 36 nodes
-mpi.dims.create(36,2)	#return c(6,6)
+#mpi.dims.create(36,2)	#return c(6,6)
+
 #Constrained dim numbers
-mpi.dims.create(12,2,c(0,4)) #return c(9,4)
+#mpi.dims.create(12,2,c(0,4)) #return c(9,4)
 }
 } 
 \keyword{interface}
