@@ -777,7 +777,10 @@ mpi.parSapply <- function (X, FUN, ..., job.num=mpi.comm.size(comm)-1, apply.seq
     answer <- mpi.parLapply(as.list(X),FUN,...,job.num=job.num,apply.seq=apply.seq,comm=comm)
     if (USE.NAMES && is.character(X) && is.null(names(answer))) 
         names(answer) <- X
-    .simplify(length(X),answer, simplify)
+    #.simplify(length(X),answer, simplify)
+    if (!isFALSE(simplify)) 
+        simplify2array(answer, higher = (simplify == "array"))
+    else answer
 }
 
 mpi.iparSapply <- function (X, FUN, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
@@ -791,7 +794,7 @@ mpi.iparSapply <- function (X, FUN, ..., job.num=mpi.comm.size(comm)-1, apply.se
 }
 
 mpi.parReplicate <- function(n,  expr, job.num=mpi.comm.size(comm)-1, apply.seq=NULL,
-                                simplify = TRUE, comm=1){
+                                simplify = "array", comm=1){
     mpi.parSapply(integer(n), eval.parent(substitute(function(...) expr)), 
     job.num=job.num, apply.seq=apply.seq, simplify = simplify, comm=comm)
 }

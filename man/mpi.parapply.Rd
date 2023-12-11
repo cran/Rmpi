@@ -24,15 +24,15 @@ mpi.parRapply(X, FUN, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL,
 mpi.parCapply(X, FUN, ..., job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
 		comm=1)  
 mpi.parReplicate(n, expr, job.num=mpi.comm.size(comm)-1, apply.seq=NULL, 
-		simplify = TRUE, comm=1)
+		simplify = "array", comm=1)
 mpi.parMM (A, B, job.num=mpi.comm.size(comm)-1, comm=1)
 }
 \arguments{
   \item{X}{an array or matrix.}
   \item{MARGIN}{vector specifying the dimensions to use.}
   \item{FUN}{a function.}
-  \item{simplify}{logical; should the result be simplified to a vector or
-          matrix if possible?}
+  \item{simplify}{logical or character string; should the result be simplified
+          to a vector, matrix or higher dimensional array if possible?}
   \item{USE.NAMES}{logical; if \code{TRUE} and if \code{X} is character, use \code{X} as
           \code{names} for the result unless it had names already.}
   \item{n}{number of replications.}
