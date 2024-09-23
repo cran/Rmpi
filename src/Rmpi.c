@@ -92,13 +92,13 @@ if (flag)
 
 		MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 		MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN);
-		comm=(MPI_Comm *)Calloc(COMM_MAXSIZE, MPI_Comm); 
-		status=(MPI_Status *)Calloc(STATUS_MAXSIZE, MPI_Status); 
-		datatype=(MPI_Datatype *)Calloc(1, MPI_Datatype); 
-		xdouble=(MPI_Datatype *)Calloc(1, MPI_Datatype); 
-		info=(MPI_Info *)Calloc(1, MPI_Info);
+		comm=(MPI_Comm *)R_Calloc(COMM_MAXSIZE, MPI_Comm); 
+		status=(MPI_Status *)R_Calloc(STATUS_MAXSIZE, MPI_Status); 
+		datatype=(MPI_Datatype *)R_Calloc(1, MPI_Datatype); 
+		xdouble=(MPI_Datatype *)R_Calloc(1, MPI_Datatype); 
+		info=(MPI_Info *)R_Calloc(1, MPI_Info);
 		info[0]=MPI_INFO_NULL;
-		request=(MPI_Request *)Calloc(REQUEST_MAXSIZE, MPI_Request);
+		request=(MPI_Request *)R_Calloc(REQUEST_MAXSIZE, MPI_Request);
 		for (i=0; i< REQUEST_MAXSIZE; request[i++]=MPI_REQUEST_NULL);	
 		comm[0]=MPI_COMM_WORLD;
 		for (i=1;i < COMM_MAXSIZE; comm[i++]=MPI_COMM_NULL);
@@ -109,12 +109,12 @@ if (flag)
 
 SEXP mpi_finalize(void){
 	MPI_Finalize();
-	Free(comm);
-	Free(status);
-	Free(request);
-	Free(datatype);
-	Free(xdouble);
-	Free(info);
+	R_Free(comm);
+	R_Free(status);
+	R_Free(request);
+	R_Free(datatype);
+	R_Free(xdouble);
+	R_Free(info);
 	return AsInt(1);
 }
 
@@ -123,11 +123,11 @@ SEXP mpi_get_processor_name (void){
 	char *name;
 	SEXP sexp_name;
     PROTECT (sexp_name  = allocVector (STRSXP, 1));
-	name = (char *)Calloc(MPI_MAX_PROCESSOR_NAME, char);
+	name = (char *)R_Calloc(MPI_MAX_PROCESSOR_NAME, char);
 	MPI_Get_processor_name(name, &resultlen);
 	SET_STRING_ELT(sexp_name, 0, mkChar(name));
 	UNPROTECT(1);
-	Free(name);
+	R_Free(name);
 
 	return sexp_name;
 }
@@ -181,13 +181,13 @@ SEXP mpi_info_get(SEXP sexp_info, SEXP sexp_key, SEXP sexp_valuelen){
 	SEXP sexp_value;
 
     	PROTECT (sexp_value  = allocVector (STRSXP, 1));
- 	value = (char *)Calloc(INTEGER(sexp_valuelen)[0], char);  
+ 	value = (char *)R_Calloc(INTEGER(sexp_valuelen)[0], char);  
 	mpi_errhandler(MPI_Info_get(info[INTEGER(sexp_info)[0]], 
 		CHAR2( STRING_ELT (sexp_key,0)), 
 		INTEGER(sexp_valuelen)[0], value, &flag));
         SET_STRING_ELT(sexp_value, 0, mkChar(value));
         UNPROTECT(1); 
-	Free(value);
+	R_Free(value);
 	return sexp_value;
 }
 
@@ -198,7 +198,7 @@ SEXP mpi_info_free(SEXP sexp_info){
 SEXP mpi_realloc_comm(SEXP sexp_newncomm){
 	int i, newcomm=INTEGER(sexp_newncomm)[0];
 	if (newcomm > COMM_MAXSIZE){
-		comm=(MPI_Comm *)Realloc(comm, newcomm, MPI_Comm); 	
+		comm=(MPI_Comm *)R_Realloc(comm, newcomm, MPI_Comm); 	
 		for (i=COMM_MAXSIZE; i < newcomm; comm[i++]=MPI_COMM_NULL);
 		COMM_MAXSIZE=newcomm;
 	}
@@ -212,7 +212,7 @@ SEXP mpi_comm_maxsize(void){
 SEXP mpi_realloc_status(SEXP sexp_newnstatus){
 	int newsize=INTEGER(sexp_newnstatus)[0];
 	if (newsize > STATUS_MAXSIZE){
-		status=(MPI_Status *)Realloc(status, newsize, MPI_Status); 
+		status=(MPI_Status *)R_Realloc(status, newsize, MPI_Status); 
 		STATUS_MAXSIZE=newsize;
 	}
 	return AsInt(1);
@@ -225,7 +225,7 @@ SEXP mpi_status_maxsize(void){
 SEXP mpi_realloc_request(SEXP sexp_newnrequest){
 	int i, newsize=INTEGER(sexp_newnrequest)[0];
 	if (newsize > REQUEST_MAXSIZE){
-		request=(MPI_Request *)Realloc(request, newsize , MPI_Request); 
+		request=(MPI_Request *)R_Realloc(request, newsize , MPI_Request); 
 		for (i=REQUEST_MAXSIZE; i< newsize; request[i++]=MPI_REQUEST_NULL);	
 		REQUEST_MAXSIZE=newsize;
 	}
@@ -237,7 +237,7 @@ SEXP mpi_request_maxsize(void){
 }
 
 SEXP mpi_realloc_datatype(SEXP sexp_newndatatype){
-	datatype=(MPI_Datatype *)Realloc(datatype, INTEGER(sexp_newndatatype)[0], MPI_Datatype); 
+	datatype=(MPI_Datatype *)R_Realloc(datatype, INTEGER(sexp_newndatatype)[0], MPI_Datatype); 
 	return AsInt(1);
 }
 
@@ -267,12 +267,12 @@ SEXP mpi_gather(SEXP sexp_sdata,
 		rlen=LENGTH(STRING_ELT(sexp_rdata,0));
 
         	PROTECT (sexp_rdata2  = allocVector (STRSXP, 1));
-        	rdata = (char *)Calloc(rlen, char);
+        	rdata = (char *)R_Calloc(rlen, char);
                 MPI_Gather(CHAR2 (STRING_ELT ((sexp_sdata),0)), len, MPI_CHAR,
                         rdata, len, MPI_CHAR, root, comm[commn]);
         	SET_STRING_ELT(sexp_rdata2, 0, mkChar(rdata));
         	UNPROTECT(1);
-		Free(rdata);
+		R_Free(rdata);
 		break;
 	case 4:
                 len=LENGTH(sexp_sdata);
@@ -306,7 +306,7 @@ SEXP mpi_gatherv(SEXP sexp_sdata,
 	MPI_Comm_size(comm[commn], &gsize);
 	MPI_Comm_rank(comm[commn], &rank);
 	if (rank==root){
-		displs=(int *)Calloc(gsize, int);
+		displs=(int *)R_Calloc(gsize, int);
 		displs[0]=0;
 		for (i=1; i < gsize; i++)
 			displs[i]=displs[i-1]+INTEGER(sexp_recvcounts)[i-1];
@@ -330,13 +330,13 @@ SEXP mpi_gatherv(SEXP sexp_sdata,
 		rlen=LENGTH(STRING_ELT(sexp_rdata,0));
         
                 PROTECT (sexp_rdata2  = allocVector (STRSXP, 1));
-                rdata = (char *)Calloc(rlen, char);
+                rdata = (char *)R_Calloc(rlen, char);
                 MPI_Gatherv(CHAR2 (STRING_ELT ((sexp_sdata),0)),len,MPI_CHAR,
 		     rdata, INTEGER(sexp_recvcounts),
 		     displs, MPI_CHAR, root, comm[commn]);
                 SET_STRING_ELT(sexp_rdata2, 0, mkChar(rdata));
                 UNPROTECT(1);
-		Free(rdata);
+		R_Free(rdata);
 		break;
 	case 4:
                 len=LENGTH(sexp_sdata);
@@ -352,7 +352,7 @@ SEXP mpi_gatherv(SEXP sexp_sdata,
 		break;	
 	}
 	if (rank == root)
-		Free(displs);
+		R_Free(displs);
 
 	if (INTEGER(sexp_type)[0]==3)
 		return sexp_rdata2;
@@ -386,12 +386,12 @@ SEXP mpi_scatter(SEXP sexp_sdata,
                 rlen=LENGTH(STRING_ELT(sexp_rdata,0));
 
                 PROTECT (sexp_rdata2  = allocVector (STRSXP, 1));
-                rdata = (char *)Calloc(rlen, char);
+                rdata = (char *)R_Calloc(rlen, char);
 		MPI_Scatter(CHAR2(STRING_ELT ((sexp_sdata),0)), len, MPI_CHAR,
                        rdata, len, MPI_CHAR, root, comm[commn]);
                 SET_STRING_ELT(sexp_rdata2, 0, mkChar(rdata));
                 UNPROTECT(1);
-		Free(rdata);
+		R_Free(rdata);
 		break;
 	case 4:
                 len=LENGTH(sexp_rdata);
@@ -425,7 +425,7 @@ SEXP mpi_scatterv(SEXP sexp_sdata,
 	MPI_Comm_size(comm[commn], &gsize);
 	MPI_Comm_rank(comm[commn], &rank);
 	if (rank==root){
-		displs=(int *)Calloc(gsize, int);
+		displs=(int *)R_Calloc(gsize, int);
 		displs[0]=0;
 		for (i=1; i < gsize; i++)
 			displs[i]=displs[i-1]+INTEGER(sexp_sendcounts)[i-1];
@@ -450,12 +450,12 @@ SEXP mpi_scatterv(SEXP sexp_sdata,
 
                 PROTECT (sexp_rdata2  = allocVector (STRSXP, 1));
                 // rdata = (char *)R_alloc(rlen, sizeof(char));
-                rdata = (char *)Calloc(rlen, char);
+                rdata = (char *)R_Calloc(rlen, char);
                 MPI_Scatterv(CHAR2 (STRING_ELT ((sexp_sdata),0)), INTEGER(sexp_sendcounts),displs, 
 			MPI_CHAR,rdata, len, MPI_CHAR, root, comm[commn]);
                 SET_STRING_ELT(sexp_rdata2, 0, mkChar(rdata));
                 UNPROTECT(1);
-		Free(rdata);
+		R_Free(rdata);
 		break;
 	case 4:
                 len=LENGTH(sexp_rdata);
@@ -472,7 +472,7 @@ SEXP mpi_scatterv(SEXP sexp_sdata,
 	}
 	if (rank == root)
 
-		Free(displs);
+		R_Free(displs);
 
         if (INTEGER(sexp_type)[0]==3)
                 return sexp_rdata2;
@@ -504,12 +504,12 @@ SEXP mpi_allgather(SEXP sexp_sdata,
                 rlen=LENGTH(STRING_ELT(sexp_rdata,0));
 
                 PROTECT (sexp_rdata2  = allocVector (STRSXP, 1));
-                rdata = (char *)Calloc(rlen, char);
+                rdata = (char *)R_Calloc(rlen, char);
                 MPI_Allgather(CHAR2 (STRING_ELT ((sexp_sdata),0)),len,
 			MPI_CHAR,rdata, len, MPI_CHAR, comm[commn]);
                 SET_STRING_ELT(sexp_rdata2, 0, mkChar(rdata));
                 UNPROTECT(1);
-		Free(rdata);
+		R_Free(rdata);
 		break;
  	case 4:
                 len=LENGTH(sexp_sdata);
@@ -540,7 +540,7 @@ SEXP mpi_allgatherv(SEXP sexp_sdata,
 	SEXP sexp_rdata2 = NULL;
 	
 	MPI_Comm_size(comm[commn], &gsize);
-	displs=(int *)Calloc(gsize, int);
+	displs=(int *)R_Calloc(gsize, int);
 	displs[0]=0;
 	for (i=1; i < gsize; i++)
 		displs[i]=displs[i-1]+INTEGER(sexp_recvcounts)[i-1];
@@ -563,12 +563,12 @@ SEXP mpi_allgatherv(SEXP sexp_sdata,
                 rlen=LENGTH(STRING_ELT(sexp_rdata,0));
 
                 PROTECT (sexp_rdata2  = allocVector (STRSXP, 1));
-                rdata = (char *)Calloc(rlen, char);
+                rdata = (char *)R_Calloc(rlen, char);
                 MPI_Allgatherv(CHAR2 (STRING_ELT ((sexp_sdata),0)),len, MPI_CHAR, rdata,
 		      INTEGER(sexp_recvcounts), displs, MPI_CHAR, comm[commn]);
                 SET_STRING_ELT(sexp_rdata2, 0, mkChar(rdata));
                 UNPROTECT(1);
-		Free(rdata);
+		R_Free(rdata);
 		break;
  	case 4:
                 len=LENGTH(sexp_sdata);
@@ -583,7 +583,7 @@ SEXP mpi_allgatherv(SEXP sexp_sdata,
 		UNPROTECT(1);
 		break;	
 	}
-	Free(displs);
+	R_Free(displs);
         if (INTEGER(sexp_type)[0]==3)
                 return sexp_rdata2;
         else
@@ -619,11 +619,11 @@ SEXP mpi_bcast(SEXP sexp_data,
 				MPI_CHAR, rank, comm[commn]);
 		else {
                 	PROTECT (sexp_data2  = allocVector (STRSXP, 1));
-	               	rdata = (char *)Calloc(slen, char);
+	               	rdata = (char *)R_Calloc(slen, char);
                        	MPI_Bcast(rdata, slen, MPI_CHAR, rank, comm[commn]);
 			SET_STRING_ELT(sexp_data2, 0, mkChar(rdata));
 			UNPROTECT(1);
-			Free(rdata);
+			R_Free(rdata);
 		}
 		break;
 	case 4:
@@ -713,11 +713,11 @@ SEXP mpi_recv(SEXP sexp_data,
 	case 3:
 		slen=LENGTH(STRING_ELT(sexp_data,0));
                 PROTECT (sexp_data2  = allocVector (STRSXP, 1));
-                rdata = (char *)Calloc(slen, char);
+                rdata = (char *)R_Calloc(slen, char);
 		MPI_Recv(rdata, slen,MPI_CHAR,source,tag, comm[commn],&status[statusn]);
                 SET_STRING_ELT(sexp_data2, 0, mkChar(rdata));
                 UNPROTECT(1);
-		Free(rdata);
+		R_Free(rdata);
 		break;
 	case 4:          
 		mpi_errhandler(MPI_Recv(RAW(sexp_data), len, MPI_BYTE, source, tag, comm[commn],
@@ -779,7 +779,7 @@ SEXP mpi_reduce(SEXP sexp_send,
 		else{
 			int *send, rank, i;
 			MPI_Comm_rank(comm[commn], &rank);
-			send = (int *)Calloc(2*len, int);
+			send = (int *)R_Calloc(2*len, int);
 			for (i=0; i < len; i++){
 				send[2*i] = INTEGER(sexp_send)[i];
 				send[2*i+1] = rank; 
@@ -787,7 +787,7 @@ SEXP mpi_reduce(SEXP sexp_send,
 			PROTECT (sexp_recv = allocVector(INTSXP, 2*len));
 			mpi_errhandler(MPI_Reduce(send, INTEGER(sexp_recv), 
 			len, MPI_2INT, op, dest, comm[commn])); 
-			Free(send);
+			R_Free(send);
 			break;
 		}
 	case 2:
@@ -800,8 +800,8 @@ SEXP mpi_reduce(SEXP sexp_send,
 		else {
 			int i, rank;
 			struct Dblint *send, *recv;
-			send=(struct Dblint *)Calloc(len, struct Dblint);
-			recv=(struct Dblint *)Calloc(len, struct Dblint);
+			send=(struct Dblint *)R_Calloc(len, struct Dblint);
+			recv=(struct Dblint *)R_Calloc(len, struct Dblint);
 			MPI_Comm_rank(comm[commn], &rank);
 			for (i=0;i<len;i++){
 				send[i].x = REAL(sexp_send)[i];
@@ -813,8 +813,8 @@ SEXP mpi_reduce(SEXP sexp_send,
 				REAL(sexp_recv)[2*i] = recv[i].x;
 				REAL(sexp_recv)[2*i+1] = recv[i].rank;
 			}
-			Free(send);
-			Free(recv);
+			R_Free(send);
+			R_Free(recv);
 			break;
 		}
 	}
@@ -866,7 +866,7 @@ SEXP mpi_allreduce(SEXP sexp_send,
 		else{
 			int *send, rank, i;
 			MPI_Comm_rank(comm[commn], &rank);
-			send = (int *)Calloc(2*len, int);
+			send = (int *)R_Calloc(2*len, int);
 			for (i=0; i < len; i++){
 				send[2*i] = INTEGER(sexp_send)[i];
 				send[2*i+1] = rank; 
@@ -874,7 +874,7 @@ SEXP mpi_allreduce(SEXP sexp_send,
 			PROTECT (sexp_recv = allocVector(INTSXP, 2*len));
 			mpi_errhandler(MPI_Allreduce(send, INTEGER(sexp_recv), 
 			len, MPI_2INT, op, comm[commn])); 
-			Free(send);
+			R_Free(send);
 		break;
 		}
 	case 2:
@@ -887,8 +887,8 @@ SEXP mpi_allreduce(SEXP sexp_send,
 		else {
 			int i, rank;
 			struct Dblint *send, *recv;
-			send=(struct Dblint *)Calloc(len, struct Dblint);
-			recv=(struct Dblint *)Calloc(len, struct Dblint);
+			send=(struct Dblint *)R_Calloc(len, struct Dblint);
+			recv=(struct Dblint *)R_Calloc(len, struct Dblint);
 			MPI_Comm_rank(comm[commn], &rank);
 			for (i=0;i<len;i++){
 				send[i].x = REAL(sexp_send)[i];
@@ -900,8 +900,8 @@ SEXP mpi_allreduce(SEXP sexp_send,
 				REAL(sexp_recv)[2*i] = recv[i].x;
 				REAL(sexp_recv)[2*i+1] = recv[i].rank;
 			}
-			Free(send);
-			Free(recv);
+			R_Free(send);
+			R_Free(recv);
 			break;
 		}
 	}
@@ -1036,7 +1036,7 @@ SEXP mpi_comm_spawn (SEXP sexp_slave,
 	int intercommn=INTEGER(sexp_intercomm)[0], *slaverrcode, realns;
     int quiet = INTEGER(sexp_quiet)[0];
 
-	slaverrcode = (int *)Calloc(nslave, int);
+	slaverrcode = (int *)R_Calloc(nslave, int);
 	if (len==0)
 		mpi_errhandler(MPI_Comm_spawn (CHAR2 (STRING_ELT (sexp_slave, 0)), MPI_ARGV_NULL, nslave,   
 					info[infon], root, MPI_COMM_SELF, &comm[intercommn],
@@ -1055,7 +1055,7 @@ SEXP mpi_comm_spawn (SEXP sexp_slave,
 	if (realns < nslave)
 		for (i=0; i < nslave; mpi_errhandler(slaverrcode[i++]));
 
-	Free(slaverrcode);
+	R_Free(slaverrcode);
 	if (!quiet || realns < nslave)
 		Rprintf("\t%d slaves are spawned successfully. %d failed.\n", realns, nslave-realns);
     return AsInt(realns);
@@ -1129,12 +1129,12 @@ SEXP mpi_sendrecv(SEXP sexp_senddata,
                 case 3:
                     rlen=LENGTH(STRING_ELT(sexp_recvdata,0)); 
                     PROTECT (sexp_recvdata2  = allocVector (STRSXP, 1));
-                    rdata = (char *)Calloc(rlen, char);
+                    rdata = (char *)R_Calloc(rlen, char);
                     MPI_Sendrecv(INTEGER(sexp_senddata),sendcount, MPI_INT, dest, sendtag, 
 			rdata, rlen, MPI_CHAR, source, recvtag, comm[commn],  &status[statusn]);
                     SET_STRING_ELT(sexp_recvdata2, 0, mkChar(rdata));
                     UNPROTECT(1);
-                    Free(rdata);
+                    R_Free(rdata);
                     break;
  		case 4:
                      MPI_Sendrecv(INTEGER(sexp_senddata),sendcount,
@@ -1161,12 +1161,12 @@ SEXP mpi_sendrecv(SEXP sexp_senddata,
                 case 3:
                     rlen=LENGTH(STRING_ELT(sexp_recvdata,0)); 
                     PROTECT (sexp_recvdata2  = allocVector (STRSXP, 1));
-                    rdata = (char *)Calloc(rlen, char);
+                    rdata = (char *)R_Calloc(rlen, char);
                     MPI_Sendrecv(REAL(sexp_senddata),sendcount, MPI_DOUBLE, dest, sendtag, 
 			rdata, rlen, MPI_CHAR, source, recvtag, comm[commn],  &status[statusn]);
                     SET_STRING_ELT(sexp_recvdata2, 0, mkChar(rdata));
                     UNPROTECT(1);
-                    Free(rdata);
+                    R_Free(rdata);
                     break;
  		case 4:
                     MPI_Sendrecv(REAL(sexp_senddata),sendcount,
@@ -1196,13 +1196,13 @@ SEXP mpi_sendrecv(SEXP sexp_senddata,
                 case 3:
                     rlen=LENGTH(STRING_ELT(sexp_recvdata,0));
                     PROTECT (sexp_recvdata2  = allocVector (STRSXP, 1));
-                    rdata = (char *)Calloc(rlen, char);
+                    rdata = (char *)R_Calloc(rlen, char);
 
 		    MPI_Sendrecv(CHAR2(STRING_ELT(sexp_senddata,0)),slen, MPI_CHAR, dest, sendtag, 
 			rdata, rlen, MPI_CHAR, source, recvtag, comm[commn], &status[statusn]);
                     SET_STRING_ELT(sexp_recvdata2, 0, mkChar(rdata));
                     UNPROTECT(1);
-                    Free(rdata);
+                    R_Free(rdata);
                     break;
  		case 4:
                     MPI_Sendrecv(CHAR2(STRING_ELT(sexp_senddata,0)),slen,
@@ -1230,12 +1230,12 @@ SEXP mpi_sendrecv(SEXP sexp_senddata,
                 case 3:
                     rlen=LENGTH(STRING_ELT(sexp_recvdata,0));
                     PROTECT (sexp_recvdata2  = allocVector (STRSXP, 1));
-                    rdata = (char *)Calloc(rlen, char);
+                    rdata = (char *)R_Calloc(rlen, char);
                     MPI_Sendrecv(RAW(sexp_senddata),sendcount, MPI_BYTE, dest, sendtag, 
 			rdata, rlen, MPI_CHAR, source, recvtag, comm[commn],  &status[statusn]);
                     SET_STRING_ELT(sexp_recvdata2, 0, mkChar(rdata));
                     UNPROTECT(1);
-                    Free(rdata);
+                    R_Free(rdata);
                     break;
                 case 4:
                     MPI_Sendrecv(RAW(sexp_senddata),sendcount,
@@ -1283,12 +1283,12 @@ SEXP mpi_sendrecv_replace(SEXP sexp_data,
         case 3:
                 slen=LENGTH(STRING_ELT(sexp_data,0));
 		PROTECT (sexp_data2  = allocVector (STRSXP, 1));
-		srdata= (char *)Calloc(slen, char);
+		srdata= (char *)R_Calloc(slen, char);
 		strcpy(srdata, CHAR(STRING_ELT(sexp_data,0)));
                 MPI_Sendrecv_replace(srdata, slen,MPI_CHAR, dest, sendtag, source, recvtag, 
 				comm[commn], &status[statusn]); 
 		UNPROTECT(1);
-		Free(srdata); 
+		R_Free(srdata); 
                 break;
  	case 4:
                 MPI_Sendrecv_replace(RAW(sexp_data), len, MPI_BYTE, dest,
