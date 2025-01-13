@@ -34,12 +34,13 @@ else
   fi
 fi
 
-if test -n "${MPI_INCLUDE_PATH}" && test -n "${MPI_LIBPATH}" ; then
+if test -n "${MPI_INCLUDE_PATH}" && test -z "${MPI_LIBPATH}" ; then
   AC_MSG_ERROR([Must specify both the include and lib paths])
 fi
-#if test -z "${MPI_INCLUDE_PATH}" -a -n "${MPI_LIBPATH}" ; then
-#  AC_MSG_ERROR([Must specify both the include and lib paths])
-#fi
+
+if test -z "${MPI_INCLUDE_PATH}" && test -n "${MPI_LIBPATH}" ; then
+  AC_MSG_ERROR([Must specify both the include and lib paths])
+fi
 
 MPITYPE="UNKNOWN"
 
