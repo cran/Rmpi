@@ -26,5 +26,5 @@
 
 .onUnload <- function(libpath){
 	mpi.finalize()
-	library.dynam.unload("Rmpi", libpath)
+	#library.dynam.unload("Rmpi", libpath)
 }

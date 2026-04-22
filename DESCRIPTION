@@ -1,6 +1,6 @@
 Package: Rmpi
-Version: 0.7-3.3
-Date: 2025-01-13
+Version: 0.7-3.4
+Date: 2026-04-22
 Title: Interface (Wrapper) to MPI (Message-Passing Interface)
 Depends: R (>= 2.15.1)
 Imports: parallel
@@ -9,7 +9,7 @@ Description: An interface (wrapper) to MPI. It also
 License: GPL (>= 2)
 URL: https://fisher.stats.uwo.ca/faculty/yu/Rmpi/
 Maintainer: Hao Yu <hyu@stats.uwo.ca>
-Packaged: 2025-01-13 15:26:37 UTC; hyuadm
+Packaged: 2026-04-22 15:21:18 UTC; hyuadm
 Author: Hao Yu [aut, cre]
 Authors@R: person(given = "Hao",
                     family = "Yu",
@@ -17,4 +17,4 @@ Authors@R: person(given = "Hao",
                     email = "hyu@stats.uwo.ca")
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2025-01-13 16:50:02 UTC
+Date/Publication: 2026-04-22 16:30:03 UTC
